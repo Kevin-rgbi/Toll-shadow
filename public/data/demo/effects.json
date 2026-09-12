@@ -1,0 +1,67 @@
+{
+  "synthetic": true,
+  "generatedFor": "visualization-development-only",
+  "policyStartDate": "2025-01-05",
+  "traffic": [
+    {
+      "locationId": "demo-brooklyn-bridge",
+      "name": "Brooklyn Bridge Approach",
+      "borough": "Brooklyn",
+      "period": "2025-01",
+      "observed": 112,
+      "expected": 100,
+      "effectPct": 0.12,
+      "confidence": 0.84,
+      "classification": "worsened",
+      "coordinates": [[-74.0064, 40.7127], [-73.9972, 40.7063], [-73.9903, 40.6998]]
+    },
+    {
+      "locationId": "demo-queensboro-bridge",
+      "name": "Queensboro Bridge Approach",
+      "borough": "Queens",
+      "period": "2025-01",
+      "observed": 107,
+      "expected": 100,
+      "effectPct": 0.07,
+      "confidence": 0.67,
+      "classification": "worsened",
+      "coordinates": [[-73.9638, 40.7567], [-73.9526, 40.7537], [-73.9424, 40.7512]]
+    },
+    {
+      "locationId": "demo-west-side",
+      "name": "West Side Corridor",
+      "borough": "Manhattan",
+      "period": "2025-01",
+      "observed": 91,
+      "expected": 100,
+      "effectPct": -0.09,
+      "confidence": 0.9,
+      "classification": "improved",
+      "coordinates": [[-74.0132, 40.705], [-74.0095, 40.724], [-74.0082, 40.746]]
+    }
+  ],
+  "monitors": [
+    {
+      "monitorId": "demo-mott-haven",
+      "name": "Mott Haven Demo Monitor",
+      "period": "2025-01",
+      "observedPm25": 8.1,
+      "expectedPm25": 7.8,
+      "effect": 0.3,
+      "confidence": 0.61,
+      "classification": "worsened",
+      "coordinates": [-73.9198, 40.808]
+    },
+    {
+      "monitorId": "demo-downtown-brooklyn",
+      "name": "Downtown Brooklyn Demo Monitor",
+      "period": "2025-01",
+      "observedPm25": 7.2,
+      "expectedPm25": 7.5,
+      "effect": -0.3,
+      "confidence": 0.76,
+      "classification": "improved",
+      "coordinates": [-73.9857, 40.6928]
+    }
+  ]
+}

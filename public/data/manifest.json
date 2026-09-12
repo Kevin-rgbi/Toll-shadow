@@ -1,0 +1,15 @@
+{
+  "version": "0.1.0-demo",
+  "generated_at": "2026-09-11",
+  "synthetic": true,
+  "policy_start_date": "2025-01-05",
+  "latest_observation_date": "2025-01-31",
+  "files": {
+    "effects": "/data/demo/effects.json",
+    "effects_by_period": {
+      "2025-01-01": "/data/demo/effects.json"
+    },
+    "zone": "/data/demo/toll_zone.geojson",
+    "manhattan": "/data/demo/manhattan.geojson"
+  }
+}

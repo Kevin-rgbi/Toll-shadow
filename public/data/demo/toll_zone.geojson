@@ -1,0 +1,23 @@
+{
+  "type": "FeatureCollection",
+  "name": "synthetic_placeholder_toll_zone",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "synthetic": true,
+        "label": "Placeholder CRZ boundary"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-74.0195, 40.7002],
+          [-73.9724, 40.7075],
+          [-73.9727, 40.7568],
+          [-74.0108, 40.7562],
+          [-74.0195, 40.7002]
+        ]]
+      }
+    }
+  ]
+}
