@@ -132,8 +132,22 @@ button {
   /* minmax(0, 1fr) keeps wide children (scrolling tab strips, mono metric tables) from
      expanding the page and creating horizontal overflow on small screens. */
   grid-template-columns: minmax(0, 1fr);
+  /* A definite height, not just a minimum: with only min-height the 1fr workspace row grows to the
+     data rail's content height, which stretches the map column far past the viewport and draws the
+     map centre off-screen. The rail scrolls inside the row instead. */
+  height: 100svh;
   min-height: 100svh;
   background: var(--paper);
+}
+
+/* SOURCES is a document, not a map view: it scrolls with the page. */
+.mode-sources {
+  height: auto;
+  min-height: 100svh;
+}
+
+.mode-sources .data-rail {
+  overflow: visible;
 }
 
 /* --------------------------------------------------------------- masthead */
@@ -542,14 +556,30 @@ button {
   will-change: transform;
 }
 
+.raster-map-layer {
+  position: absolute;
+  inset: 0;
+}
+
+.raster-map.is-dragging .raster-map-layer,
+.raster-map.is-dragging .raster-map-tiles {
+  will-change: transform;
+}
+
+/* One filter pass over the whole tile sheet. Filtering each image separately costs a composite per
+   tile, which is what made panning heavy on a phone. */
+.raster-map-tiles {
+  position: absolute;
+  inset: 0;
+  filter: saturate(0.06) contrast(0.94) brightness(1.05);
+}
+
 .raster-map-tile {
   position: absolute;
   width: 256px;
   height: 256px;
   pointer-events: none;
   user-select: none;
-  /* Match the editorial ground: tiles read as texture, the published points carry the colour. */
-  filter: saturate(0.06) contrast(0.94) brightness(1.05);
 }
 
 .raster-map-overlay {
@@ -1422,6 +1452,12 @@ button {
     letter-spacing: 0.09em;
     text-transform: uppercase;
     color: var(--muted);
+  }
+
+  /* Phones skip the tile colour treatment: the ground colour already reads as paper, and the
+     filter is the most expensive thing on the layer while panning. */
+  .raster-map-tiles {
+    filter: none;
   }
 
   /* The timeline sits directly above the collapsed sheet so scrubbing stays reachable. */

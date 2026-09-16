@@ -42,6 +42,10 @@ const INITIAL_ZOOM = 11
  */
 const PAD_TILES = 2
 
+/** Phones get one ring of padding instead of two: fewer images to decode and composite while panning. */
+const PAD_TILES_SMALL = 1
+const SMALL_VIEWPORT_PX = 900
+
 const radiusForVolume = (value: unknown): number => {
   const volume = typeof value === 'number' && Number.isFinite(value) ? value : 0
   return 3 + (Math.max(0, Math.min(volume, 150)) / 150) * 5
@@ -389,16 +393,18 @@ export function RasterMap({ boundary, traffic, notice }: RasterMapProps) {
   const tileZoom = tileLevelFor(zoom)
   const tileScaleFactor = tileScaleFactorFor(zoom)
 
+  const padTiles = viewport.width > 0 && viewport.width <= SMALL_VIEWPORT_PX ? PAD_TILES_SMALL : PAD_TILES
+
   const tileGrid = useMemo(() => {
     if (viewport.width === 0 || viewport.height === 0) return null
     return tileRangeFor(
       center.lng,
       center.lat,
       tileZoom,
-      viewport.width + PAD_TILES * TILE_SIZE * 2,
-      viewport.height + PAD_TILES * TILE_SIZE * 2,
+      viewport.width + padTiles * TILE_SIZE * 2,
+      viewport.height + padTiles * TILE_SIZE * 2,
     )
-  }, [center.lat, center.lng, tileZoom, viewport.height, viewport.width])
+  }, [center.lat, center.lng, padTiles, tileZoom, viewport.height, viewport.width])
 
   const tileElements = useMemo(() => {
     if (!tileGrid) return []
@@ -473,18 +479,20 @@ export function RasterMap({ boundary, traffic, notice }: RasterMapProps) {
         onKeyDown={onKeyDown}
       >
         <div className="raster-map-layer" ref={layerRef}>
-          {tileElements.map((tile) => (
-            <img
-              key={tile.key}
-              className="raster-map-tile"
-              src={tile.src}
-              alt=""
-              aria-hidden="true"
-              decoding="async"
-              draggable={false}
-              style={{ left: `${tile.left}px`, top: `${tile.top}px`, width: `${tile.size}px`, height: `${tile.size}px` }}
-            />
-          ))}
+          <div className="raster-map-tiles">
+            {tileElements.map((tile) => (
+              <img
+                key={tile.key}
+                className="raster-map-tile"
+                src={tile.src}
+                alt=""
+                aria-hidden="true"
+                decoding="async"
+                draggable={false}
+                style={{ left: `${tile.left}px`, top: `${tile.top}px`, width: `${tile.size}px`, height: `${tile.size}px` }}
+              />
+            ))}
+          </div>
 
           <svg className="raster-map-overlay" width={viewport.width} height={viewport.height} aria-hidden="true">
             {overlayPath && <path className="raster-map-boundary" d={overlayPath} />}

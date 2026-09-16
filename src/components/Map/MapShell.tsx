@@ -341,6 +341,12 @@ export function MapShell({
 
     mapRef.current = map
 
+    if (import.meta.env.DEV) {
+      // Development-only handle for inspecting sources, layers and paint at runtime. Guarded so it
+      // never reaches a production bundle.
+      ;(window as unknown as { __maplibre?: maplibregl.Map }).__maplibre = map
+    }
+
     // A GPU map can accept a context and still paint nothing: the style loads, the map reports
     // loaded, and the canvas stays blank. Nothing throws, so the only way to catch it is to check
     // whether background tiles actually arrived.
