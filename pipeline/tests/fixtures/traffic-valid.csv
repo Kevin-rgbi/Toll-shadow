@@ -1,0 +1,2 @@
+RequestID,Boro,Yr,M,D,HH,MM,Vol,SegmentID,WktGeom,street,fromSt,toSt,Direction
+101,Manhattan,2025,1,5,8,15,"1,147",55135,POINT (1035363.4 185093.4),Example Street,,Second Avenue,NB

@@ -1,0 +1,322 @@
+schema_version: 1.0.0
+catalog_name: Toll Shadow source register
+catalog_generated_at: '2026-09-16T02:50:00Z'
+source_root: ../../data
+sources:
+  - source_id: dot_automated_traffic_counts_archive_20260915
+    title: NYC DOT Automated Traffic Volume Counts
+    role: raw_observation
+    approval_status: approved_for_pipeline
+    original_path: raw/traffic/Automated_Traffic_Volume_Counts_20260915 (1).csv
+    original_filename: Automated_Traffic_Volume_Counts_20260915 (1).csv
+    sha256: 14d10d768c0398ebec41642c8b8deec2540c6165afb6f8f1a6231349b3619744
+    authoritative_url: https://data.cityofnewyork.us/Transportation/Automated-Traffic-Volume-Counts/7ym2-wayt/about_data
+    publisher: New York City Department of Transportation
+    license_status: public_open_data_catalog; license terms must be retained from the live source at refresh
+    acquired_at: '2026-09-15'
+    temporal_coverage:
+      start: '2000-01-01'
+      end: '2026-02-03'
+    geographic_coverage: New York City
+    geometry:
+      column: WktGeom
+      crs: EPSG:2263
+      crs_basis: SegmentID is a NYC LION street-network identifier; NYC Planning LION metadata declares NAD83 / New York Long Island feet, EPSG:2263.
+    grain: one traffic observation per requested count session, street segment, timestamp, and direction
+    schema:
+      required_columns: [RequestID, Boro, Yr, M, D, HH, MM, Vol, SegmentID, WktGeom, street, fromSt, toSt, Direction]
+      known_quality_exceptions:
+        - one negative volume value (-1) in the archived file; pipeline must reject or explicitly exclude it
+        - 1246 blank cells in the archived file; pipeline must report handling by field
+    allowed_uses:
+      - observed traffic count aggregation after parser and quality validation
+      - EPSG:4326 map points derived reproducibly from the raw WKT
+    forbidden_claims:
+      - causal congestion-pricing effect
+      - continuous traffic measurement or full-year count coverage
+    transformations: []
+
+  - source_id: dot_traffic_kepler_legacy_2024_2025
+    title: Legacy prepared DOT traffic table for Kepler
+    role: legacy_derivative
+    approval_status: reference_only_pending_reproduction
+    original_path: processed/traffic/Automated_Traffic_Volume_Kepler_Clean_2024_2025.csv
+    original_filename: Automated_Traffic_Volume_Kepler_Clean_2024_2025.csv
+    sha256: b26a54b54bdc5bbd3c7cdac1b7631b0f698f02093c90220e3b84a8c0f1d0ee07
+    authoritative_url: https://data.cityofnewyork.us/Transportation/Automated-Traffic-Volume-Counts/7ym2-wayt/about_data
+    publisher: Derived from NYC DOT data; transformation author and recipe not recorded in archive
+    license_status: inherits source verification; derivative method undocumented
+    acquired_at: '2026-09-15'
+    temporal_coverage:
+      start: '2024-01-01'
+      end: '2025-12-01'
+    geographic_coverage: New York City
+    geometry:
+      columns: [latitude, longitude]
+      crs: EPSG:4326
+    grain: undocumented prepared aggregate
+    allowed_uses:
+      - Kepler reproducibility comparison
+      - fixture/reference schema inspection
+    forbidden_claims:
+      - production observed metric until transform is reproduced and approved
+      - causal policy impact
+    transformations:
+      - source_id: dot_automated_traffic_counts_archive_20260915
+        status: undocumented
+
+  - source_id: mta_daily_bridge_tunnel_traffic_archive_20260915
+    title: Daily Traffic on MTA Bridges and Tunnels
+    role: raw_observation
+    approval_status: approved_for_pipeline
+    original_path: raw/traffic/Daily_Traffic_on_MTA_Bridges_&_Tunnels_20260915.csv
+    original_filename: Daily_Traffic_on_MTA_Bridges_&_Tunnels_20260915.csv
+    sha256: 9d2b4976e15afa427dbde5fbed484c188bebd500cb24420390ed4c687a72320c
+    authoritative_url: https://data.ny.gov/Transportation/Daily-Traffic-on-MTA-Bridges-Tunnels/fcbp-umit/about_data
+    publisher: Metropolitan Transportation Authority
+    license_status: public_open_data_catalog; license terms must be retained from the live source at refresh
+    acquired_at: '2026-09-15'
+    temporal_coverage:
+      start: '2010-01-01'
+      end: '2025-04-12'
+    geographic_coverage: MTA Bridges and Tunnels toll plazas
+    geometry: null
+    grain: one calendar-day aggregate per toll plaza and direction
+    source_semantics: The catalog view aggregates an hourly source to date, plaza ID, and direction. It is not suitable for hourly analysis.
+    schema:
+      required_columns: [Date, Plaza ID, Direction, '# Vehicles - E-ZPass', '# Vehicles - VToll']
+      facility_ids:
+        '21': Robert F. Kennedy Bridge Bronx and Queens plazas (TBX)
+        '22': Robert F. Kennedy Bridge Manhattan plaza (TBM)
+        '23': Bronx-Whitestone Bridge (BWB)
+        '24': Henry Hudson Bridge (HHB)
+        '25': Marine Parkway-Gil Hodges Memorial Bridge (MPB)
+        '26': Cross Bay Veterans Memorial Bridge (CBB)
+        '27': Queens Midtown Tunnel (QMT)
+        '28': Hugh L. Carey Tunnel (HCT)
+        '29': Throgs Neck Bridge (TNB)
+        '30': Verrazzano-Narrows Bridge (VNB)
+      direction_values:
+        I: inbound; official meaning varies by facility and is documented by the source
+        O: outbound; official meaning varies by facility and is documented by the source
+    allowed_uses:
+      - observed daily facility and direction comparisons after parser and quality validation
+      - E-ZPass and VToll totals/shares with denominator documented
+    forbidden_claims:
+      - hourly traffic analysis from this daily aggregate
+      - causal congestion-pricing effect
+    transformations: []
+
+  - source_id: mta_bridge_tunnel_kepler_legacy_2024_2025
+    title: Legacy prepared MTA bridge and tunnel table for Kepler
+    role: legacy_derivative
+    approval_status: reference_only_pending_reproduction
+    original_path: processed/traffic/MTA_Bridges_Tunnels_Kepler_2024_2025.csv
+    original_filename: MTA_Bridges_Tunnels_Kepler_2024_2025.csv
+    sha256: e962afcb73e2e71d0e9e223f27e1602ecfd379697b978c8a2eef64884016b361
+    authoritative_url: https://data.ny.gov/Transportation/Daily-Traffic-on-MTA-Bridges-Tunnels/fcbp-umit/about_data
+    publisher: Derived from MTA data; transformation author and recipe not recorded in archive
+    license_status: inherits source verification; derivative method undocumented
+    acquired_at: '2026-09-15'
+    temporal_coverage:
+      start: '2024-01-01'
+      end: '2025-04-12'
+    geographic_coverage: ten named MTA facilities
+    geometry:
+      columns: [latitude, longitude]
+      crs: EPSG:4326
+    grain: undocumented prepared aggregate
+    allowed_uses:
+      - Kepler reproducibility comparison
+      - fixture/reference schema inspection
+    forbidden_claims:
+      - production observed metric until transform is reproduced and approved
+      - causal policy impact
+    transformations:
+      - source_id: mta_daily_bridge_tunnel_traffic_archive_20260915
+        status: undocumented
+
+  - source_id: mta_crz_vehicle_entries_summary_archive
+    title: Legacy MTA Congestion Relief Zone detection-point summary
+    role: legacy_derivative
+    approval_status: reference_only_pending_reproduction
+    original_path: processed/congestion/crz_kepler_detection_points.csv
+    original_filename: crz_kepler_detection_points.csv
+    sha256: be8252795eb5d990000f89bab485c03c1a59bc33b05d4ea1896600b9dedacfbc
+    authoritative_url: https://data.ny.gov/Transportation/MTA-Congestion-Relief-Zone-Vehicle-Entries-Beginni/t6yz-b64h/about_data
+    publisher: Derived from MTA CRZ vehicle-entry data; transformation author and recipe not recorded in archive
+    license_status: inherits source verification; derivative method undocumented
+    acquired_at: '2026-09-15'
+    temporal_coverage:
+      start: '2025-01-05'
+      end: '2026-09-05'
+    geographic_coverage: twelve approximate detection-group points around the CBD
+    geometry:
+      columns: [latitude, longitude]
+      crs: EPSG:4326
+      precision: approximate only; not a detector-location source
+    grain: one undocumented multi-day aggregate per detection group
+    source_semantics: Authoritative CRZ source grain is 10-minute interval by crossing by vehicle class; archive summary is not raw source grain.
+    allowed_uses:
+      - Kepler reproducibility comparison
+      - contextual reference after transformation is reproduced
+    forbidden_claims:
+      - exact detector location
+      - toll revenue, payment, route behavior, or causal displacement proof
+    transformations: []
+
+  - source_id: mta_cbd_taxi_zones_legacy_20260911
+    title: MTA Central Business District Taxi Zones derivative
+    role: legacy_derivative
+    approval_status: reference_only_pending_reproduction
+    original_path: processed/boundaries/MTA_Central_Business_District_Taxi_Zones_20260911.csv
+    original_filename: MTA_Central_Business_District_Taxi_Zones_20260911.csv
+    sha256: 8c1a59503676534ac4df90d8ef7c1ccd8db4b561edfd856d726d93b507c884ac
+    authoritative_url: https://data.ny.gov/api/v3/views/yfdc-w5jh/query.geojson?accessType=DOWNLOAD
+    publisher: Derived from Metropolitan Transportation Authority data
+    license_status: public_open_data_catalog; derivative recipe undocumented
+    acquired_at: '2026-09-11'
+    temporal_coverage:
+      start: not_applicable
+      end: not_applicable
+    geographic_coverage: 38 MTA CBD taxi zones
+    geometry:
+      column: Polygon
+      encoding: WKT
+      crs: not_recorded_in_archive
+    grain: one taxi-zone polygon
+    allowed_uses:
+      - Kepler reproducibility comparison
+      - source snapshot comparison against authoritative GeoJSON
+    forbidden_claims:
+      - official CBD boundary until geometry/release relationship is validated
+    transformations: []
+
+  - source_id: nys_dac_archive_2023
+    title: New York State Disadvantaged Communities archive layer
+    role: contextual_source
+    approval_status: needs_owner_release_decision
+    original_path: raw/boundaries/disadvantaged-communities/NYS_Disadvantaged_Communities_(DAC).geojson
+    original_filename: NYS_Disadvantaged_Communities_(DAC).geojson
+    sha256: 204c6bfbaa6b998e3db60e93027dbac00236019934ee47c8770598ad1b56f42e
+    authoritative_url: https://data.ny.gov/Environmental-Conservation/Disadvantaged-Communities-DAC/2e6c-s6fp/about_data
+    publisher: New York State Climate Justice Working Group / NYSERDA
+    license_status: public_open_data_catalog; release terms must be retained from the live source at refresh
+    acquired_at: '2026-09-15'
+    temporal_coverage:
+      start: '2023'
+      end: '2023'
+    geographic_coverage: New York State census tracts
+    geometry:
+      crs: OGC:CRS84
+      feature_count: 1736
+    grain: one disadvantaged-community census-tract feature
+    allowed_uses:
+      - clearly labeled archived 2023 equity context after owner approval
+    forbidden_claims:
+      - current DAC status after the 2025 Version 2.0 criteria update
+      - individual risk or causal exposure result
+    transformations: []
+
+  - source_id: nyc_dac_archive_subset_2023
+    title: New York City Disadvantaged Communities archive subset
+    role: contextual_source
+    approval_status: needs_owner_release_decision
+    original_path: raw/boundaries/disadvantaged-communities/NYC_Disadvantaged_Communities.geojson
+    original_filename: NYC_Disadvantaged_Communities.geojson
+    sha256: 91520ed67b8422780131941f984688ddfbefd326ff8b91f5b441547d2ff0f338
+    authoritative_url: not_recorded_in_archive; likely scope-specific export requiring source confirmation
+    publisher: not_recorded_in_archive
+    license_status: unresolved
+    acquired_at: '2026-09-15'
+    temporal_coverage:
+      start: '2023'
+      end: '2023'
+    geographic_coverage: New York City census tracts
+    geometry:
+      crs: OGC:CRS84
+      feature_count: 958
+    grain: one contextual census-tract feature
+    allowed_uses:
+      - internal comparison with the statewide archive layer
+    forbidden_claims:
+      - any public release until authoritative source and release version are confirmed
+    transformations: []
+
+  - source_id: nyccas_air_rasters_archive_2008_2019
+    title: NYCCAS air-pollution raster archive
+    role: contextual_source
+    approval_status: context_only_not_release_1
+    original_path: raw/air-quality/AnnAvg_1_16_300m
+    original_filename: AnnAvg_1_16_300m
+    sha256: directory_checksum_pending_manifested_file_inventory
+    authoritative_url: https://data.cityofnewyork.us/Environment/NYCCAS-Air-Pollution-Rasters/q68s-8qxv/about_data
+    publisher: New York City Community Air Survey
+    license_status: public_open_data_catalog; release terms must be retained from the live source at refresh
+    acquired_at: '2026-09-15'
+    temporal_coverage:
+      start: '2008'
+      end: '2019'
+    geographic_coverage: New York City
+    geometry:
+      crs: EPSG:2263
+      resolution: 300m
+      encoding: ESRI GRID
+    grain: modeled annual or seasonal pollutant surface cell
+    allowed_uses:
+      - historical environmental-context documentation after variable units and file metadata are validated
+    forbidden_claims:
+      - 2025 policy effect
+      - short-term local or regulatory air measurement
+    transformations: []
+
+  - source_id: nys_asthma_archive_historical
+    title: NYS asthma hospitalization and emergency-department archive
+    role: contextual_source
+    approval_status: context_only_not_release_1
+    original_path: raw/health/asthma/org.apache.catalina.connector.RequestFacade@7e2236e5.csv
+    original_filename: org.apache.catalina.connector.RequestFacade@7e2236e5.csv
+    sha256: 875bf53bcd0b5f3b24f6bc701bc624b285e3b855b2e92cae6c731e0446628d9f
+    authoritative_url: not_recorded_in_archive; archive notes name NYS Department of Health Bureau of Biometrics and Health Statistics
+    publisher: New York State Department of Health Bureau of Biometrics and Health Statistics
+    license_status: unresolved
+    acquired_at: '2026-09-15'
+    temporal_coverage:
+      start: '2000'
+      end: '2019'
+    geographic_coverage: New York State counties and aggregate geographies
+    geometry: null
+    grain: one historical rate/count record by geography, period, indicator, and subgroup
+    allowed_uses:
+      - historical county-level health context only
+    forbidden_claims:
+      - neighborhood health monitoring
+      - post-policy health outcome
+      - causal health impact
+    transformations: []
+
+  - source_id: nyc_asthma_kepler_legacy_historical
+    title: Legacy borough-centroid asthma table for Kepler
+    role: legacy_derivative
+    approval_status: context_only_not_release_1
+    original_path: processed/health/nyc_asthma_kepler.csv
+    original_filename: nyc_asthma_kepler.csv
+    sha256: 08adc80980f3eccb4799677b2becec01f4894e7321417811fae3637a260f65f3
+    authoritative_url: not_recorded_in_archive; rows cite New York State Department of Health asthma hospitalization and ED visit data
+    publisher: Derived from historical NYS Department of Health data; transformation recipe not recorded in archive
+    license_status: unresolved
+    acquired_at: '2026-09-15'
+    temporal_coverage:
+      start: '2000'
+      end: '2019'
+    geographic_coverage: five borough/county centroids
+    geometry:
+      columns: [latitude, longitude]
+      crs: EPSG:4326
+      precision: approximate borough centroid; county-level health data
+    grain: one borough/county historical indicator-period aggregate
+    allowed_uses:
+      - internal Kepler comparison and historical-context review
+    forbidden_claims:
+      - neighborhood, current, post-policy, or causal health result
+    transformations: []

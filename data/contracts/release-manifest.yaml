@@ -1,0 +1,35 @@
+schema_version: 1.0.0
+contract_id: browser-release-manifest
+title: Browser-facing immutable data release manifest
+required_fields:
+  - release_id
+  - schema_version
+  - generated_at
+  - status
+  - source_ids
+  - transform_version
+  - coverage
+  - limitations
+  - assets
+allowed_asset_kinds: [boundary_zone, traffic_observations, facility_crossings, crz_context, dac_context, historical_context]
+asset_required_fields:
+  - kind
+  - path
+  - format
+  - sha256
+  - coverage
+  - grain
+  - source_ids
+  - transform_version
+  - status
+  - limitations
+asset_optional_fields:
+  - geometry_crs
+  - bytes
+manifest_optional_fields:
+  - policy_reference_date
+rules:
+  - asset paths must be relative, URL-safe, and cannot reference raw or demo data
+  - spatial browser assets must declare EPSG:4326
+  - each asset kind is source-specific and may not silently merge unrelated measures
+  - policy_reference_date is release metadata, never a frontend constant

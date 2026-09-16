@@ -1,9 +1,9 @@
 {
-  "release_id": "2026-09-16.2",
-  "schema_version": "1.1.0",
-  "generated_at": "2026-09-16T04:05:02.000Z",
+  "release_id": "2026-09-16.1",
+  "schema_version": "1.0.0",
+  "generated_at": "2026-09-16T02:19:51.000Z",
   "status": "validated",
-  "transform_version": "pipeline-release-1.1.0",
+  "transform_version": "pipeline-release-1.0.0",
   "source_ids": [
     "dot_automated_traffic_counts_archive_20260915",
     "mta_daily_bridge_tunnel_traffic_archive_20260915"
@@ -19,31 +19,30 @@
   "assets": [
     {
       "kind": "traffic_observations",
-      "path": "/data/releases/2026-09-16.2/traffic_observations.geojson",
+      "path": "/data/releases/2026-09-16.1/traffic_observations.geojson",
       "format": "geojson",
-      "sha256": "c3baeeaff9799c77e5e26448a8d3723ac90b81106b1302fb2c03d6015fc92ab7",
+      "sha256": "d1e864ff9986e4e75ad9669539cd1a3a4cd6a6f24c7d9685b9e1b14a273a90d8",
       "coverage": {
         "start": "2024-01-01",
         "end": "2025-12-31"
       },
-      "grain": "one segment, borough, direction, calendar-month, day-type, and time-band aggregate of available 15-minute DOT observations",
+      "grain": "one segment, borough, direction, and calendar-month aggregate of available 15-minute DOT observations",
       "source_ids": [
         "dot_automated_traffic_counts_archive_20260915"
       ],
-      "transform_version": "pipeline-release-1.1.0",
+      "transform_version": "pipeline-release-1.0.0",
       "status": "validated",
       "limitations": [
         "DOT counts are samples and do not represent continuous or full-year traffic measurement",
         "aggregation is descriptive and does not estimate a congestion-pricing effect",
-        "blank street labels are retained as null metadata, not inferred",
-        "a group is only published where the source contains observations for that segment, month, day type, and time band; absent combinations are omitted rather than zero-filled"
+        "blank street labels are retained as null metadata, not inferred"
       ],
       "geometry_crs": "EPSG:4326",
-      "bytes": 2082788
+      "bytes": 229212
     },
     {
       "kind": "facility_crossings",
-      "path": "/data/releases/2026-09-16.2/facility_crossings.json",
+      "path": "/data/releases/2026-09-16.1/facility_crossings.json",
       "format": "json",
       "sha256": "e412c3168de14ec1a0597d8a5f11d0f5ad59d66cc2014c71eaba11f78afc8f44",
       "coverage": {
@@ -54,7 +53,7 @@
       "source_ids": [
         "mta_daily_bridge_tunnel_traffic_archive_20260915"
       ],
-      "transform_version": "pipeline-release-1.1.0",
+      "transform_version": "pipeline-release-1.0.0",
       "status": "validated",
       "limitations": [
         "source is a daily aggregate view and cannot support hourly analysis",
