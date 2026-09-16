@@ -132,7 +132,26 @@ $ curl -o /dev/null -w "%{http_code}" https://tollshallow.web.app/
 404
 ```
 
-`.firebaserc` was corrected from the plural `tollshallows` to the confirmed singular `tollshallow`. **The public site is still not serving** (HTTP 404, Firebase "Site Not Found"); this is stated plainly and is not fixed by this release.
+`.firebaserc` was corrected from the plural `tollshallows` to the confirmed singular `tollshallow`.
+
+### Production deployment (2026-09-16)
+
+```text
+$ curl https://tollshallow.web.app/                          HTTP 200, text/html
+$ curl https://tollshallow.web.app/data/manifest.json        release 2026-09-16.2, validated, 2 assets
+$ curl .../data/releases/2026-09-16.2/traffic_observations.geojson | sha256sum
+  c3baeeaff9799c77e5e26448a8d3723ac90b81106b1302fb2c03d6015fc92ab7   (matches the manifest)
+```
+
+Cache headers in production: `/` and `/data/manifest.json` return
+`no-cache, max-age=0, must-revalidate`; `/data/releases/**` returns
+`public, max-age=31536000, immutable`.
+
+Browser-verified in production: the shell renders, the build stamp reads `20260916-1018-d8a1e1e`, the
+status strip reads `RELEASE 2026-09-16.2 · VALIDATED`, the TRAFFIC module reports "Showing 45 of 340
+published aggregates for 2024-03" when driven by URL filters, the WebGL-free map draws 60 points over
+108 raster tiles, and the console reports zero errors.
+
 
 ## Runtime claim enforcement (what a reviewer can verify in the browser)
 

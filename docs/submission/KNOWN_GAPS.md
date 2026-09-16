@@ -2,9 +2,11 @@
 
 Stated plainly, ordered by how much they affect a reviewer's ability to trust or use the product.
 
-## 1. The product is not deployed
+## 1. Deployed to production, but unreviewed
 
-`tollshallow.web.app` returns HTTP 404 (Firebase "Site Not Found") as of this release. No preview channel and no production deploy have been run. A preview deploy is gated on owner approval, and production promotion needs a separate approval; see `docs/deployment/HOSTING_PREVIEW_ROLLBACK_RUNBOOK.md`.
+`https://tollshallow.web.app` now serves Release 1 (release `2026-09-16.2`), verified live: HTTP 200, correct build stamp, published assets matching their manifest checksums, zero console errors. It previously returned HTTP 404.
+
+What is still missing around that: nobody outside this workstream has reviewed the deployed result, there is no uptime or error monitoring, and rollback is a manual `firebase hosting:rollback` (see `docs/deployment/HOSTING_PREVIEW_ROLLBACK_RUNBOOK.md`).
 
 The Firebase target itself is corrected and verified: the account owns exactly one project, `tollshallow` (number `1094344081770`), and the repository `.firebaserc` now names it instead of the inaccessible plural `tollshallows`.
 

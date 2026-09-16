@@ -2,7 +2,7 @@
 
 **Release under review:** `2026-09-16.2`
 **Application:** React + TypeScript + MapLibre SPA, static-first, hosted on Firebase Hosting
-**Deployment status:** not deployed. A preview channel is gated on owner approval; production promotion requires a separate approval.
+**Deployment status:** deployed. Production `https://tollshallow.web.app` serves this release; the preview channel `tollshallow--preview-2026-09-16-8jkfku3o.web.app` remains available until it expires.
 
 This package exists so a reviewer can understand, run, inspect, and verify the product without undocumented context. It is written to be checkable, not persuasive: every number below is produced by a command whose output is quoted in `RELEASE_EVIDENCE.md`.
 

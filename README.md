@@ -36,7 +36,7 @@ This build is a working slice of Release 1, not the finished product. Read this 
   code. Their coordinates exist only in a legacy derivative whose transformation recipe was never
   recorded, and the archive itself notes the CRZ points are approximate markers.
 - No accessibility automation, no end-to-end browser tests, no CI running the release gate.
-- Deployed to a **preview channel only**. Production is untouched.
+- Deployed to production at `https://tollshallow.web.app` (release `2026-09-16.2`), verified live. Rollback is manual.
 - Nothing here is a final visual brand direction; the current interface is a deliberate editorial
   pass, not a signed-off design.
 

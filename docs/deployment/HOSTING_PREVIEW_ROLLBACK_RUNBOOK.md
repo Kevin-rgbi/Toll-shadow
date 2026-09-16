@@ -1,7 +1,7 @@
 # Firebase Hosting Preview and Rollback Runbook
 
 **Owner:** Agent 3
-**Status:** prepared, not executed. No preview channel and no production deploy has been run from this workspace.
+**Status:** executed. Preview channel `preview-2026-09-16` and a production deploy of release `2026-09-16.2` have both been run and verified. The steps below are the standing procedure.
 
 This runbook is the only approved path from a candidate build to `tollshallow.web.app`. Its purpose is that hosting never conceals an invalid data release: every step before a channel deploy is a gate, and a failed gate stops the run.
 
