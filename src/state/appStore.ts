@@ -3,6 +3,7 @@ import { create } from 'zustand'
 export const APP_MODES = [
   'STORY',
   'TRAFFIC',
+  'CROSSINGS',
   'AIR',
   'EQUITY',
   'CONFIDENCE',
@@ -39,6 +40,9 @@ interface AppState {
 }
 
 const clampDateIso = (isoDate: string, minDateIso: string, maxDateIso: string): string => {
+  // Bounds stay empty until a release (or the dev dataset) declares its coverage window.
+  if (minDateIso === '' || maxDateIso === '') return isoDate
+
   const minTs = Date.parse(`${minDateIso}T00:00:00Z`)
   const maxTs = Date.parse(`${maxDateIso}T00:00:00Z`)
   const dateTs = Date.parse(`${isoDate}T00:00:00Z`)
@@ -60,9 +64,9 @@ export const useAppStore = create<AppState>((set, get) => ({
   mode: 'STORY',
   compareMode: 'off',
   compareRenderMode: 'actual',
-  currentDateIso: '2025-01-05',
-  minDateIso: '2025-01-01',
-  maxDateIso: '2025-01-31',
+  currentDateIso: '',
+  minDateIso: '',
+  maxDateIso: '',
   isPlaying: false,
   playbackRateDaysPerSecond: 8,
   playbackCarryMs: 0,

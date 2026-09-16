@@ -1,87 +1,174 @@
 # The Toll Shadow
 
-The Toll Shadow is an investigative web map that compares observed post-policy
-traffic and air quality patterns with expected no-toll patterns, with a focus on
-where burden may have shifted.
+A source-backed evidence explorer for New York City traffic observations around the Congestion Relief
+Zone. It shows what a published data release measures, over which window, from which source, and with
+which stated limits.
 
-Detailed project planning and phased delivery live in PLAN.md.
+**It does not publish a counterfactual, a causal policy estimate, a current air-quality measurement,
+or a post-2025 health outcome.**
 
-## Current Status
+---
 
-The current build is a frontend-first scaffold with synthetic data.
+## Status: INCOMPLETE
 
-Implemented now:
-- Full-screen NYC map shell with MapLibre + OpenStreetMap (no API key)
-- Canvas-rendered traffic corridors and monitor markers
-- D3-based visual encodings for effect, confidence, and scale
-- Timeline playback with requestAnimationFrame
-- Global app state with Zustand
-- Manifest-driven data loading for demo and future export paths
-- Compare toggle and map feature hover/click selection
-- Unit tests for store behavior, interpolation, and visual encoding logic
+This build is a working slice of Release 1, not the finished product. Read this before judging it.
 
-Not implemented yet:
-- Real ingestion and modeling pipeline outputs
-- Production data sources and validated geographies
-- Full narrative scrollytelling and hotspot explorer stack
+**Working, with real published data:**
 
-## Architecture
+- Release `2026-09-16.2` is built from the raw source downloads and served by the app.
+- **TRAFFIC** module: 2,561 published segment aggregates over 195 street segments and 21 months, with
+  month, borough, day type, and time band filters.
+- **CROSSINGS** module: 8,352 published MTA daily crossing rows, 10 plazas, 464 dates.
+- Both modules show source, method, coverage, grain, checksum, and the asset's own limitations.
+- The browser verifies each asset's SHA-256 against the release manifest before parsing it.
+- Map: MapLibre with OpenStreetMap tiles, plus a WebGL-free raster map for browsers without a WebGL2
+  context (`?map=software` forces it).
+- Shareable URL state, visible build stamp, stale-build detection.
 
-- React and TypeScript: application shell and UI
-- Zustand: shared app state
-- MapLibre GL JS: map camera and geographic projection
-- OpenStreetMap tiles: keyless basemap source with attribution
-- Canvas: high-performance synthetic map marks
-- D3: scales and interpolation helpers
-- Firebase Hosting: static deployment target
+**Not finished:**
 
-## Data Flow
+- **AIR / EQUITY / CONFIDENCE / HOTSPOTS** render an explicit "Not available for this claim" state.
+  Their material (historical NYCCAS surfaces, 2023 DAC layers, historical asthma records, hotspot
+  rankings) is deliberately excluded from this release.
+- **CBD taxi-zone boundary**: not published yet. The authoritative source URL is recorded and it is
+  the next candidate.
+- **MTA facility points and the 12 CRZ detection points**: blocked on a provenance decision, not on
+  code. Their coordinates exist only in a legacy derivative whose transformation recipe was never
+  recorded, and the archive itself notes the CRZ points are approximate markers.
+- No accessibility automation, no end-to-end browser tests, no CI running the release gate.
+- Deployed to a **preview channel only**. Production is untouched.
+- Nothing here is a final visual brand direction; the current interface is a deliberate editorial
+  pass, not a signed-off design.
 
-1. App loads public/data/manifest.json
-2. Manifest file paths are resolved for effects and geography
-3. Effects can be loaded as a single file or by period
-4. Timeline date drives interpolation across period effects
-5. Interpolated values are rendered on the canvas overlay
+---
 
-## Local Development
+## Data used, and where it comes from
 
-Install dependencies:
-- npm install
+**Raw source files are not in this repository.** They total ~321 MB and two of them are 287 MB and
+3.8 MB CSVs. Instead, every source is registered with its authoritative URL, SHA-256, coverage, grain,
+CRS, and its allowed and forbidden uses:
 
-Run dev server:
-- npm run dev
+- `data/catalog/sources.yaml` — the source register (11 sources)
+- `data/README.md` — how to obtain the raw files and reproduce the release
 
-Run lint:
-- npm run lint
+Published release outputs **are** committed, so the data actually shipped can be inspected directly:
 
-Run tests:
-- npm run test
+```
+data/releases/2026-09-16.2/
+  manifest.json                 release index: assets, checksums, coverage, limitations
+  quality.json                  rows inspected / included / rejected per source
+  README.md                     human-readable changelog
+  traffic_observations.geojson  2,082,788 bytes, EPSG:4326
+  facility_crossings.json       2,890,818 bytes
+public/data/manifest.json       the pointer the app fetches, generated by the build
+public/data/releases/...        the browser-facing copy of the above
+```
 
-Build for production:
-- npm run build
+What the pipeline actually did with the raw files:
 
-## Project Structure
+| Source | Inspected | Included | Rejected | Result |
+|---|---:|---:|---:|---|
+| NYC DOT automated traffic counts | 1,875,154 | 177,571 | 1 | 2,561 aggregates |
+| MTA daily bridge and tunnel traffic | 98,053 | 8,352 | 0 | 8,352 daily rows |
 
-- src: frontend application code
-- public/data: manifest and demo assets
-- tests/frontend: unit tests for frontend logic
-- pipeline: deferred ingestion and modeling workflow
+The single rejected DOT row is the archived negative-volume sentinel (`Vol = -1`); it is rejected and
+reported, never coerced to zero. Rows outside the 2024-2025 window are excluded by the declared
+coverage, which is why 1.87M source rows produce 177,571 included rows.
 
-## Scope Guardrails
+## Pipeline
 
-In scope for this phase:
-- Detect and visualize where traffic and air patterns changed
-- Compare observed and expected patterns without overclaiming causality
-- Surface confidence and uncertainty visually
-- Identify areas that need deeper investigation
+```
+raw CSV -> contract validation -> aggregation -> release assets + manifest + quality report
+```
 
-Out of scope for this phase:
-- Designing physical interventions
-- Prescribing urban redesign solutions
-- Claiming singular causation without robustness evidence
+- `pipeline/src/` — CSV contract reader, traffic and MTA adapters, geospatial transform (EPSG:2263 to
+  EPSG:4326), measure-spec validation, release builder
+- `pipeline/methods/release-1.yaml` — the approved measure spec: two descriptive measures, their
+  numerators, denominators, aggregation, inclusion and exclusion rules, and each excluded dataset
+  with its reason
+- `pipeline/tests/` — fixtures and tests, including the negative cases (unknown plaza, negative volume)
+- `scripts/release_acceptance.py` — the deployment gate (26 checks)
 
-## Notes
+Reproduce the release (raw files must be placed under `../../data/raw/` first; see `data/README.md`):
 
-- The current visualization uses synthetic values for development.
-- Synthetic data is explicitly labeled in the interface.
-- Build may report a non-blocking chunk size warning during bundling.
+```bash
+node pipeline/scripts/build-release.mjs \
+  --release-id 2026-09-16.2 \
+  --generated-at 2026-09-16T04:02:00.000Z
+python3 scripts/release_acceptance.py
+```
+
+Rebuilding with the published release ID and timestamp reproduces the published assets **byte for
+byte** (verified with the SHA-256 values in `data/releases/2026-09-16.2/manifest.json`).
+
+## Application
+
+React + TypeScript + MapLibre, static-first.
+
+```
+src/app/          shell: masthead, mode tabs, figures strip, map column, data rail
+src/features/     evidence modules (traffic, crossings) and their aggregation logic
+src/lib/          release manifest contract, asset parsers, view state, build identity
+src/components/   map, provenance, story, methods modal, status strip
+src/hooks/        release manifest and release asset loaders
+tests/frontend/   unit tests, including module failure-state copy
+```
+
+The data boundary is strict on purpose: `src/lib/releaseManifest.ts` rejects synthetic, demo,
+raw-archive, non-`EPSG:4326`, and unvalidated assets, and `src/lib/releaseData.ts` rejects malformed
+published rows (coordinate axis swaps, negative volumes, non-integer counts, a crossing total that
+disagrees with its own components). No module substitutes fallback content.
+
+## Local development
+
+```bash
+npm ci
+npm run dev        # development server
+npm run lint
+npm run test       # 117 tests
+npm run build
+npm run preview    # serve the production build
+```
+
+Useful URL parameters:
+
+| Parameter | Effect |
+|---|---|
+| `?module=TRAFFIC` | open a module directly |
+| `?date=2025-03-31` | timeline date |
+| `?borough=Queens&day=Weekday&band=AM%20peak%20(06-09)` | traffic filters |
+| `?crossingsFrom=2024-01-01&crossingsTo=2024-06-30` | crossings window |
+| `?map=software` / `?map=gpu` | force the renderer |
+| `?v=<build>` | build identity; a mismatch with the running build shows a stale-build banner |
+
+## Verification
+
+```bash
+npm run test                              # 117 tests
+python3 scripts/release_acceptance.py     # 26 checks, blocks a bad deploy
+python3 visualization/kepler/validate_kepler_export.py   # 34 checks
+```
+
+The release gate blocks an unbuilt, synthetic, unvalidated, unchecksummed, oversized, credentialed,
+wrong-target, over-cached, or multi-release candidate. Every rejection path was exercised before being
+trusted.
+
+## Further reading
+
+- `docs/submission/` — evidence, methods, demo script, known gaps (start here)
+- `docs/PRD.md`, `docs/DATA_STRATEGY.md`, `docs/ARCHITECTURE.md`, `docs/TECHNICAL_DESIGN_DOCUMENT.md`
+- `docs/TOLL_SHADOW_MHC_EVENT_AUDIT.md` — the original archive audit
+- `docs/deployment/` — hosting preview and rollback runbook
+- `plan/` — the delivery plan and its execution log
+- `visualization/kepler/` — the Kepler reproducibility artifact and its validator. Kepler is a
+  research and visual-QA tool, **not** the product runtime.
+- `coordination/agents/` — per-lane work logs with evidence for each phase
+
+## Scope guardrails
+
+In scope: observed measurements with window, grain, source, and limitations; separate modules that are
+never combined into one number; "Not available for this claim" where no asset exists.
+
+Out of scope: causal or counterfactual estimates, expected traffic baselines, current DAC
+designation claims, local health outcomes, and treating historical air or health context as a current
+measurement.

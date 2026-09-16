@@ -1,21 +1,16 @@
 import { useEffect, useRef } from 'react'
-import {
-  CAUSATION_GUARDRAIL,
-  CURRENT_BUILD_POINTS,
-  MANIFEST_PUBLIC_PATH,
-  PIPELINE_STATUS_POINTS,
-  PLANNED_MTA_SOURCES,
-  PLANNED_NON_MTA_SOURCES,
-  SCAFFOLD_STRENGTH_LINE,
-} from '../../lib/sourceMessaging'
+import type { ReleaseManifestState } from '../../hooks/useReleaseManifest'
+import { CLAIM_GUARDRAIL, MANIFEST_PUBLIC_PATH, RELEASE_ASSET_LABELS } from '../../lib/sourceMessaging'
 
 interface MethodologyModalProps {
+  state: ReleaseManifestState
   onClose: () => void
 }
 
-export function MethodologyModal({ onClose }: MethodologyModalProps) {
+export function MethodologyModal({ state, onClose }: MethodologyModalProps) {
   const dialogRef = useRef<HTMLElement | null>(null)
   const closeButtonRef = useRef<HTMLButtonElement | null>(null)
+  const { release, status, reason } = state
 
   useEffect(() => {
     const focusTarget = closeButtonRef.current ?? dialogRef.current
@@ -53,51 +48,49 @@ export function MethodologyModal({ onClose }: MethodologyModalProps) {
         >
           ×
         </button>
-        <p className="chapter-label">METHODS · SCAFFOLD</p>
-        <h2 id="methodology-title">Where does observed NYC diverge from a no-toll expectation?</h2>
+        <p className="chapter-label">METHODS AND LIMITS</p>
+        <h2 id="methodology-title">What this product measures, and what it does not</h2>
         <p>
-          {SCAFFOLD_STRENGTH_LINE}
-        </p>
-        <h3>Current build data contract</h3>
-        <p>
-          Current build values are synthetic effects, loaded through {MANIFEST_PUBLIC_PATH}.
-        </p>
-        <ul>
-          {CURRENT_BUILD_POINTS.map((point) => (
-            <li key={point}>{point}</li>
-          ))}
-        </ul>
-
-        <h3>Planned source integration</h3>
-        <p>
-          Planned MTA and non-MTA source connections are defined and deferred
-          until pipeline exports are stable and versioned.
+          Toll Shadow reports observed measurements published in a versioned data release. Each
+          published asset keeps its own source register, coverage window, grain, checksum, and
+          stated limitations, and the interface shows them next to the measure they describe.
         </p>
 
-        <h4>Planned MTA sources</h4>
+        <h3>What the product does not claim</h3>
         <ul>
-          {PLANNED_MTA_SOURCES.map((source) => (
-            <li key={source}>{source}</li>
-          ))}
+          <li>It does not publish an expected or counterfactual traffic baseline.</li>
+          <li>It does not treat historical air or health context as a current local outcome.</li>
+          <li>It does not use approximate CRZ entry coordinates as detector geometry.</li>
+          <li>Where no approved measurement exists, the module states that it is not available.</li>
         </ul>
 
-        <h4>Planned non-MTA sources</h4>
-        <ul>
-          {PLANNED_NON_MTA_SOURCES.map((source) => (
-            <li key={source}>{source}</li>
-          ))}
-        </ul>
+        <h3>Release status</h3>
+        {status === 'loading' && <p>Reading {MANIFEST_PUBLIC_PATH}.</p>}
+        {status === 'error' && <p>Release manifest could not be read: {reason}</p>}
+        {status === 'empty' && <p>No validated data release is published yet.</p>}
+        {release && (
+          <>
+            <p>
+              Release {release.release_id} (contract {release.schema_version}) covers
+              {' '}{release.coverage.start} to {release.coverage.end}, built by {release.transform_version}.
+            </p>
+            <ul>
+              {release.assets.map((asset) => (
+                <li key={asset.path}>
+                  {RELEASE_ASSET_LABELS[asset.kind]}, {asset.grain} ({asset.coverage.start} to {asset.coverage.end})
+                </li>
+              ))}
+            </ul>
+            <h4>Stated limitations</h4>
+            <ul>
+              {release.limitations.map((limitation) => (
+                <li key={limitation}>{limitation}</li>
+              ))}
+            </ul>
+          </>
+        )}
 
-        <h3>Pipeline status</h3>
-        <ul>
-          {PIPELINE_STATUS_POINTS.map((point) => (
-            <li key={point}>{point}</li>
-          ))}
-        </ul>
-
-        <p className="methodology-caution">
-          {CAUSATION_GUARDRAIL}
-        </p>
+        <p className="methodology-caution">{CLAIM_GUARDRAIL}</p>
       </section>
     </div>
   )

@@ -1,0 +1,67 @@
+{
+  "release_id": "2026-09-16.1",
+  "schema_version": "1.0.0",
+  "generated_at": "2026-09-16T02:19:51.000Z",
+  "status": "validated",
+  "transform_version": "pipeline-release-1.0.0",
+  "source_ids": [
+    "dot_automated_traffic_counts_archive_20260915",
+    "mta_daily_bridge_tunnel_traffic_archive_20260915"
+  ],
+  "coverage": {
+    "start": "2024-01-01",
+    "end": "2025-12-31"
+  },
+  "limitations": [
+    "Release 1 is descriptive only and does not estimate a causal congestion-pricing effect.",
+    "Historical air-quality, asthma, DAC, CRZ-summary, and CBD-derivative assets are excluded pending their separate gates."
+  ],
+  "assets": [
+    {
+      "kind": "traffic_observations",
+      "path": "/data/releases/2026-09-16.1/traffic_observations.geojson",
+      "format": "geojson",
+      "sha256": "d1e864ff9986e4e75ad9669539cd1a3a4cd6a6f24c7d9685b9e1b14a273a90d8",
+      "coverage": {
+        "start": "2024-01-01",
+        "end": "2025-12-31"
+      },
+      "grain": "one segment, borough, direction, and calendar-month aggregate of available 15-minute DOT observations",
+      "source_ids": [
+        "dot_automated_traffic_counts_archive_20260915"
+      ],
+      "transform_version": "pipeline-release-1.0.0",
+      "status": "validated",
+      "limitations": [
+        "DOT counts are samples and do not represent continuous or full-year traffic measurement",
+        "aggregation is descriptive and does not estimate a congestion-pricing effect",
+        "blank street labels are retained as null metadata, not inferred"
+      ],
+      "geometry_crs": "EPSG:4326",
+      "bytes": 229212
+    },
+    {
+      "kind": "facility_crossings",
+      "path": "/data/releases/2026-09-16.1/facility_crossings.json",
+      "format": "json",
+      "sha256": "e412c3168de14ec1a0597d8a5f11d0f5ad59d66cc2014c71eaba11f78afc8f44",
+      "coverage": {
+        "start": "2024-01-01",
+        "end": "2025-04-12"
+      },
+      "grain": "one calendar-day, toll-plaza, and direction aggregate",
+      "source_ids": [
+        "mta_daily_bridge_tunnel_traffic_archive_20260915"
+      ],
+      "transform_version": "pipeline-release-1.0.0",
+      "status": "validated",
+      "limitations": [
+        "source is a daily aggregate view and cannot support hourly analysis",
+        "facility comparisons are descriptive and do not estimate a congestion-pricing effect",
+        "archive coverage ends 2025-04-12"
+      ],
+      "bytes": 2890818
+    }
+  ],
+  "policy_reference_date": "2025-01-05"
+}

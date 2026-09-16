@@ -1,12 +1,13 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import {
+  DEV_SYNTHETIC_ENABLED,
+  getDevSyntheticTimelineBounds,
   getInterpolatedEffectsForDate,
-  loadDatasetFromManifest,
-  type ManifestDataset,
-} from '../../src/lib/dataManifest'
-import type { DemoData } from '../../src/types/demo'
+  loadDevSyntheticDataset,
+} from '../../src/lib/devSyntheticDataset'
+import type { DevSyntheticData, DevSyntheticDataset } from '../../src/lib/devSyntheticDataset'
 
-const makeEffects = (period: string, effectPct: number, monitorEffect: number): DemoData => ({
+const makeEffects = (period: string, effectPct: number, monitorEffect: number): DevSyntheticData => ({
   synthetic: true,
   generatedFor: 'visualization-development-only',
   policyStartDate: '2025-01-05',
@@ -39,12 +40,18 @@ const makeEffects = (period: string, effectPct: number, monitorEffect: number): 
   ],
 })
 
-describe('dataManifest interpolation', () => {
-  it('interpolates between period effects by date', () => {
+describe('dev synthetic dataset', () => {
+  it('refuses to load without the explicit development flag', async () => {
+    expect(DEV_SYNTHETIC_ENABLED).toBe(false)
+
+    await expect(loadDevSyntheticDataset()).rejects.toThrow(/MANIFEST_SYNTHETIC/)
+  })
+
+  it('interpolates between dev periods by date', () => {
     const jan = makeEffects('2025-01', 0.1, 0.4)
     const feb = makeEffects('2025-02', -0.1, -0.2)
 
-    const dataset: ManifestDataset = {
+    const dataset: DevSyntheticDataset = {
       manifest: {
         version: 'test',
         generated_at: '2026-09-11',
@@ -52,12 +59,12 @@ describe('dataManifest interpolation', () => {
         policy_start_date: '2025-01-05',
         latest_observation_date: '2025-02-01',
         files: {
-          effects: '/data/a.json',
+          effects: '/data/demo/effects.json',
           effects_by_period: {
-            '2025-01-01': '/data/a.json',
-            '2025-02-01': '/data/b.json',
+            '2025-01-01': '/data/demo/effects.json',
+            '2025-02-01': '/data/demo/effects.json',
           },
-          zone: '/data/zone.geojson',
+          zone: '/data/demo/toll_zone.geojson',
         },
       },
       effects: feb,
@@ -66,6 +73,7 @@ describe('dataManifest interpolation', () => {
         { periodStartIso: '2025-02-01', effects: feb },
       ],
       zone: { type: 'FeatureCollection', features: [] },
+      manhattan: null,
     }
 
     const midway = getInterpolatedEffectsForDate(dataset, '2025-01-16')
@@ -74,31 +82,21 @@ describe('dataManifest interpolation', () => {
     expect(midway.monitors[0].effect).toBeLessThan(0.25)
     expect(midway.monitors[0].effect).toBeGreaterThan(0)
   })
-})
 
-describe('dataManifest loader validation', () => {
-  it('throws when neither effects nor period effects are provided', async () => {
-    const originalFetch = globalThis.fetch
+  it('derives dev timeline bounds from the declared dev manifest window', () => {
+    const bounds = getDevSyntheticTimelineBounds({
+      version: 'test',
+      generated_at: '2026-09-11',
+      synthetic: true,
+      policy_start_date: '2025-01-05',
+      latest_observation_date: '2025-01-31',
+      files: { zone: '/data/demo/toll_zone.geojson' },
+    })
 
-    const fetchMock = vi.fn(async () => ({
-      ok: true,
-      status: 200,
-      json: async () => ({
-        version: 'x',
-        generated_at: '2026-09-11',
-        synthetic: true,
-        policy_start_date: '2025-01-05',
-        latest_observation_date: '2025-01-31',
-        files: { zone: '/data/zone.geojson' },
-      }),
-    }))
-
-    globalThis.fetch = fetchMock as typeof fetch
-
-    await expect(loadDatasetFromManifest('/data/manifest.json')).rejects.toThrow(
-      'Manifest must include either files.effects or files.effects_by_period.',
-    )
-
-    globalThis.fetch = originalFetch
+    expect(bounds).toEqual({
+      minDateIso: '2025-01-01',
+      maxDateIso: '2025-01-31',
+      policyStartDateIso: '2025-01-05',
+    })
   })
 })

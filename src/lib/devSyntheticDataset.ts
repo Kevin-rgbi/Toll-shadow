@@ -1,37 +1,66 @@
-import type { FeatureCollection } from 'geojson'
-import type { DemoData } from '../types/demo'
-import type { EvidenceClassification } from '../types/traffic'
-import { classifyTrafficEffect } from './visualEncoding'
+/**
+ * Development-only synthetic dataset loader (map/story prototyping).
+ *
+ * Isolation rules:
+ * - Loads only when Vite runs in dev mode AND `VITE_USE_DEMO_DATA=true` was set explicitly.
+ *   `vite.config.ts` already refuses that flag in a production build, and this module also
+ *   refuses at runtime so a stale build cannot silently render synthetic material.
+ * - The manifest must declare `synthetic: true`; a validated release manifest is rejected here so
+ *   the two data boundaries can never be confused.
+ * - `public/data/manifest.json` is the release pointer; it is not read by this module.
+ */
 
-export interface DataManifest {
-  version: string
-  generated_at: string
-  synthetic: boolean
-  policy_start_date: string
-  latest_observation_date: string
-  files: {
-    effects?: string
-    effects_by_period?: Record<string, string>
-    zone: string
-    manhattan?: string
-    [key: string]: string | Record<string, string> | undefined
-  }
-}
+import type { FeatureCollection } from 'geojson'
+import type { DevSyntheticData, DevSyntheticManifest } from '../types/devSynthetic'
+import { ReleaseManifestError } from './releaseManifest'
 
 export interface PeriodEffectsEntry {
   periodStartIso: string
-  effects: DemoData
+  effects: DevSyntheticData
 }
 
-export interface ManifestDataset {
-  manifest: DataManifest
-  effects: DemoData
+export interface DevSyntheticDataset {
+  manifest: DevSyntheticManifest
+  effects: DevSyntheticData
   periodEffects: PeriodEffectsEntry[]
   zone: FeatureCollection
   manhattan: FeatureCollection | null
 }
 
-const DEFAULT_MANIFEST_PATH = '/data/manifest.json'
+export interface DevSyntheticTimelineBounds {
+  minDateIso: string
+  maxDateIso: string
+  policyStartDateIso: string
+}
+
+export type InterpolatedTrafficEffect = DevSyntheticData['traffic'][number] & {
+  effectPct: number
+  confidence: number
+}
+
+export type InterpolatedMonitorEffect = DevSyntheticData['monitors'][number] & {
+  effect: number
+  confidence: number
+}
+
+export interface InterpolatedEffects {
+  traffic: InterpolatedTrafficEffect[]
+  monitors: InterpolatedMonitorEffect[]
+}
+
+export const DEV_SYNTHETIC_MANIFEST_PATH = '/data/demo/dev-manifest.json'
+
+export const DEV_SYNTHETIC_ENABLED =
+  import.meta.env.DEV && import.meta.env.VITE_USE_DEMO_DATA === 'true'
+
+export const assertDevSyntheticAllowed = (): void => {
+  if (!DEV_SYNTHETIC_ENABLED) {
+    throw new ReleaseManifestError(
+      'MANIFEST_SYNTHETIC',
+      'synthetic demo data is development-only and cannot be loaded in this build',
+    )
+  }
+}
 
 const asPublicPath = (path: string): string => {
   if (path.startsWith('/')) return path
@@ -55,32 +84,10 @@ const startOfYear = (isoDate: string): string => {
   return date.toISOString().slice(0, 10)
 }
 
-export interface TimelineBounds {
-  minDateIso: string
-  maxDateIso: string
-  policyStartDateIso: string
-}
-
-export type InterpolatedTrafficEffect = DemoData['traffic'][number] & {
-  effectPct: number
-  confidence: number
-  classification: EvidenceClassification
-}
-
-export type InterpolatedMonitorEffect = DemoData['monitors'][number] & {
-  effect: number
-  confidence: number
-}
-
-export interface InterpolatedEffects {
-  traffic: InterpolatedTrafficEffect[]
-  monitors: InterpolatedMonitorEffect[]
-}
-
-export const getTimelineBoundsFromManifest = (
-  manifest: DataManifest,
+export const getDevSyntheticTimelineBounds = (
+  manifest: DevSyntheticManifest,
   periodEffects: PeriodEffectsEntry[] = [],
-): TimelineBounds => {
+): DevSyntheticTimelineBounds => {
   const policyStartDateIso = manifest.policy_start_date
   const maxDateIso = manifest.latest_observation_date
   const policyYearStartIso = startOfYear(policyStartDateIso)
@@ -97,18 +104,14 @@ export const getTimelineBoundsFromManifest = (
       : policyYearStartIso)
     : policyYearStartIso
 
-  return {
-    minDateIso,
-    maxDateIso,
-    policyStartDateIso,
-  }
+  return { minDateIso, maxDateIso, policyStartDateIso }
 }
 
 const normalizePeriodIso = (periodStartIso: string): string => {
   const normalized = periodStartIso.length === 7 ? `${periodStartIso}-01` : periodStartIso
   const timestamp = Date.parse(`${normalized}T00:00:00Z`)
   if (!Number.isFinite(timestamp)) {
-    throw new Error(`Invalid period date in manifest: ${periodStartIso}`)
+    throw new Error(`Invalid period date in dev manifest: ${periodStartIso}`)
   }
   return new Date(timestamp).toISOString().slice(0, 10)
 }
@@ -164,7 +167,7 @@ const getInterpolationWindow = (
 }
 
 export const getInterpolatedEffectsForDate = (
-  dataset: ManifestDataset,
+  dataset: DevSyntheticDataset,
   currentDateIso: string,
 ): InterpolatedEffects => {
   const periodEffects = dataset.periodEffects
@@ -178,12 +181,7 @@ export const getInterpolatedEffectsForDate = (
     const effectPct = interpolate(startEffect.effectPct, endEffect.effectPct, window.t)
     const confidence = interpolate(startEffect.confidence, endEffect.confidence, window.t)
 
-    return {
-      ...startEffect,
-      effectPct,
-      confidence,
-      classification: classifyTrafficEffect(effectPct),
-    }
+    return { ...startEffect, effectPct, confidence }
   })
 
   const endMonitorMap = new Map(
@@ -194,32 +192,34 @@ export const getInterpolatedEffectsForDate = (
     const effect = interpolate(startEffect.effect, endEffect.effect, window.t)
     const confidence = interpolate(startEffect.confidence, endEffect.confidence, window.t)
 
-    return {
-      ...startEffect,
-      effect,
-      confidence,
-    }
+    return { ...startEffect, effect, confidence }
   })
 
   return { traffic, monitors }
 }
 
-export const loadDatasetFromManifest = async (
-  manifestPath = DEFAULT_MANIFEST_PATH,
-): Promise<ManifestDataset> => {
-  const manifest = await fetchJson<DataManifest>(manifestPath)
+export const loadDevSyntheticDataset = async (
+  manifestPath = DEV_SYNTHETIC_MANIFEST_PATH,
+): Promise<DevSyntheticDataset> => {
+  assertDevSyntheticAllowed()
 
-  const effectsPath = manifest.files.effects
-  const effectsByPeriod = manifest.files.effects_by_period
-  const zonePath = manifest.files.zone
-  const manhattanPath = manifest.files.manhattan
+  const manifest = await fetchJson<DevSyntheticManifest>(manifestPath)
+
+  if (manifest.synthetic !== true) {
+    throw new ReleaseManifestError(
+      'MANIFEST_SYNTHETIC',
+      `${manifestPath} is not marked as synthetic dev material and cannot be loaded as demo data`,
+    )
+  }
+
+  const { effects: effectsPath, effects_by_period: effectsByPeriod, zone: zonePath, manhattan: manhattanPath } = manifest.files
 
   if (!zonePath) {
-    throw new Error('Manifest is missing required file: zone.')
+    throw new Error('Dev manifest is missing required file: zone.')
   }
 
   if (!effectsPath && (!effectsByPeriod || Object.keys(effectsByPeriod).length === 0)) {
-    throw new Error('Manifest must include either files.effects or files.effects_by_period.')
+    throw new Error('Dev manifest must include either files.effects or files.effects_by_period.')
   }
 
   let periodEffects: PeriodEffectsEntry[] = []
@@ -228,7 +228,7 @@ export const loadDatasetFromManifest = async (
     periodEffects = await Promise.all(
       entries.map(async ([periodStartIso, path]) => {
         const normalized = normalizePeriodIso(periodStartIso)
-        const effects = await fetchJson<DemoData>(asPublicPath(path))
+        const effects = await fetchJson<DevSyntheticData>(asPublicPath(path))
         return { periodStartIso: normalized, effects }
       }),
     )
@@ -239,7 +239,7 @@ export const loadDatasetFromManifest = async (
   }
 
   const defaultEffectsPromise = effectsPath
-    ? fetchJson<DemoData>(asPublicPath(effectsPath))
+    ? fetchJson<DevSyntheticData>(asPublicPath(effectsPath))
     : Promise.resolve(periodEffects[periodEffects.length - 1].effects)
   const zonePromise = fetchJson<FeatureCollection>(asPublicPath(zonePath))
   const manhattanPromise = manhattanPath

@@ -1,0 +1,30 @@
+schema_version: 1.0.0
+contract_id: mta-daily-crossing
+title: Validated MTA daily bridge and tunnel crossing aggregate
+source_ids:
+  - mta_daily_bridge_tunnel_traffic_archive_20260915
+input:
+  format: csv
+  required_columns: [Date, Plaza ID, Direction, '# Vehicles - E-ZPass', '# Vehicles - VToll']
+output:
+  grain: one validated calendar-day aggregate per toll plaza and direction
+  fields:
+    observed_on: ISO-8601 calendar date
+    plaza_id: positive integer
+    direction: [I, O]
+    ezpass_vehicles: non-negative integer
+    vtoll_vehicles: non-negative integer
+    total_vehicles: non-negative integer
+quality:
+  reject_on:
+    - missing required column
+    - invalid calendar date
+    - unknown plaza ID
+    - direction outside declared domain
+    - non-integer or negative vehicle count
+claims:
+  allowed:
+    - validated descriptive daily facility and direction comparison
+  prohibited:
+    - hourly analysis
+    - causal policy impact

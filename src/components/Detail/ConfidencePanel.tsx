@@ -1,7 +1,7 @@
-import type { ConfidenceSummary } from '../../lib/analysis'
+import type { SyntheticConfidenceSummary } from '../../lib/analysis'
 
 interface ConfidencePanelProps {
-  summary: ConfidenceSummary
+  summary: SyntheticConfidenceSummary
 }
 
 const pct = (value: number): string => `${Math.round(value * 100)}%`
@@ -11,8 +11,8 @@ export function ConfidencePanel({ summary }: ConfidencePanelProps) {
 
   return (
     <aside className="analysis-card confidence-card" aria-live="polite">
-      <p className="analysis-kicker">CONFIDENCE CHECK</p>
-      <h3>How stable are the strongest signals?</h3>
+      <p className="analysis-kicker">CONFIDENCE CHECK · SYNTHETIC DEV</p>
+      <h3>How stable are the strongest dev prototype signals?</h3>
       <p>
         {total > 0
           ? `${summary.highConfidenceCount} high-confidence signals, ${summary.mediumConfidenceCount} medium, ${summary.lowConfidenceCount} low.`

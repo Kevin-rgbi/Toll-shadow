@@ -1,101 +1,37 @@
-import { interpolateNumber } from 'd3-interpolate'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import * as maplibregl from 'maplibre-gl'
-import 'maplibre-gl/dist/maplibre-gl.css'
 import type { FeatureCollection } from 'geojson'
-import { getInterpolatedEffectsForDate } from '../../lib/dataManifest'
-import type { ManifestDataset } from '../../lib/dataManifest'
+import { RasterMap } from './RasterMap'
+import { hasWebGL2Support } from '../../lib/mapPreference'
+import type { MapPreference } from '../../lib/mapPreference'
+import { getInterpolatedEffectsForDate } from '../../lib/devSyntheticDataset'
+import type { DevSyntheticDataset } from '../../lib/devSyntheticDataset'
 import {
-  classifyTrafficEffect,
-  monitorRadiusFromZoomAndEffect,
-  opacityFromConfidence,
-  roadWidthFromEffect,
-} from '../../lib/visualEncoding'
+  MAP_FALLBACK_MESSAGE,
+  MAP_START_FAILURE_PREFIX,
+  SOFTWARE_MAP_OPT_IN_MESSAGE,
+  NYC_BASEMAP_STYLE,
+  NYC_BOUNDS,
+  NYC_CENTER,
+  NYC_REFERENCE_LABELS,
+  focusOffsetForMode,
+} from './mapConfig'
+import {
+  blendColor,
+  blendNumber,
+  findHitTarget,
+  getMonitorStyleForMode,
+  getTargetRenderMode,
+  getTrafficStyleForMode,
+  syncOverlayCanvas,
+  timelineStrength,
+  toRgba,
+} from './mapOverlay'
+import type { EffectiveRenderMode, HitTarget } from './mapOverlay'
 import type { CompareMode, CompareRenderMode, AppMode } from '../../state/appStore'
-import type { EvidenceClassification } from '../../types/traffic'
-
-const NYC_CENTER: [number, number] = [-73.9712, 40.715]
-
-const NYC_BOUNDS: [[number, number], [number, number]] = [
-  [-74.35, 40.45],
-  [-73.55, 40.98],
-]
-
-const NYC_BASEMAP_STYLE: maplibregl.StyleSpecification = {
-  version: 8,
-  sources: {
-    openstreetmap: {
-      type: 'raster',
-      tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
-      tileSize: 256,
-      attribution: '© OpenStreetMap contributors',
-    },
-  },
-  layers: [
-    {
-      id: 'background',
-      type: 'background',
-      paint: {
-        'background-color': '#0a0e10',
-      },
-      minzoom: 0,
-      maxzoom: 22,
-    },
-    {
-      id: 'openstreetmap-base',
-      type: 'raster',
-      source: 'openstreetmap',
-      paint: {
-        'raster-opacity': 0.52,
-        'raster-saturation': -1,
-        'raster-contrast': -0.32,
-        'raster-brightness-min': 0.12,
-        'raster-brightness-max': 0.7,
-      },
-    },
-  ],
-}
-
-const NYC_REFERENCE_LABELS: FeatureCollection = {
-  type: 'FeatureCollection',
-  features: [
-    {
-      type: 'Feature',
-      geometry: { type: 'Point', coordinates: [-73.98, 40.76] },
-      properties: { name: 'Manhattan' },
-    },
-    {
-      type: 'Feature',
-      geometry: { type: 'Point', coordinates: [-73.95, 40.65] },
-      properties: { name: 'Brooklyn' },
-    },
-    {
-      type: 'Feature',
-      geometry: { type: 'Point', coordinates: [-73.81, 40.73] },
-      properties: { name: 'Queens' },
-    },
-    {
-      type: 'Feature',
-      geometry: { type: 'Point', coordinates: [-73.89, 40.85] },
-      properties: { name: 'Bronx' },
-    },
-    {
-      type: 'Feature',
-      geometry: { type: 'Point', coordinates: [-74.14, 40.58] },
-      properties: { name: 'Staten Island' },
-    },
-  ],
-}
-
-const CLASSIFICATION_COLORS: Record<EvidenceClassification, [number, number, number]> = {
-  improved: [116, 198, 215],
-  worsened: [216, 172, 88],
-  no_material_change: [138, 145, 148],
-  insufficient_evidence: [138, 145, 148],
-}
 
 interface OverlayState {
-  dataset: ManifestDataset | null
+  syntheticDataset: DevSyntheticDataset | null
   currentDateIso: string
   activeMode: AppMode
   compareMode: CompareMode
@@ -103,7 +39,17 @@ interface OverlayState {
 }
 
 interface MapShellProps {
-  dataset: ManifestDataset | null
+  /** Published boundary geometry (EPSG:4326) from the validated release manifest, when available. */
+  boundary: FeatureCollection | null
+  /**
+   * Published traffic-observation points for the current selection, already filtered by the module.
+   * Coordinates come from the validated asset; the map never synthesizes a location.
+   */
+  releaseTraffic: FeatureCollection | null
+  /** `software` forces the WebGL-free map, `gpu` forces the attempt, null decides automatically. */
+  mapPreference: MapPreference | null
+  /** Synthetic prototype effects. Non-null only when the development demo flag is enabled. */
+  syntheticDataset: DevSyntheticDataset | null
   currentDateIso: string
   activeMode: AppMode
   compareMode: CompareMode
@@ -113,279 +59,14 @@ interface MapShellProps {
   dataError: boolean
 }
 
-type ScreenPoint = { x: number, y: number }
-type EffectiveRenderMode = 'actual' | 'expected' | 'difference'
-
-type NumericColor = [number, number, number]
-
-type TrafficStyle = {
-  color: NumericColor
-  alpha: number
-  width: number
-}
-
-type MonitorStyle = {
-  color: NumericColor
-  alpha: number
-  radius: number
-}
-
-type HitTarget = {
-  key: string
-  kind: 'traffic' | 'monitor'
-  id: string
-  name: string
-  effect: number
-  observed: number
-  expected: number
-  confidence: number
-  classification: string
-  points?: ScreenPoint[]
-  x?: number
-  y?: number
-  radius?: number
-  hitWidth?: number
-}
-
-const timestampFromIso = (isoDate: string): number => {
-  return Date.parse(`${isoDate}T00:00:00Z`)
-}
-
-const timelineStrength = (
-  currentDateIso: string,
-  policyStartDateIso: string,
-  latestObservationDateIso: string,
-): number => {
-  const currentTs = timestampFromIso(currentDateIso)
-  const policyTs = timestampFromIso(policyStartDateIso)
-  const latestTs = timestampFromIso(latestObservationDateIso)
-
-  if (!Number.isFinite(currentTs) || !Number.isFinite(policyTs) || !Number.isFinite(latestTs)) {
-    return 1
-  }
-
-  if (latestTs <= policyTs) {
-    return currentTs >= policyTs ? 1 : 0
-  }
-
-  if (currentTs <= policyTs) return 0
-  if (currentTs >= latestTs) return 1
-
-  const t = (currentTs - policyTs) / (latestTs - policyTs)
-  const easedT = t * t * (3 - (2 * t))
-  return interpolateNumber(0, 1)(easedT)
-}
-
-const toRgba = (color: [number, number, number], alpha: number): string => {
-  const safeAlpha = Math.max(0, Math.min(1, alpha))
-  return `rgba(${color[0]}, ${color[1]}, ${color[2]}, ${safeAlpha})`
-}
-
-const monitorColor = (classification: string): [number, number, number] => {
-  if (classification === 'worsened') return [216, 172, 88]
-  if (classification === 'improved') return [116, 198, 215]
-  return [138, 145, 148]
-}
-
-const MAP_FALLBACK_MESSAGE = 'Enable WebGL2 and hardware acceleration to use map interactions. Timeline and analysis panels remain available.'
-
-const hasWebGL2Support = (): boolean => {
-  try {
-    const canvas = document.createElement('canvas')
-    return canvas.getContext('webgl2') !== null
-  } catch {
-    return false
-  }
-}
-
-const focusOffsetForMode = (mode: AppMode): [number, number] => {
-  if (window.innerWidth <= 720) {
-    return [0, -118]
-  }
-
-  if (mode === 'HOTSPOTS' || mode === 'CONFIDENCE' || mode === 'EQUITY') {
-    return [-170, -16]
-  }
-
-  if (mode === 'STORY') {
-    return [136, -16]
-  }
-
-  return [0, -16]
-}
-
-const blendNumber = (from: number, to: number, progress: number): number => {
-  return from + ((to - from) * progress)
-}
-
-const blendColor = (from: NumericColor, to: NumericColor, progress: number): NumericColor => {
-  return [
-    blendNumber(from[0], to[0], progress),
-    blendNumber(from[1], to[1], progress),
-    blendNumber(from[2], to[2], progress),
-  ]
-}
-
-const effectClassColor = (classification: EvidenceClassification): NumericColor => {
-  return CLASSIFICATION_COLORS[classification]
-}
-
-const getTargetRenderMode = (
-  compareMode: CompareMode,
-  compareRenderMode: CompareRenderMode,
-): EffectiveRenderMode => {
-  if (compareMode === 'off') return 'difference'
-  return compareRenderMode
-}
-
-const getTrafficStyleForMode = (
-  corridor: (ReturnType<typeof getInterpolatedEffectsForDate>)['traffic'][number],
-  renderMode: EffectiveRenderMode,
-  strength: number,
-): TrafficStyle => {
-  const confidence = Math.max(0, Math.min(1, corridor.confidence))
-
-  if (renderMode === 'expected') {
-    const baselineMagnitude = Math.min(0.15, Math.max(0.015, corridor.expected / 700))
-    return {
-      color: [165, 171, 168],
-      alpha: blendNumber(0.2, 0.55, strength),
-      width: roadWidthFromEffect(baselineMagnitude, blendNumber(0.45, 0.85, strength)),
-    }
-  }
-
-  const rawObservedDelta = (corridor.observed / Math.max(1, corridor.expected)) - 1
-  const effect = renderMode === 'actual' ? rawObservedDelta : corridor.effectPct
-  const classification = classifyTrafficEffect(effect)
-  const intensity = blendNumber(0.15, 1, strength)
-
-  return {
-    color: effectClassColor(classification),
-    alpha: opacityFromConfidence(confidence) * strength,
-    width: roadWidthFromEffect(Math.abs(effect), intensity),
-  }
-}
-
-const getMonitorStyleForMode = (
-  monitor: (ReturnType<typeof getInterpolatedEffectsForDate>)['monitors'][number],
-  renderMode: EffectiveRenderMode,
-  zoom: number,
-  strength: number,
-): MonitorStyle => {
-  const confidence = Math.max(0, Math.min(1, monitor.confidence))
-
-  if (renderMode === 'expected') {
-    return {
-      color: [165, 171, 168],
-      alpha: blendNumber(0.24, 0.5, strength),
-      radius: monitorRadiusFromZoomAndEffect(zoom, 0.08, strength * 0.7),
-    }
-  }
-
-  const actualEffect = monitor.observedPm25 - monitor.expectedPm25
-  const effect = renderMode === 'actual' ? actualEffect : monitor.effect
-  return {
-    color: monitorColor(effect > 0.01 ? 'worsened' : effect < -0.01 ? 'improved' : 'no_change'),
-    alpha: opacityFromConfidence(confidence) * strength,
-    radius: monitorRadiusFromZoomAndEffect(zoom, Math.abs(effect), strength),
-  }
-}
-
-const distToSegment = (point: ScreenPoint, start: ScreenPoint, end: ScreenPoint): number => {
-  const dx = end.x - start.x
-  const dy = end.y - start.y
-
-  if (dx === 0 && dy === 0) {
-    const px = point.x - start.x
-    const py = point.y - start.y
-    return Math.sqrt((px * px) + (py * py))
-  }
-
-  const t = Math.max(0, Math.min(1, (((point.x - start.x) * dx) + ((point.y - start.y) * dy)) / ((dx * dx) + (dy * dy))))
-  const projX = start.x + (t * dx)
-  const projY = start.y + (t * dy)
-  const px = point.x - projX
-  const py = point.y - projY
-  return Math.sqrt((px * px) + (py * py))
-}
-
-const findHitTarget = (
-  targets: HitTarget[],
-  point: ScreenPoint,
-  mode: 'strict' | 'nearest' = 'strict',
-): HitTarget | null => {
-  let closest: HitTarget | null = null
-  let closestDistance = Number.POSITIVE_INFINITY
-  const nearestLimit = mode === 'nearest' ? 140 : Number.POSITIVE_INFINITY
-
-  for (const target of targets) {
-    if (target.kind === 'monitor' && target.x !== undefined && target.y !== undefined && target.radius !== undefined) {
-      const dx = point.x - target.x
-      const dy = point.y - target.y
-      const distance = Math.sqrt((dx * dx) + (dy * dy))
-      const threshold = Math.max(8, target.radius + 4)
-
-      if (distance <= threshold && distance < closestDistance) {
-        closest = target
-        closestDistance = distance
-      }
-
-      if (mode === 'nearest' && distance < closestDistance) {
-        closest = target
-        closestDistance = distance
-      }
-      continue
-    }
-
-    if (target.kind === 'traffic' && target.points && target.points.length > 1) {
-      for (let index = 0; index < target.points.length - 1; index += 1) {
-        const distance = distToSegment(point, target.points[index], target.points[index + 1])
-        const threshold = Math.max(8, (target.hitWidth ?? 8) + 3)
-        if (distance <= threshold && distance < closestDistance) {
-          closest = target
-          closestDistance = distance
-        }
-
-        if (mode === 'nearest' && distance < closestDistance) {
-          closest = target
-          closestDistance = distance
-        }
-      }
-    }
-  }
-
-  if (mode === 'nearest' && closestDistance > nearestLimit) {
-    return null
-  }
-
-  return closest
-}
-
-const syncOverlayCanvas = (
-  map: maplibregl.Map,
-  canvas: HTMLCanvasElement,
-  ctx: CanvasRenderingContext2D,
-): { width: number, height: number } => {
-  const width = map.getCanvas().clientWidth
-  const height = map.getCanvas().clientHeight
-  const pixelRatio = window.devicePixelRatio || 1
-
-  const nextWidth = Math.round(width * pixelRatio)
-  const nextHeight = Math.round(height * pixelRatio)
-
-  if (canvas.width !== nextWidth || canvas.height !== nextHeight) {
-    canvas.width = nextWidth
-    canvas.height = nextHeight
-    canvas.style.width = `${width}px`
-    canvas.style.height = `${height}px`
-  }
-
-  ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0)
-  return { width, height }
-}
+const RELEASE_BOUNDARY_SOURCE = 'release-boundary'
+const RELEASE_TRAFFIC_SOURCE = 'release-traffic'
 
 export function MapShell({
-  dataset,
+  boundary,
+  releaseTraffic,
+  mapPreference,
+  syntheticDataset,
   currentDateIso,
   activeMode,
   compareMode,
@@ -399,16 +80,18 @@ export function MapShell({
   const mapRef = useRef<maplibregl.Map | null>(null)
   const overlayRef = useRef<HTMLCanvasElement | null>(null)
   const overlayStateRef = useRef<OverlayState>({
-    dataset: null,
+    syntheticDataset: null,
     currentDateIso: '2025-01-05',
     activeMode: 'STORY',
     compareMode: 'off',
     focusedHotspotKey: null,
   })
   const [mapReady, setMapReady] = useState(false)
-  const [mapFallbackMessage, setMapFallbackMessage] = useState<string | null>(() => (
-    hasWebGL2Support() ? null : MAP_FALLBACK_MESSAGE
-  ))
+  const [mapFallbackMessage, setMapFallbackMessage] = useState<string | null>(() => {
+    if (mapPreference === 'software') return SOFTWARE_MAP_OPT_IN_MESSAGE
+    if (mapPreference === 'gpu') return null
+    return hasWebGL2Support() ? null : MAP_FALLBACK_MESSAGE
+  })
   const [hoveredTarget, setHoveredTarget] = useState<HitTarget | null>(null)
   const [selectedTarget, setSelectedTarget] = useState<HitTarget | null>(null)
   const hoveredKeyRef = useRef<string | null>(null)
@@ -471,20 +154,21 @@ export function MapShell({
     const { width, height } = syncOverlayCanvas(map, overlay, ctx)
     ctx.clearRect(0, 0, width, height)
 
-    if (!state.dataset) {
+    // Release mode draws no estimated effects: only published assets may reach the map overlay.
+    if (!state.syntheticDataset) {
       hitTargetsRef.current = []
       return
     }
 
     const strength = timelineStrength(
       state.currentDateIso,
-      state.dataset.manifest.policy_start_date,
-      state.dataset.manifest.latest_observation_date,
+      state.syntheticDataset.manifest.policy_start_date,
+      state.syntheticDataset.manifest.latest_observation_date,
     )
 
     if (strength <= 0) return
 
-    const interpolatedEffects = getInterpolatedEffectsForDate(state.dataset, state.currentDateIso)
+    const interpolatedEffects = getInterpolatedEffectsForDate(state.syntheticDataset, state.currentDateIso)
     const nextHitTargets: HitTarget[] = []
     const modeTransition = renderModeTransitionRef.current
     const modeProgress = modeTransition.progress
@@ -647,9 +331,12 @@ export function MapShell({
         maxBounds: NYC_BOUNDS,
         attributionControl: { compact: true },
       })
-    } catch {
+    } catch (error) {
+      // Report the real reason. Conflating "no WebGL2" with "the library threw" sends anyone
+      // debugging this to the wrong place.
+      const reason = error instanceof Error ? `${error.name}: ${error.message}` : String(error)
       window.requestAnimationFrame(() => {
-        setMapFallbackMessage(MAP_FALLBACK_MESSAGE)
+        setMapFallbackMessage(`${MAP_START_FAILURE_PREFIX}${reason}`)
       })
       return
     }
@@ -786,18 +473,18 @@ export function MapShell({
       : null
 
     overlayStateRef.current = {
-      dataset,
+      syntheticDataset,
       currentDateIso,
       activeMode,
       compareMode,
       focusedHotspotKey,
     }
     drawOverlay()
-  }, [activeMode, compareMode, currentDateIso, dataset, drawOverlay, focusedHotspotId, focusedHotspotKind])
+  }, [activeMode, compareMode, currentDateIso, drawOverlay, focusedHotspotId, focusedHotspotKind, syntheticDataset])
 
   useEffect(() => {
     const map = mapRef.current
-    if (!map || !mapReady || !dataset || !focusedHotspotId || !focusedHotspotKind) {
+    if (!map || !mapReady || !syntheticDataset || !focusedHotspotId || !focusedHotspotKind) {
       lastCenteredHotspotKeyRef.current = null
       focusTargetRef.current = null
       focusIndicatorRef.current?.classList.remove('is-active')
@@ -810,14 +497,14 @@ export function MapShell({
     let center: [number, number] | null = null
 
     if (focusedHotspotKind === 'traffic') {
-      const corridor = dataset.effects.traffic.find((item) => item.locationId === focusedHotspotId)
+      const corridor = syntheticDataset.effects.traffic.find((item) => item.locationId === focusedHotspotId)
       if (corridor && corridor.coordinates.length > 0) {
         center = corridor.coordinates[Math.floor(corridor.coordinates.length / 2)]
       }
     }
 
     if (focusedHotspotKind === 'monitor') {
-      const monitor = dataset.effects.monitors.find((item) => item.monitorId === focusedHotspotId)
+      const monitor = syntheticDataset.effects.monitors.find((item) => item.monitorId === focusedHotspotId)
       if (monitor) {
         center = monitor.coordinates
       }
@@ -837,7 +524,7 @@ export function MapShell({
       essential: true,
     })
     lastCenteredHotspotKeyRef.current = hotspotKey
-  }, [activeMode, dataset, focusedHotspotId, focusedHotspotKind, mapReady, triggerFocusIndicator])
+  }, [activeMode, focusedHotspotId, focusedHotspotKind, mapReady, syntheticDataset, triggerFocusIndicator])
 
   useEffect(() => {
     hoveredKeyRef.current = hoveredTarget?.key ?? null
@@ -863,12 +550,12 @@ export function MapShell({
       layout: {
         'text-field': ['get', 'name'],
         'text-size': 11,
-        'text-letter-spacing': 0.12,
+        'text-letter-spacing': 0.1,
         'text-font': ['Open Sans Semibold'],
       },
       paint: {
-        'text-color': 'rgba(188, 194, 190, 0.32)',
-        'text-halo-color': 'rgba(10, 14, 16, 0.78)',
+        'text-color': 'rgba(88, 94, 102, 0.85)',
+        'text-halo-color': 'rgba(252, 252, 251, 0.9)',
         'text-halo-width': 1.2,
       },
     })
@@ -876,81 +563,107 @@ export function MapShell({
 
   useEffect(() => {
     const map = mapRef.current
-    if (!map || !mapReady || !dataset) return
+    if (!map || !mapReady) return
 
-    if (dataset.manhattan) {
-      if (map.getSource('manhattan-boundary')) {
-        const source = map.getSource('manhattan-boundary') as maplibregl.GeoJSONSource
-        source.setData(dataset.manhattan as FeatureCollection)
-      } else {
-        map.addSource('manhattan-boundary', { type: 'geojson', data: dataset.manhattan as never })
-        map.addLayer({
-          id: 'manhattan-fill',
-          type: 'fill',
-          source: 'manhattan-boundary',
-          paint: {
-            'fill-color': '#8ab7c7',
-            'fill-opacity': 0.03,
-          },
-        })
-        map.addLayer({
-          id: 'manhattan-line',
-          type: 'line',
-          source: 'manhattan-boundary',
-          paint: {
-            'line-color': '#d8edf4',
-            'line-opacity': 0.18,
-            'line-width': 0.8,
-          },
-        })
-      }
-    }
+    if (!boundary) return
 
-    if (map.getSource('demo-zone')) {
-      const source = map.getSource('demo-zone') as maplibregl.GeoJSONSource
-      source.setData(dataset.zone as FeatureCollection)
+    if (map.getSource(RELEASE_BOUNDARY_SOURCE)) {
+      const source = map.getSource(RELEASE_BOUNDARY_SOURCE) as maplibregl.GeoJSONSource
+      source.setData(boundary as never)
       return
     }
 
-    map.addSource('demo-zone', { type: 'geojson', data: dataset.zone as never })
+    map.addSource(RELEASE_BOUNDARY_SOURCE, { type: 'geojson', data: boundary as never })
     map.addLayer({
-      id: 'demo-zone-fill',
+      id: 'release-boundary-fill',
       type: 'fill',
-      source: 'demo-zone',
-      paint: { 'fill-color': '#d7a648', 'fill-opacity': 0.02 },
+      source: RELEASE_BOUNDARY_SOURCE,
+      paint: { 'fill-color': '#1f4bd8', 'fill-opacity': 0.04 },
     })
     map.addLayer({
-      id: 'demo-zone-line',
+      id: 'release-boundary-line',
       type: 'line',
-      source: 'demo-zone',
+      source: RELEASE_BOUNDARY_SOURCE,
       paint: {
-        'line-color': '#d7a648',
-        'line-opacity': 0.2,
-        'line-width': 0.8,
-        'line-dasharray': [2, 2],
+        'line-color': '#1f4bd8',
+        'line-opacity': 0.5,
+        'line-width': 1,
+        'line-dasharray': [3, 2],
       },
     })
-  }, [dataset, mapReady])
+  }, [boundary, mapReady])
+
+  /**
+   * Published traffic points render as a native MapLibre layer rather than on the canvas overlay,
+   * so the release path stays independent of the synthetic prototype renderer. Colour and radius
+   * encode the published per-segment mean only; the layer draws nothing when the selection is empty
+   * and is removed entirely when the release publishes no traffic asset.
+   */
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !mapReady) return
+
+    const removeLayer = (layerId: string) => {
+      if (map.getLayer(layerId)) map.removeLayer(layerId)
+    }
+
+    if (!releaseTraffic) {
+      removeLayer('release-traffic-circles')
+      if (map.getSource(RELEASE_TRAFFIC_SOURCE)) map.removeSource(RELEASE_TRAFFIC_SOURCE)
+      return
+    }
+
+    if (map.getSource(RELEASE_TRAFFIC_SOURCE)) {
+      const source = map.getSource(RELEASE_TRAFFIC_SOURCE) as maplibregl.GeoJSONSource
+      source.setData(releaseTraffic as never)
+      return
+    }
+
+    map.addSource(RELEASE_TRAFFIC_SOURCE, { type: 'geojson', data: releaseTraffic as never })
+    map.addLayer({
+      id: 'release-traffic-circles',
+      type: 'circle',
+      source: RELEASE_TRAFFIC_SOURCE,
+      paint: {
+        'circle-radius': [
+          'interpolate', ['linear'], ['get', 'meanVolume'],
+          0, 3,
+          50, 5,
+          150, 9,
+        ] as never,
+        'circle-color': [
+          'interpolate', ['linear'], ['get', 'meanVolume'],
+          0, 'rgba(31, 75, 216, 0.30)',
+          50, 'rgba(31, 75, 216, 0.68)',
+          150, '#0f2a86',
+        ] as never,
+        'circle-opacity': 0.85,
+        'circle-stroke-color': 'rgba(252, 252, 251, 0.9)',
+        'circle-stroke-width': 0.8,
+      },
+    })
+  }, [mapReady, releaseTraffic])
 
   return (
     <>
-      <div
-        ref={containerRef}
-        className="map-shell"
-        role="region"
-        aria-label="Interactive map of New York City"
-      />
-      <div className="map-focus-indicator" ref={focusIndicatorRef} aria-hidden="true" />
-      {mapFallbackMessage && (
-        <aside className="map-fallback-panel" role="status" aria-live="polite">
-          <p className="map-fallback-kicker">MAP UNAVAILABLE</p>
-          <h3>Interactive map requires WebGL2.</h3>
-          <p>{mapFallbackMessage}</p>
-        </aside>
+      {mapFallbackMessage ? (
+        <RasterMap
+          boundary={boundary}
+          traffic={releaseTraffic}
+          notice={mapFallbackMessage}
+        />
+      ) : (
+        <div
+          ref={containerRef}
+          className="map-shell"
+          role="region"
+          aria-label="Interactive map of New York City"
+        />
       )}
+      <div className="map-focus-indicator" ref={focusIndicatorRef} aria-hidden="true" />
       {dataError && (
         <div className="data-error" role="alert">
-          Map estimates could not be loaded. Try refreshing the page.
+          The published data release could not be loaded. Only the base map is shown.
         </div>
       )}
       {selectedTarget && !mapFallbackMessage && (
@@ -969,12 +682,12 @@ export function MapShell({
           <p>
             {getTargetRenderMode(compareMode, compareRenderMode) === 'expected' && (
               <>
-                BASELINE EXPECTED · {selectedTarget.kind === 'traffic' ? `INDEX ${selectedTarget.expected.toFixed(1)}` : `${selectedTarget.expected.toFixed(2)} ug/m3`}
+                SYNTHETIC DEV BASELINE · {selectedTarget.kind === 'traffic' ? `INDEX ${selectedTarget.expected.toFixed(1)}` : `${selectedTarget.expected.toFixed(2)} ug/m3`}
               </>
             )}
             {getTargetRenderMode(compareMode, compareRenderMode) === 'actual' && (
               <>
-                OBSERVED · {selectedTarget.kind === 'traffic' ? `INDEX ${selectedTarget.observed.toFixed(1)}` : `${selectedTarget.observed.toFixed(2)} ug/m3`}
+                SYNTHETIC DEV OBSERVED · {selectedTarget.kind === 'traffic' ? `INDEX ${selectedTarget.observed.toFixed(1)}` : `${selectedTarget.observed.toFixed(2)} ug/m3`}
               </>
             )}
             {getTargetRenderMode(compareMode, compareRenderMode) === 'difference' && (

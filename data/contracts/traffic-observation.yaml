@@ -1,0 +1,43 @@
+schema_version: 1.0.0
+contract_id: traffic-observation
+title: Validated NYC DOT automated traffic observation
+source_ids:
+  - dot_automated_traffic_counts_archive_20260915
+input:
+  format: csv
+  required_columns: [RequestID, Boro, Yr, M, D, HH, MM, Vol, SegmentID, WktGeom, street, fromSt, toSt, Direction]
+  geometry_crs: EPSG:2263
+output:
+  grain: one validated traffic observation per request session, street segment, timestamp, and direction
+  fields:
+    request_id: string
+    borough: string
+    observed_at: ISO-8601 UTC timestamp
+    volume: non-negative integer
+    segment_id: positive integer
+    direction: [NB, SB, EB, WB, EW, NS]
+    source_geometry_wkt: POINT WKT in EPSG:2263
+    street: nullable string
+    from_street: nullable string
+    to_street: nullable string
+  derived_fields:
+    day_type:
+      values: [Weekday, Weekend]
+      rule: Saturday and Sunday are Weekend; every other day is Weekday.
+    time_band:
+      values: ['Overnight (22-06)', 'AM peak (06-09)', 'Midday (09-16)', 'PM peak (16-19)', 'Evening (19-22)']
+      rule: Derived from the observation hour. Every hour falls in exactly one band; bands are reader-facing slices of a day, not an analysis construct.
+quality:
+  reject_on:
+    - missing required column
+    - invalid calendar date or time
+    - non-integer or negative volume
+    - non-positive segment ID
+    - direction outside declared domain
+    - non-POINT WKT
+claims:
+  allowed:
+    - validated descriptive traffic aggregation
+  prohibited:
+    - causal policy impact
+    - continuous or full-year coverage

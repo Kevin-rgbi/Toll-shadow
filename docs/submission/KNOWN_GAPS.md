@@ -1,0 +1,49 @@
+# Known Gaps
+
+Stated plainly, ordered by how much they affect a reviewer's ability to trust or use the product.
+
+## 1. The product is not deployed
+
+`tollshallow.web.app` returns HTTP 404 (Firebase "Site Not Found") as of this release. No preview channel and no production deploy have been run. A preview deploy is gated on owner approval, and production promotion needs a separate approval; see `docs/deployment/HOSTING_PREVIEW_ROLLBACK_RUNBOOK.md`.
+
+The Firebase target itself is corrected and verified: the account owns exactly one project, `tollshallow` (number `1094344081770`), and the repository `.firebaserc` now names it instead of the inaccessible plural `tollshallows`.
+
+## 2. Four evidence modules have no published asset
+
+`AIR`, `EQUITY`, `CONFIDENCE`, and `HOTSPOTS` render an explicit "Not available for this claim" state. Their underlying material — historical NYCCAS surfaces, 2023 DAC layers, historical asthma records, and any hotspot ranking — is excluded from Release 1 because the release would otherwise imply a current or causal claim the data cannot support. The reason is shown in the UI, not hidden.
+
+## 3. Facility names are not published
+
+The source register resolves plaza identifiers 21–30 to named facilities from authority metadata, but the published `facility_crossings` asset carries identifiers only. The crossings module therefore shows `Plaza 21`, `Plaza 22`, … and states that no name mapping is published. Adding names requires the pipeline to publish and validate that mapping first.
+
+## 4. Traffic coverage is thin and has gaps
+
+The published traffic asset contains 2,561 aggregates over 195 segments, derived from 177,571 of 1,875,154 source rows. It publishes only the combinations the source actually observed: 195 segments x 21 months x 2 day types x 5 time bands would be 40,950 cells, and the release carries the 2,561 that exist rather than zero-filling the rest. Three months (2024-07, 2024-08, 2025-08) contain no published rows at all. A reviewer should read the map as a **sample of sampled counts**, not as continuous coverage.
+
+## 5. Performance: the MapLibre chunk is large
+
+`npm run build` emits a >500 kB warning for the lazy-loaded MapLibre chunk (1,050 kB raw / 287 kB gzip). This is unchanged from the pre-implementation baseline. The data payload is small (3.1 MB total, within the gate budget), so the remaining work is code-splitting and asset chunking, not data reduction. No tiling decision has been made; `docs/ARCHITECTURE.md` requires a measured justification before adding PMTiles.
+
+## 6. Accessibility and E2E coverage are incomplete
+
+Keyboard navigation, visible focus, `aria-live` status regions, and reduced-motion handling are implemented. There is no automated accessibility gate and no Playwright E2E suite, so module switching, deep links, and mobile viewport behavior are verified by code review and unit tests rather than by browser automation.
+
+## 7. Development-prototype code remains in the production bundle
+
+`ConfidencePanel`, `HotspotDrawer`, `HotspotDetailPanel`, and `analysis.ts` are unreachable in a production build (the dev flag cannot be enabled outside dev mode, and `vite.config.ts` refuses it), but their components and labels are still bundled. Verified absent from the bundle: synthetic datasets, `BOROUGH_VULNERABILITY`, and the counterfactual ranking functions. Removing the dead components would shrink the bundle but risks deleting work the team may still want for prototyping, so it is deferred rather than done unilaterally.
+
+## 8. Two files exceed the 400-line guideline
+
+`src/App.tsx` (499 lines) and `src/components/Map/MapShell.tsx` (693 lines) are above the typical range and below the 800-line ceiling. Both are cohesive, and splitting them mid-release-risk was judged worse than deferring; the extraction points are the release-selection logic and the synthetic overlay renderer.
+
+## 9. The Kepler artifact still rests on undocumented legacy derivatives
+
+`visualization/kepler/validate_kepler_export.py` proves the export matches its four declared inputs by identity, row count, schema, and value (34 checks). It cannot prove those inputs are analytically approved: the prepared CSVs' policy labels, hourly estimate, and aggregation rules remain undocumented. Kepler is a source-side reproducibility artifact and is not part of the runtime.
+
+## 10. The deployment gate has provisional thresholds
+
+The gate's 8 MiB budget for `dist/data` is a placeholder until real payload measurement. The gate is also manual — there is no CI workflow that runs it on push.
+
+## 11. No commits were made
+
+All work sits uncommitted on the branch `release-1-evidence-modules` in `source/github-repo/`, which also carries earlier uncommitted work from the other workstreams. Nothing has been committed or pushed.
