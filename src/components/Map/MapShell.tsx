@@ -460,6 +460,40 @@ export function MapShell({
     }
   }, [drawOverlay, mapFallbackMessage])
 
+  /**
+   * Keep the map caption's point count honest. This runs independently of the data effect: that one
+   * returns early when it only needs to push new data into an existing source, which would otherwise
+   * drop the listeners and freeze the readout on a stale number.
+   */
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !mapReady) return
+
+    const countRendered = () => {
+      const readout = pointsReadoutRef.current
+      if (!readout) return
+      if (!map.getLayer('release-traffic-circles')) {
+        readout.textContent = 'traffic layer not added'
+        return
+      }
+      const drawn = map.queryRenderedFeatures({ layers: ['release-traffic-circles'] }).length
+      const loaded = map.querySourceFeatures('release-traffic').length
+      readout.textContent = `${drawn} of ${loaded} published points in view`
+    }
+
+    map.on('sourcedata', countRendered)
+    map.on('idle', countRendered)
+    const firstFrame = window.requestAnimationFrame(countRendered)
+    const settles = [1200, 3500, 7000].map((delay) => window.setTimeout(countRendered, delay))
+
+    return () => {
+      map.off('sourcedata', countRendered)
+      map.off('idle', countRendered)
+      window.cancelAnimationFrame(firstFrame)
+      for (const timer of settles) window.clearTimeout(timer)
+    }
+  }, [mapReady])
+
   useEffect(() => {
     const targetMode = getTargetRenderMode(compareMode, compareRenderMode)
     const transitionState = renderModeTransitionRef.current
@@ -653,18 +687,6 @@ export function MapShell({
       return
     }
 
-    const countRendered = () => {
-      const readout = pointsReadoutRef.current
-      if (!readout) return
-      if (!map.getLayer('release-traffic-circles')) {
-        readout.textContent = 'traffic layer not added'
-        return
-      }
-      const drawn = map.queryRenderedFeatures({ layers: ['release-traffic-circles'] }).length
-      const loaded = map.querySourceFeatures('release-traffic').length
-      readout.textContent = `${drawn} of ${loaded} published points in view`
-    }
-
     map.addSource(RELEASE_TRAFFIC_SOURCE, { type: 'geojson', data: releaseTraffic as never })
     map.addLayer({
       id: 'release-traffic-circles',
@@ -689,19 +711,6 @@ export function MapShell({
       },
     })
 
-    // Refresh the readout when the source's own tiles arrive, not only when the map goes idle:
-    // idle can fire before this source has loaded, which would report a misleading zero.
-    map.on('sourcedata', countRendered)
-    map.on('idle', countRendered)
-    const initialCountFrame = window.requestAnimationFrame(countRendered)
-    const countSettles = [window.setTimeout(countRendered, 1200), window.setTimeout(countRendered, 3500)]
-
-    return () => {
-      map.off('sourcedata', countRendered)
-      map.off('idle', countRendered)
-      window.cancelAnimationFrame(initialCountFrame)
-      for (const timer of countSettles) window.clearTimeout(timer)
-    }
   }, [mapReady, releaseTraffic])
 
   return (
