@@ -384,6 +384,18 @@ def gate(repo_root: Path, dist: Path, budget_bytes: int, dist_overridden: bool =
     ):
         result.check(f"index.html declares the {label}", marker in index, f"marker {marker!r} not found")
 
+    # --- 5d. Map library runtime files ------------------------------------
+    # MapLibre resolves its worker and that worker's shared module as siblings of the bundle chunk,
+    # at runtime. If either is missing the worker dies silently, the map never loads its style, and
+    # the page shows a grey map with no data and no error. Nothing else in the build catches that.
+    maplibre_runtime = ("maplibre-gl-worker.mjs", "maplibre-gl-shared.mjs")
+    missing_runtime = [name for name in maplibre_runtime if not (dist / "assets" / name).is_file()]
+    result.check(
+        "MapLibre worker runtime files are emitted next to the bundle",
+        not missing_runtime,
+        f"missing={missing_runtime}",
+    )
+
     # --- 6. No raw/archive payloads and no secrets ------------------------
     data_root = dist / "data"
     if data_root.is_dir():

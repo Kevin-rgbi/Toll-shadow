@@ -88,6 +88,9 @@ export function MapShell({
     focusedHotspotKey: null,
   })
   const [mapReady, setMapReady] = useState(false)
+  // How many published points MapLibre reports as actually rendered, written straight into the map
+  // caption. "Is the data on screen?" becomes a number rather than an impression, on any machine.
+  const pointsReadoutRef = useRef<HTMLSpanElement | null>(null)
   const [rendererDecision] = useState(() => resolveRenderer(mapPreference))
   const [mapFallbackMessage, setMapFallbackMessage] = useState<string | null>(rendererDecision.reason)
   const [hoveredTarget, setHoveredTarget] = useState<HitTarget | null>(null)
@@ -638,6 +641,7 @@ export function MapShell({
     }
 
     if (!releaseTraffic) {
+      if (pointsReadoutRef.current) pointsReadoutRef.current.textContent = 'no published points in view'
       removeLayer('release-traffic-circles')
       if (map.getSource(RELEASE_TRAFFIC_SOURCE)) map.removeSource(RELEASE_TRAFFIC_SOURCE)
       return
@@ -647,6 +651,18 @@ export function MapShell({
       const source = map.getSource(RELEASE_TRAFFIC_SOURCE) as maplibregl.GeoJSONSource
       source.setData(releaseTraffic as never)
       return
+    }
+
+    const countRendered = () => {
+      const readout = pointsReadoutRef.current
+      if (!readout) return
+      if (!map.getLayer('release-traffic-circles')) {
+        readout.textContent = 'traffic layer not added'
+        return
+      }
+      const drawn = map.queryRenderedFeatures({ layers: ['release-traffic-circles'] }).length
+      const loaded = map.querySourceFeatures('release-traffic').length
+      readout.textContent = `${drawn} of ${loaded} published points in view`
     }
 
     map.addSource(RELEASE_TRAFFIC_SOURCE, { type: 'geojson', data: releaseTraffic as never })
@@ -672,6 +688,20 @@ export function MapShell({
         'circle-stroke-width': 0.8,
       },
     })
+
+    // Refresh the readout when the source's own tiles arrive, not only when the map goes idle:
+    // idle can fire before this source has loaded, which would report a misleading zero.
+    map.on('sourcedata', countRendered)
+    map.on('idle', countRendered)
+    const initialCountFrame = window.requestAnimationFrame(countRendered)
+    const countSettles = [window.setTimeout(countRendered, 1200), window.setTimeout(countRendered, 3500)]
+
+    return () => {
+      map.off('sourcedata', countRendered)
+      map.off('idle', countRendered)
+      window.cancelAnimationFrame(initialCountFrame)
+      for (const timer of countSettles) window.clearTimeout(timer)
+    }
   }, [mapReady, releaseTraffic])
 
   return (
@@ -692,7 +722,9 @@ export function MapShell({
       )}
       {!mapFallbackMessage && (
         <p className="map-renderer-note">
-          {`GPU map${rendererDecision.renderer ? ` · ${rendererDecision.renderer}` : ''}`}
+          {'GPU map · '}
+          <span ref={pointsReadoutRef}>checking what is on screen…</span>
+          {rendererDecision.renderer ? ` · ${rendererDecision.renderer}` : ''}
         </p>
       )}
       <div className="map-focus-indicator" ref={focusIndicatorRef} aria-hidden="true" />
