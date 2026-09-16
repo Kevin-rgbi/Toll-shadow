@@ -1,0 +1,14 @@
+{
+  "name": "Toll Shadow",
+  "short_name": "Toll Shadow",
+  "description": "A public explorer for New York City traffic observations around the Congestion Relief Zone: what was observed, over which window, and where the data stops.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#fcfcfb",
+  "theme_color": "#fcfcfb",
+  "icons": [
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/apple-touch-icon.png", "sizes": "180x180", "type": "image/png" }
+  ]
+}

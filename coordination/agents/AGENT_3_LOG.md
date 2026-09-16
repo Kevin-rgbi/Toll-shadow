@@ -53,6 +53,45 @@ Implement plan steps A8 and A9 support work now: create repeatable Kepler export
 | 2026-09-15 22:15 UTC | A8/A9 support | completed | Kepler validator passes 34/34 and fails on tampering; release acceptance gate accepts a valid fixture and rejects synthetic/unvalidated/unchecksummed/raw/credentialed builds; `.firebaserc` corrected to `tollshallow`; preview/rollback runbook written. No deploy performed. Blocked on A1 validated release + A2 fresh build before a preview channel. |
 | 2026-09-15 23:05 UTC | Takeover: A5–A9 gap closure | completed (deploy still gated) | Agent 3 took over the remaining project work after the Agent 1 (Codex) session ended. Frontend now renders both published assets in production (TRAFFIC, new CROSSINGS module, native map layer), URL state added, hosting cache policy fixed, submission package written. 94 tests / 19 files pass, build clean, gate 24/24 green against the real release. Nothing deployed; preview deploy needs owner approval. |
 
+### Phase Site completeness: robots, sitemap, headers, SEO, 404 — 2026-09-16 12:05 UTC
+
+Owner request: finish the site itself, not just the app.
+
+**Research.** Firebase's hosting configuration reference for the `headers` and `rewrites` shape;
+search engines returned noise for the CSP and security-header queries, so the header set was derived
+and then **validated empirically**: the policy was injected into the built page as a meta tag, the app
+was exercised, and the browser's own violation reports were read and resolved. That found one real
+gap (a font subset the build inlines as `data:`) instead of shipping a guessed allowlist.
+
+**Added:**
+
+- `public/robots.txt`, `public/sitemap.xml` (one URL; query-string views are deliberately not listed),
+  `public/404.html`, `public/site.webmanifest`, `public/security.txt`, `public/og.png` (1200x630, built
+  from a title card using the bundled brand fonts), `public/apple-touch-icon.png`, `public/icon-512.png`.
+- `index.html`: canonical URL, Open Graph and Twitter cards, `WebSite` + `Dataset` structured data
+  describing the release, its window, both distributions and the sources it is based on, plus a
+  `<noscript>` block linking the manifest and both assets directly.
+- `firebase.json`: security headers on every response (CSP, nosniff, referrer policy, frame denial,
+  COOP, a deny-by-default Permissions-Policy), and cache rules for fonts, images, and text files.
+
+**Two real defects fixed while doing it:**
+
+1. **There was no 404.** The catch-all `**` rewrite meant any unmatched path, including a missing data
+   asset, returned HTTP 200 with the SPA shell. That is how a superseded release path looked like it
+   still existed earlier in this work. Rewrites are now limited to `/` and `/index.html`, so missing
+   files 404 properly and `404.html` carries the status.
+2. **`/.well-known/security.txt` would never have deployed.** Firebase's default ignore list excludes
+   dotfile paths. The file moved to `/security.txt` with the reason recorded in it.
+
+**Gate:** extended from 26 to 35 checks. It now refuses a build missing any expected site file,
+a `robots.txt` without a Sitemap line, an `index.html` without canonical/OG/JSON-LD/noscript, a
+catch-all rewrite, a missing security header, or a CSP that relaxes script execution.
+
+**Verified:** `npm run test` 22 files / 130 tests; `node scripts/...` gate 35 checks, 0 failed; CSP
+violations 0 across the software map, the GPU map, SOURCES, and CROSSINGS.
+
+---
+
 ### Phase Mobile optimisation — 2026-09-16 11:45 UTC
 
 Owner request: research mobile practice, then optimise for phones.

@@ -202,6 +202,39 @@ def gate(repo_root: Path, dist: Path, budget_bytes: int, dist_overridden: bool =
             f"Cache-Control={root_cache!r} for /",
         )
 
+        # A catch-all rewrite turns every missing file into a 200 with the SPA shell, which hides
+        # broken asset paths from both reviewers and crawlers. Only "/" should rewrite.
+        rewrites = hosting.get("rewrites", [])
+        result.check(
+            "no catch-all rewrite, so a missing file returns 404",
+            not any(rule.get("source") in ("**", "**/*") for rule in rewrites),
+            f"rewrites={[rule.get('source') for rule in rewrites]}",
+        )
+
+        # Security headers on every response.
+        security = cache_controls.get("**", {})
+        required_headers = (
+            "content-security-policy",
+            "x-content-type-options",
+            "referrer-policy",
+            "x-frame-options",
+            "permissions-policy",
+        )
+        missing_headers = [name for name in required_headers if name not in security]
+        result.check(
+            "security headers are declared for all responses",
+            not missing_headers,
+            f"missing={missing_headers}",
+        )
+
+        policy = security.get("content-security-policy", "")
+        weak = [token for token in ("unsafe-eval", "unsafe-inline'", "'unsafe-inline") if token in policy and "script-src" in policy.split("style-src")[0]]
+        result.check(
+            "content security policy does not relax script execution",
+            "unsafe-eval" not in policy and "unsafe-inline" not in policy.split("style-src")[0],
+            f"script-src region contains unsafe directives: {weak}",
+        )
+
         release_cache = cache_controls.get("/data/releases/**", {}).get("cache-control", "")
         result.check(
             "release assets are cached immutably by release path",
@@ -314,6 +347,42 @@ def gate(repo_root: Path, dist: Path, budget_bytes: int, dist_overridden: bool =
         )
     else:
         result.check("a published release directory exists", False, str(releases_root))
+
+    # --- 5c. Files a public site is expected to serve ---------------------
+    required_site_files = (
+        "robots.txt",
+        "sitemap.xml",
+        "404.html",
+        "site.webmanifest",
+        "security.txt",
+        "og.png",
+        "apple-touch-icon.png",
+        "favicon.svg",
+    )
+    missing_site = [name for name in required_site_files if not (dist / name).is_file()]
+    result.check(
+        "site files are present in the build",
+        not missing_site,
+        f"missing={missing_site}",
+    )
+
+    robots = (dist / "robots.txt")
+    if robots.is_file():
+        body = robots.read_text()
+        result.check(
+            "robots.txt points at the sitemap",
+            "Sitemap:" in body and "/sitemap.xml" in body,
+            f"robots.txt={body.strip()[:120]!r}",
+        )
+
+    index = (dist / "index.html").read_text()
+    for marker, label in (
+        ('rel="canonical"', "canonical link"),
+        ('property="og:image"', "open graph image"),
+        ('application/ld+json', "structured data"),
+        ("<noscript>", "no-JavaScript fallback"),
+    ):
+        result.check(f"index.html declares the {label}", marker in index, f"marker {marker!r} not found")
 
     # --- 6. No raw/archive payloads and no secrets ------------------------
     data_root = dist / "data"

@@ -1,0 +1,7 @@
+# RFC 9116 security contact.
+# Served at /security.txt rather than /.well-known/security.txt because Firebase Hosting's
+# default ignore list excludes dotfile paths from deployment.
+Contact: https://github.com/Kevin-rgbi/Toll-shadow/issues
+Expires: 2027-09-16T00:00:00.000Z
+Preferred-Languages: en
+Canonical: https://tollshallow.web.app/security.txt

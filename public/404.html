@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#fcfcfb" />
+    <meta name="robots" content="noindex" />
+    <title>Page not found: Toll Shadow</title>
+    <style>
+      :root {
+        --paper: #fcfcfb;
+        --ink: #14161a;
+        --muted: #5b6068;
+        --hairline: rgba(20, 22, 26, 0.13);
+        --accent: #1f4bd8;
+        --mono: ui-monospace, "SFMono-Regular", Menlo, monospace;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100svh;
+        background: var(--paper);
+        color: var(--ink);
+        font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+        display: grid;
+        place-items: center;
+        padding: 32px 20px;
+      }
+      main { max-width: 62ch; }
+      p.label {
+        margin: 0 0 10px;
+        font-family: var(--mono);
+        font-size: 0.6875rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+      h1 {
+        margin: 0 0 14px;
+        font-size: clamp(2rem, 6vw, 3rem);
+        line-height: 1;
+        letter-spacing: -0.03em;
+      }
+      p.body { margin: 0 0 20px; font-size: 1rem; line-height: 1.6; color: var(--muted); }
+      ul { margin: 0 0 20px; padding-left: 20px; line-height: 1.9; }
+      a { color: var(--accent); }
+      hr { border: 0; border-top: 1px solid var(--hairline); margin: 26px 0 16px; }
+      p.foot { margin: 0; font-family: var(--mono); font-size: 0.6875rem; letter-spacing: 0.08em;
+        text-transform: uppercase; color: var(--muted); }
+    </style>
+  </head>
+  <body>
+    <main>
+      <p class="label">Error 404</p>
+      <h1>That page is not here.</h1>
+      <p class="body">
+        The address may be mistyped, or the file may belong to a release that has been superseded.
+        Published releases are immutable and each one lives under its own release ID.
+      </p>
+      <ul>
+        <li><a href="/">Back to the explorer</a></li>
+        <li><a href="/data/manifest.json">Current release manifest</a></li>
+        <li><a href="https://github.com/Kevin-rgbi/Toll-shadow">Source code and methodology</a></li>
+      </ul>
+      <hr />
+      <p class="foot">Toll Shadow: descriptive measurements only</p>
+    </main>
+  </body>
+</html>
