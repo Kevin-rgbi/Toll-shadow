@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+.gstack/
+
+# Firebase CLI local state (not project source)
+.firebase/
