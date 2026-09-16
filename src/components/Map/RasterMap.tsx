@@ -67,6 +67,7 @@ const opacityForVolume = (value: unknown): number => {
 export function RasterMap({ boundary, traffic, notice }: RasterMapProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const layerRef = useRef<HTMLDivElement>(null)
+  const pointsCanvasRef = useRef<HTMLCanvasElement | null>(null)
   const [viewport, setViewport] = useState({ width: 0, height: 0 })
   const [center, setCenter] = useState<{ lng: number, lat: number }>({
     lng: NYC_CENTER[0],
@@ -462,6 +463,52 @@ export function RasterMap({ boundary, traffic, notice }: RasterMapProps) {
     })
   }, [center.lat, center.lng, traffic, viewport.height, viewport.width, zoom])
 
+  /**
+   * Points are drawn to one canvas rather than as SVG nodes. At the busiest published month that is
+   * 340 circles in a single raster instead of 340 DOM elements to lay out and rasterise, which is the
+   * difference between smooth and stuttering on a phone. The canvas sits inside the gesture layer, so
+   * it still translates and scales with the tiles for free.
+   */
+  useEffect(() => {
+    const canvas = pointsCanvasRef.current
+    if (!canvas) return
+
+    const dpr = Math.min(window.devicePixelRatio || 1, 2)
+    const width = Math.max(1, Math.round(viewport.width * dpr))
+    const height = Math.max(1, Math.round(viewport.height * dpr))
+    if (canvas.width !== width) canvas.width = width
+    if (canvas.height !== height) canvas.height = height
+    canvas.style.width = `${viewport.width}px`
+    canvas.style.height = `${viewport.height}px`
+
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+    ctx.clearRect(0, 0, viewport.width, viewport.height)
+
+    if (overlayPath) {
+      const boundary = new Path2D(overlayPath)
+      ctx.fillStyle = 'rgba(31, 75, 216, 0.05)'
+      ctx.strokeStyle = 'rgba(31, 75, 216, 0.55)'
+      ctx.lineWidth = 1.2
+      ctx.setLineDash([4, 3])
+      ctx.fill(boundary)
+      ctx.stroke(boundary)
+      ctx.setLineDash([])
+    }
+
+    for (const point of pointElements) {
+      if (point.x < -20 || point.y < -20 || point.x > viewport.width + 20 || point.y > viewport.height + 20) {
+        continue
+      }
+      ctx.beginPath()
+      ctx.arc(point.x, point.y, point.r, 0, Math.PI * 2)
+      ctx.fillStyle = `rgba(31, 75, 216, ${point.opacity.toFixed(3)})`
+      ctx.fill()
+    }
+  }, [overlayPath, pointElements, viewport.height, viewport.width])
+
   const pointCount = pointElements.length
   const isAtHome = zoom === INITIAL_ZOOM
     && Math.abs(center.lng - NYC_CENTER[0]) < 0.0005
@@ -494,19 +541,7 @@ export function RasterMap({ boundary, traffic, notice }: RasterMapProps) {
             ))}
           </div>
 
-          <svg className="raster-map-overlay" width={viewport.width} height={viewport.height} aria-hidden="true">
-            {overlayPath && <path className="raster-map-boundary" d={overlayPath} />}
-            {pointElements.map((point, index) => (
-              <circle
-                key={`point-${index}`}
-                className="raster-map-point"
-                cx={point.x}
-                cy={point.y}
-                r={point.r}
-                fillOpacity={point.opacity}
-              />
-            ))}
-          </svg>
+          <canvas className="raster-map-overlay" ref={pointsCanvasRef} aria-hidden="true" />
         </div>
 
         <div className="raster-map-controls">

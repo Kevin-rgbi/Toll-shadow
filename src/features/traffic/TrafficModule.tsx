@@ -199,7 +199,7 @@ export function TrafficModule({
                 <h4>Highest published segment means</h4>
                 <ul className="module-rows">
                   {topSegments.map((observation) => (
-                    <li key={`${observation.segmentId}:${observation.direction}`}>
+                    <li key={`${observation.segmentId}:${observation.direction}:${observation.dayType}:${observation.timeBand}`}>
                       <span className="module-row-main">{describeSegment(observation)}</span>
                       <span className="module-row-meta">
                         {observation.borough} · {observation.direction} · {observation.dayType} ·{' '}
