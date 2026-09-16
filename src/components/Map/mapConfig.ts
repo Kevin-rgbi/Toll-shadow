@@ -94,6 +94,25 @@ export const MAP_START_FAILURE_PREFIX = 'The interactive map failed to start: '
 export const SOFTWARE_MAP_OPT_IN_MESSAGE =
   'Software map requested with ?map=software. It uses raster tiles instead of the GPU renderer.'
 
+/**
+ * Shown when the GPU map accepted a context but never drew background tiles, which leaves a blank
+ * canvas without producing an error. This is a real failure mode on machines whose GPU process is
+ * broken: the context exists, the map reports loaded, and nothing paints.
+ */
+export const MAP_NO_TILES_MESSAGE =
+  'The GPU map started but never drew its background tiles, so it has been replaced by the software map.'
+
+/** Shown when the GPU context is lost mid-session, for example after a driver reset. */
+export const MAP_CONTEXT_LOST_MESSAGE =
+  'The GPU map lost its graphics context, so it has been replaced by the software map.'
+
+/**
+ * How long to wait for background tiles before deciding the GPU map is not actually painting. Tiles
+ * normally arrive well inside two seconds; this is generous so a slow connection is not mistaken for
+ * a broken renderer.
+ */
+export const GPU_RENDER_WATCHDOG_MS = 8000
+
 export const focusOffsetForMode = (mode: AppMode): [number, number] => {
   if (window.innerWidth <= 720) {
     return [0, -118]

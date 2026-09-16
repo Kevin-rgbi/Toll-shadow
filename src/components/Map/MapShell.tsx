@@ -2,14 +2,15 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import * as maplibregl from 'maplibre-gl'
 import type { FeatureCollection } from 'geojson'
 import { RasterMap } from './RasterMap'
-import { hasWebGL2Support } from '../../lib/mapPreference'
+import { resolveRenderer } from '../../lib/mapPreference'
 import type { MapPreference } from '../../lib/mapPreference'
 import { getInterpolatedEffectsForDate } from '../../lib/devSyntheticDataset'
 import type { DevSyntheticDataset } from '../../lib/devSyntheticDataset'
 import {
-  MAP_FALLBACK_MESSAGE,
+  GPU_RENDER_WATCHDOG_MS,
+  MAP_CONTEXT_LOST_MESSAGE,
+  MAP_NO_TILES_MESSAGE,
   MAP_START_FAILURE_PREFIX,
-  SOFTWARE_MAP_OPT_IN_MESSAGE,
   NYC_BASEMAP_STYLE,
   NYC_BOUNDS,
   NYC_CENTER,
@@ -87,11 +88,8 @@ export function MapShell({
     focusedHotspotKey: null,
   })
   const [mapReady, setMapReady] = useState(false)
-  const [mapFallbackMessage, setMapFallbackMessage] = useState<string | null>(() => {
-    if (mapPreference === 'software') return SOFTWARE_MAP_OPT_IN_MESSAGE
-    if (mapPreference === 'gpu') return null
-    return hasWebGL2Support() ? null : MAP_FALLBACK_MESSAGE
-  })
+  const [rendererDecision] = useState(() => resolveRenderer(mapPreference))
+  const [mapFallbackMessage, setMapFallbackMessage] = useState<string | null>(rendererDecision.reason)
   const [hoveredTarget, setHoveredTarget] = useState<HitTarget | null>(null)
   const [selectedTarget, setSelectedTarget] = useState<HitTarget | null>(null)
   const hoveredKeyRef = useRef<string | null>(null)
@@ -343,6 +341,30 @@ export function MapShell({
 
     mapRef.current = map
 
+    // A GPU map can accept a context and still paint nothing: the style loads, the map reports
+    // loaded, and the canvas stays blank. Nothing throws, so the only way to catch it is to check
+    // whether background tiles actually arrived.
+    const watchdog = window.setTimeout(() => {
+      if (mapRef.current !== map) return
+      if (!map.areTilesLoaded() || !map.isSourceLoaded('openstreetmap')) {
+        setMapFallbackMessage(MAP_NO_TILES_MESSAGE)
+      }
+    }, GPU_RENDER_WATCHDOG_MS)
+
+    const clearWatchdog = () => {
+      window.clearTimeout(watchdog)
+    }
+
+    map.once('idle', clearWatchdog)
+
+    const canvas = map.getCanvas()
+    const handleContextLost = (event: Event) => {
+      event.preventDefault()
+      clearWatchdog()
+      setMapFallbackMessage(MAP_CONTEXT_LOST_MESSAGE)
+    }
+    canvas.addEventListener('webglcontextlost', handleContextLost)
+
     const overlay = document.createElement('canvas')
     overlay.className = 'map-road-overlay'
     map.getCanvasContainer().appendChild(overlay)
@@ -412,6 +434,8 @@ export function MapShell({
       if (focusIndicatorTimeoutRef.current !== null) {
         window.clearTimeout(focusIndicatorTimeoutRef.current)
       }
+      clearWatchdog()
+      canvas.removeEventListener('webglcontextlost', handleContextLost)
       map.off('move', redraw)
       map.off('zoom', redraw)
       map.off('rotate', redraw)
@@ -659,6 +683,11 @@ export function MapShell({
           role="region"
           aria-label="Interactive map of New York City"
         />
+      )}
+      {!mapFallbackMessage && (
+        <p className="map-renderer-note">
+          {`GPU map${rendererDecision.renderer ? ` · ${rendererDecision.renderer}` : ''}`}
+        </p>
       )}
       <div className="map-focus-indicator" ref={focusIndicatorRef} aria-hidden="true" />
       {dataError && (
