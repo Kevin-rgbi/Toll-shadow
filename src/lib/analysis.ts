@@ -1,11 +1,20 @@
-import { getInterpolatedEffectsForDate } from './dataManifest'
-import type { ManifestDataset } from './dataManifest'
+/**
+ * Development-only prototype analysis over the synthetic visualization dataset.
+ *
+ * Every export here is named `synthetic` on purpose: these rankings and confidence buckets are
+ * derived from the dev demo effects, they are not published measures, and they must never be
+ * presented as release evidence. Release-backed measures require an approved method specification
+ * (plan step A3) before any equivalent release view can be built.
+ */
 
-type HotspotKind = 'traffic' | 'monitor'
+import { getInterpolatedEffectsForDate } from './devSyntheticDataset'
+import type { DevSyntheticDataset } from './devSyntheticDataset'
 
-export interface HotspotItem {
+type SyntheticHotspotKind = 'traffic' | 'monitor'
+
+export interface SyntheticHotspotItem {
   id: string
-  kind: HotspotKind
+  kind: SyntheticHotspotKind
   name: string
   borough: string
   effect: number
@@ -14,27 +23,11 @@ export interface HotspotItem {
   direction: 'improved' | 'worsened' | 'neutral'
 }
 
-export interface ConfidenceSummary {
+export interface SyntheticConfidenceSummary {
   highConfidenceCount: number
   mediumConfidenceCount: number
   lowConfidenceCount: number
   averageConfidence: number
-}
-
-export interface EquitySignal {
-  borough: string
-  vulnerability: number
-  worsenedScore: number
-  improvedScore: number
-  netBurden: number
-}
-
-const BOROUGH_VULNERABILITY: Record<string, number> = {
-  Bronx: 0.9,
-  Brooklyn: 0.76,
-  Queens: 0.63,
-  Manhattan: 0.5,
-  StatenIsland: 0.44,
 }
 
 const inferMonitorBorough = (name: string): string => {
@@ -52,13 +45,13 @@ const directionFromEffect = (effect: number): 'improved' | 'worsened' | 'neutral
   return 'neutral'
 }
 
-export const buildHotspotRankings = (
-  dataset: ManifestDataset,
+export const buildSyntheticHotspotRankings = (
+  dataset: DevSyntheticDataset,
   currentDateIso: string,
-): HotspotItem[] => {
+): SyntheticHotspotItem[] => {
   const interpolated = getInterpolatedEffectsForDate(dataset, currentDateIso)
 
-  const traffic: HotspotItem[] = interpolated.traffic.map((corridor) => {
+  const traffic: SyntheticHotspotItem[] = interpolated.traffic.map((corridor) => {
     const magnitude = Math.abs(corridor.effectPct) * 100
     const score = magnitude * corridor.confidence
     return {
@@ -73,7 +66,7 @@ export const buildHotspotRankings = (
     }
   })
 
-  const monitors: HotspotItem[] = interpolated.monitors.map((monitor) => {
+  const monitors: SyntheticHotspotItem[] = interpolated.monitors.map((monitor) => {
     const magnitude = Math.abs(monitor.effect) * 18
     const score = magnitude * monitor.confidence
     return {
@@ -91,7 +84,9 @@ export const buildHotspotRankings = (
   return [...traffic, ...monitors].sort((left, right) => right.score - left.score)
 }
 
-export const summarizeConfidence = (hotspots: HotspotItem[]): ConfidenceSummary => {
+export const summarizeSyntheticConfidence = (
+  hotspots: SyntheticHotspotItem[],
+): SyntheticConfidenceSummary => {
   if (hotspots.length === 0) {
     return {
       highConfidenceCount: 0,
@@ -123,34 +118,4 @@ export const summarizeConfidence = (hotspots: HotspotItem[]): ConfidenceSummary 
     lowConfidenceCount,
     averageConfidence: totalConfidence / hotspots.length,
   }
-}
-
-export const buildEquitySignals = (hotspots: HotspotItem[]): EquitySignal[] => {
-  const grouped = new Map<string, EquitySignal>()
-
-  for (const hotspot of hotspots) {
-    const borough = hotspot.borough
-    const vulnerability = BOROUGH_VULNERABILITY[borough] ?? 0.5
-    const weighted = hotspot.score * vulnerability
-    const current = grouped.get(borough) ?? {
-      borough,
-      vulnerability,
-      worsenedScore: 0,
-      improvedScore: 0,
-      netBurden: 0,
-    }
-
-    if (hotspot.direction === 'worsened') {
-      current.worsenedScore += weighted
-    }
-
-    if (hotspot.direction === 'improved') {
-      current.improvedScore += weighted
-    }
-
-    current.netBurden = current.worsenedScore - current.improvedScore
-    grouped.set(borough, current)
-  }
-
-  return [...grouped.values()].sort((left, right) => right.netBurden - left.netBurden)
 }

@@ -1,34 +1,34 @@
-import type { HotspotItem } from '../../lib/analysis'
+import type { SyntheticHotspotItem } from '../../lib/analysis'
 
 interface HotspotDetailPanelProps {
-  hotspot: HotspotItem | null
+  hotspot: SyntheticHotspotItem | null
 }
 
-const impactLabel = (hotspot: HotspotItem): string => {
+const effectLabel = (hotspot: SyntheticHotspotItem): string => {
   if (hotspot.kind === 'traffic') {
     const value = hotspot.effect * 100
-    return `${value >= 0 ? '+' : ''}${value.toFixed(1)}% vs expected`
+    return `${value >= 0 ? '+' : ''}${value.toFixed(1)}% synthetic dev effect`
   }
 
-  return `${hotspot.effect >= 0 ? '+' : ''}${hotspot.effect.toFixed(2)} ug/m3 vs expected`
+  return `${hotspot.effect >= 0 ? '+' : ''}${hotspot.effect.toFixed(2)} ug/m3 synthetic dev effect`
 }
 
 export function HotspotDetailPanel({ hotspot }: HotspotDetailPanelProps) {
   if (!hotspot) {
     return (
       <aside className="analysis-card detail-card" aria-live="polite">
-        <p className="analysis-kicker">DRILL-DOWN</p>
-        <h3>Select a hotspot from the ranking.</h3>
-        <p>Choose a corridor or monitor to inspect impact, direction, and confidence in one place.</p>
+        <p className="analysis-kicker">DRILL-DOWN · SYNTHETIC DEV</p>
+        <h3>Select a prototype hotspot from the ranking.</h3>
+        <p>Choose a corridor or monitor to inspect the dev effect, direction, and confidence in one place.</p>
       </aside>
     )
   }
 
   return (
     <aside className="analysis-card detail-card" aria-live="polite">
-      <p className="analysis-kicker">DRILL-DOWN</p>
+      <p className="analysis-kicker">DRILL-DOWN · SYNTHETIC DEV</p>
       <h3>{hotspot.name}</h3>
-      <p className={`impact-line impact-${hotspot.direction}`}>{hotspot.direction.toUpperCase()} · {impactLabel(hotspot)}</p>
+      <p className={`impact-line impact-${hotspot.direction}`}>{hotspot.direction.toUpperCase()} · {effectLabel(hotspot)}</p>
       <dl className="analysis-metrics">
         <div>
           <dt>Borough</dt>
@@ -39,7 +39,7 @@ export function HotspotDetailPanel({ hotspot }: HotspotDetailPanelProps) {
           <dd>{Math.round(hotspot.confidence * 100)}%</dd>
         </div>
         <div>
-          <dt>Hotspot score</dt>
+          <dt>Dev score</dt>
           <dd>{hotspot.score.toFixed(1)}</dd>
         </div>
       </dl>

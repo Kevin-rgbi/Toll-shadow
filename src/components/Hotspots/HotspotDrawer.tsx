@@ -1,12 +1,12 @@
-import type { HotspotItem } from '../../lib/analysis'
+import type { SyntheticHotspotItem } from '../../lib/analysis'
 
 interface HotspotDrawerProps {
-  hotspots: HotspotItem[]
+  hotspots: SyntheticHotspotItem[]
   selectedId: string | null
   onSelect: (hotspotId: string) => void
 }
 
-const effectLabel = (item: HotspotItem): string => {
+const effectLabel = (item: SyntheticHotspotItem): string => {
   if (item.kind === 'traffic') {
     const pct = item.effect * 100
     return `${pct >= 0 ? '+' : ''}${pct.toFixed(1)}%`
@@ -15,20 +15,20 @@ const effectLabel = (item: HotspotItem): string => {
   return `${item.effect >= 0 ? '+' : ''}${item.effect.toFixed(2)} ug/m3`
 }
 
-const effectAriaLabel = (item: HotspotItem): string => {
+const effectAriaLabel = (item: SyntheticHotspotItem): string => {
   if (item.kind === 'traffic') {
     const pct = item.effect * 100
-    return `${pct >= 0 ? '+' : ''}${pct.toFixed(1)} percent versus expected`
+    return `${pct >= 0 ? '+' : ''}${pct.toFixed(1)} percent synthetic dev effect`
   }
 
-  return `${item.effect >= 0 ? '+' : ''}${item.effect.toFixed(2)} micrograms per cubic meter versus expected`
+  return `${item.effect >= 0 ? '+' : ''}${item.effect.toFixed(2)} micrograms per cubic meter synthetic dev effect`
 }
 
-const selectAriaLabel = (item: HotspotItem): string => {
+const selectAriaLabel = (item: SyntheticHotspotItem): string => {
   return `Select ${item.name}, ${item.direction}, ${effectAriaLabel(item)}`
 }
 
-const directionClass = (item: HotspotItem): string => {
+const directionClass = (item: SyntheticHotspotItem): string => {
   if (item.direction === 'worsened') return 'is-worsened'
   if (item.direction === 'improved') return 'is-improved'
   return 'is-neutral'
@@ -37,8 +37,8 @@ const directionClass = (item: HotspotItem): string => {
 export function HotspotDrawer({ hotspots, selectedId, onSelect }: HotspotDrawerProps) {
   return (
     <aside className="analysis-card hotspot-card" aria-live="polite">
-      <p className="analysis-kicker">HOTSPOT RANKING</p>
-      <h3>Highest combined effect and confidence</h3>
+      <p className="analysis-kicker">HOTSPOT RANKING · SYNTHETIC DEV</p>
+      <h3>Highest combined dev effect and confidence</h3>
       <ol>
         {hotspots.slice(0, 5).map((hotspot) => (
           <li key={`${hotspot.kind}:${hotspot.id}`}>
