@@ -1,0 +1,81 @@
+{
+  "_comment": "Declared identity of the Kepler source-side reproducibility artifact. Values are taken from docs/TOLL_SHADOW_MHC_EVENT_AUDIT.md and from the preserved processed CSVs under data/processed/. This file is a review baseline, not a derived output; it is never regenerated from 01_Traffic.json.",
+  "export_file": "01_Traffic.json",
+  "export_created_utc_note": "2026-09-15 15:22 EDT per archive audit",
+  "claim_boundary": "A passing comparison means only that the embedded export matches these declared legacy inputs by identity, row count, schema, and value. It does not mean the inputs are analytically approved, that the policy labels/formulas are documented, or that any measure is causal.",
+  "datasets": [
+    {
+      "label": "MTA_Central_Business_District_Taxi_Zones_20260911.csv",
+      "kepler_dataset_id": "lvcx17",
+      "row_count": 38,
+      "fields": ["Taxi Zone", "Polygon"],
+      "source_path": "data/processed/boundaries/MTA_Central_Business_District_Taxi_Zones_20260911.csv",
+      "sha256": "8c1a59503676534ac4df90d8ef7c1ccd8db4b561edfd856d726d93b507c884ac",
+      "role": "CBD boundary layer",
+      "caveats": [
+        "Transformed/map-ready WKT CSV; the source snapshot is the mislabeled query.csv PDF, not this CSV.",
+        "WKT polygons appear to be CRS84/4326 degrees; no transformation record ships with the CSV."
+      ]
+    },
+    {
+      "label": "Automated_Traffic_Volume_Kepler_Clean_2024_2025.csv",
+      "kepler_dataset_id": "-bekq5i",
+      "row_count": 2559,
+      "fields": [
+        "site_id", "segment_id", "latitude", "longitude", "borough", "street",
+        "from_street", "to_street", "direction", "year", "month", "month_start",
+        "policy_period", "day_type", "time_band", "avg_15min_volume",
+        "estimated_avg_hourly_volume", "max_15min_volume", "observations",
+        "days_sampled", "count_sessions"
+      ],
+      "source_path": "data/processed/traffic/Automated_Traffic_Volume_Kepler_Clean_2024_2025.csv",
+      "sha256": "b26a54b54bdc5bbd3c7cdac1b7631b0f698f02093c90220e3b84a8c0f1d0ee07",
+      "role": "Prepared DOT traffic table (point layer, colored by avg_15min_volume)",
+      "caveats": [
+        "Derived policy-period labels and estimated hourly volume have no recorded recipe (cutoff, aggregation, outlier handling, observation thresholds).",
+        "August is absent from observed month values.",
+        "Underlying raw DOT WKT CRS is unconfirmed in the archive."
+      ]
+    },
+    {
+      "label": "crz_kepler_detection_points.csv",
+      "kepler_dataset_id": "-z1trfn",
+      "row_count": 12,
+      "fields": [
+        "detection_group", "detection_region", "latitude", "longitude",
+        "source_start_date", "source_end_date", "source_days", "crz_entries",
+        "excluded_roadway_entries", "all_entries", "avg_daily_crz_entries",
+        "share_of_total_crz_pct", "peak_crz_entries", "overnight_crz_entries",
+        "top_vehicle_class", "top_vehicle_crz_entries", "coordinate_note"
+      ],
+      "source_path": "data/processed/congestion/crz_kepler_detection_points.csv",
+      "sha256": "be8252795eb5d990000f89bab485c03c1a59bc33b05d4ea1896600b9dedacfbc",
+      "role": "CRZ entry-point summary markers (heatmap layer)",
+      "caveats": [
+        "Aggregated summary, not raw detection records; cannot establish causality, route displacement, or a facility boundary.",
+        "Every coordinate is an approximate point added for Kepler mapping; not detector geometry.",
+        "Source window 2025-01-05 through 2026-09-05 (609 days) is recorded per row, not validated against a primary source."
+      ]
+    },
+    {
+      "label": "MTA_Bridges_Tunnels_Kepler_2024_2025.csv",
+      "kepler_dataset_id": "-pzg2nq",
+      "row_count": 8352,
+      "fields": [
+        "date", "year", "month", "year_month", "day_of_week", "plaza_id_raw",
+        "facility_id", "facility_code", "facility_name", "facility_type",
+        "direction", "direction_label", "ezpass_vehicles", "vtoll_vehicles",
+        "total_vehicles", "ezpass_share_pct", "congestion_period", "latitude",
+        "longitude"
+      ],
+      "source_path": "data/processed/traffic/MTA_Bridges_Tunnels_Kepler_2024_2025.csv",
+      "sha256": "e962afcb73e2e71d0e9e223f27e1602ecfd379697b978c8a2eef64884016b361",
+      "role": "Prepared MTA crossings table (point layer, colored by ezpass_share_pct)",
+      "caveats": [
+        "Facility-ID mapping for raw plaza IDs 21-30 is not covered by the 2015 MTA PDF key and needs verification.",
+        "Policy cutoff between before/after congestion pricing is a derived label with no recorded recipe.",
+        "Raw MTA archive table is named Daily and has no Hour column, contradicting the companion PDF."
+      ]
+    }
+  ]
+}
