@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import {
   MAX_ZOOM,
+  tileLevelFor,
+  tileScaleFactorFor,
   MIN_ZOOM,
   TILE_SIZE,
   clampCenter,
@@ -43,6 +45,18 @@ describe('web mercator projection', () => {
     expect(range.maxY).toBeGreaterThan(range.minY)
     expect(range.minY).toBeGreaterThanOrEqual(0)
     expect(range.maxY).toBeLessThanOrEqual(2 ** 11 - 1)
+  })
+
+  it('floors a fractional zoom to a tile level the server can serve', () => {
+    expect(tileLevelFor(11)).toBe(11)
+    expect(tileLevelFor(11.85)).toBe(11)
+    expect(tileLevelFor(12.999)).toBe(12)
+  })
+
+  it('scales tiles by the fractional remainder instead of requesting a fractional path', () => {
+    expect(tileScaleFactorFor(11)).toBeCloseTo(1, 10)
+    expect(tileScaleFactorFor(11.5)).toBeCloseTo(Math.SQRT2, 6)
+    expect(tileScaleFactorFor(12)).toBeCloseTo(1, 10)
   })
 
   it('keeps a zoom inside the supported range', () => {

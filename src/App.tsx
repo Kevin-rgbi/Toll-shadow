@@ -61,6 +61,8 @@ const MODULE_TITLES: Partial<Record<(typeof APP_MODES)[number], string>> = {
 
 function App() {
   const [methodologyOpen, setMethodologyOpen] = useState(false)
+  // On phones the data rail becomes a bottom sheet; this is its collapsed/expanded state.
+  const [railExpanded, setRailExpanded] = useState(false)
   const [selectedHotspotId, setSelectedHotspotId] = useState<string | null>(null)
   const mode = useAppStore((state) => state.mode)
   const compareMode = useAppStore((state) => state.compareMode)
@@ -544,7 +546,18 @@ function App() {
           )}
         </div>
 
-        <div className="data-rail">{renderModule()}</div>
+        <div className={railExpanded ? 'data-rail is-expanded' : 'data-rail'}>
+          <button
+            type="button"
+            className="rail-handle"
+            aria-expanded={railExpanded}
+            onClick={() => setRailExpanded((expanded) => !expanded)}
+          >
+            <span className="rail-handle-bar" aria-hidden="true" />
+            <span className="rail-handle-label">{railExpanded ? 'Hide the figures' : 'Show the figures'}</span>
+          </button>
+          {renderModule()}
+        </div>
       </section>
 
       {methodologyOpen && (
