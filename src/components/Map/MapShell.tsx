@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import * as maplibregl from 'maplibre-gl'
 import type { FeatureCollection } from 'geojson'
 import { RasterMap } from './RasterMap'
+import { MAPLIBRE_WORKER_URL } from '../../lib/buildInfo'
 import { resolveRenderer } from '../../lib/mapPreference'
 import type { MapPreference } from '../../lib/mapPreference'
 import { getInterpolatedEffectsForDate } from '../../lib/devSyntheticDataset'
@@ -320,6 +321,12 @@ export function MapShell({
     }
 
     let map: maplibregl.Map
+
+    // Point MapLibre at this build's worker before the map is constructed. Without it the library
+    // resolves a fixed sibling path that can carry a cached failure across builds.
+    if (MAPLIBRE_WORKER_URL) {
+      maplibregl.setWorkerUrl(MAPLIBRE_WORKER_URL)
+    }
 
     try {
       map = new maplibregl.Map({

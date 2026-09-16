@@ -62,15 +62,19 @@ const MAPLIBRE_RUNTIME_FILES = [
   'maplibre-gl-shared.mjs',
 ]
 
-const emitMapLibreWorker = (): Plugin => ({
+const emitMapLibreWorker = (stamp: string): Plugin => ({
   name: 'emit-maplibre-worker',
   apply: 'build',
   async closeBundle() {
-    const assetsDir = resolve(process.cwd(), 'dist/assets')
-    await mkdir(assetsDir, { recursive: true })
+    // A build-stamped directory, not a bare /assets/ path. The worker URL carries no content hash
+    // (the library hard-codes the filename and its internal relative import), so a client that
+    // cached a 404 for a fixed path would keep failing until that cache expired. A path that changes
+    // per build means a bad cache entry can never outlive the build that produced it.
+    const targetDir = resolve(process.cwd(), 'dist/assets/maplibre', stamp)
+    await mkdir(targetDir, { recursive: true })
     await Promise.all(MAPLIBRE_RUNTIME_FILES.map((file) => copyFile(
       resolve(process.cwd(), 'node_modules/maplibre-gl/dist', file),
-      resolve(assetsDir, file),
+      resolve(targetDir, file),
     )))
   },
 })
@@ -82,10 +86,16 @@ export default defineConfig(({ mode }) => {
     throw new Error('Production builds cannot run with VITE_USE_DEMO_DATA=true.')
   }
 
+  const stamp = mode === 'production' ? buildId() : 'dev'
+
   return {
-    plugins: [react(), pruneSyntheticDevAssets(), emitMapLibreWorker()],
+    plugins: [react(), pruneSyntheticDevAssets(), emitMapLibreWorker(stamp)],
     define: {
-      __BUILD_ID__: JSON.stringify(mode === 'production' ? buildId() : 'dev'),
+      __BUILD_ID__: JSON.stringify(stamp),
+      // Empty in development, where the worker resolves from node_modules instead.
+      __MAPLIBRE_WORKER_URL__: JSON.stringify(
+        mode === 'production' ? `/assets/maplibre/${stamp}/maplibre-gl-worker.mjs` : '',
+      ),
     },
     optimizeDeps: {
       exclude: ['maplibre-gl'],

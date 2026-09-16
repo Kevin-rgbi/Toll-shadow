@@ -389,11 +389,15 @@ def gate(repo_root: Path, dist: Path, budget_bytes: int, dist_overridden: bool =
     # at runtime. If either is missing the worker dies silently, the map never loads its style, and
     # the page shows a grey map with no data and no error. Nothing else in the build catches that.
     maplibre_runtime = ("maplibre-gl-worker.mjs", "maplibre-gl-shared.mjs")
-    missing_runtime = [name for name in maplibre_runtime if not (dist / "assets" / name).is_file()]
+    stamped_dirs = sorted((dist / "assets" / "maplibre").glob("*")) if (dist / "assets" / "maplibre").is_dir() else []
+    complete_dirs = [
+        directory for directory in stamped_dirs
+        if all((directory / name).is_file() for name in maplibre_runtime)
+    ]
     result.check(
-        "MapLibre worker runtime files are emitted next to the bundle",
-        not missing_runtime,
-        f"missing={missing_runtime}",
+        "MapLibre's worker and its shared module are emitted under a build-stamped path",
+        len(complete_dirs) == 1,
+        f"stamped dirs={[d.name for d in stamped_dirs]} complete={[d.name for d in complete_dirs]}",
     )
 
     # --- 6. No raw/archive payloads and no secrets ------------------------
