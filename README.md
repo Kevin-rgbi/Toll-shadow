@@ -141,6 +141,35 @@ Useful URL parameters:
 | `?map=software` / `?map=gpu` | force the renderer |
 | `?v=<build>` | build identity; a mismatch with the running build shows a stale-build banner |
 
+## Site files, search, and headers
+
+The build ships everything a public site is expected to serve, and the deployment gate refuses a
+candidate that is missing any of it:
+
+| File | Purpose |
+|---|---|
+| `robots.txt` | Allows crawling, points at the sitemap, and keeps crawlers out of `/data/releases/` |
+| `sitemap.xml` | One URL. Module and filter state live in query strings, so those variants are views of the same page and are not listed separately |
+| `404.html` | Served with a real 404 status for anything unmatched |
+| `site.webmanifest`, `apple-touch-icon.png`, `icon-512.png`, `favicon.svg` | Install and home-screen icons |
+| `og.png` | 1200x630 social card, generated from a title card |
+| `security.txt` | Security contact, at the root rather than `/.well-known/` because Firebase excludes dotfile paths from deployment |
+
+The document head carries a canonical URL, Open Graph and Twitter card tags, and `Dataset` plus
+`WebSite` structured data describing the published release, its window, its two distributions, and
+the sources it is based on. A `<noscript>` block links the manifest and both assets directly, so the
+data is reachable without JavaScript.
+
+Security headers are applied to every response: `Content-Security-Policy`, `X-Content-Type-Options`,
+`Referrer-Policy`, `X-Frame-Options`, `Cross-Origin-Opener-Policy`, and a `Permissions-Policy` that
+denies every capability the site does not use. The policy was validated by running the app under it
+and reading the browser's own violation reports, not by guessing the allowlist. `style-src` needs
+`'unsafe-inline'` because the map sets element styles directly, and `font-src` needs `data:` because
+the build inlines one small font subset; both are documented rather than silently broad.
+
+There is deliberately **no catch-all rewrite**. Only `/` and `/index.html` rewrite to the SPA shell,
+so a mistyped or superseded asset path returns 404 instead of a 200 carrying an HTML page.
+
 ## Verification
 
 ```bash
