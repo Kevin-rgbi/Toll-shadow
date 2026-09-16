@@ -478,7 +478,9 @@ export function MapShell({
       }
       const drawn = map.queryRenderedFeatures({ layers: ['release-traffic-circles'] }).length
       const loaded = map.querySourceFeatures('release-traffic').length
-      readout.textContent = `${drawn} of ${loaded} published points in view`
+      const styleState = map.isStyleLoaded() ? 'style ok' : 'style pending'
+      const sourceState = map.isSourceLoaded('release-traffic') ? 'source ok' : 'source pending'
+      readout.textContent = `${styleState}, ${sourceState} · ${drawn} of ${loaded} points in view`
     }
 
     map.on('sourcedata', countRendered)
