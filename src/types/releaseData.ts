@@ -57,6 +57,10 @@ export interface FacilityCrossing {
   /** Observation date as `YYYY-MM-DD`. */
   observedOn: string
   plazaId: number
+  /** Register facility code, e.g. TBX. Resolved by the pipeline from the source register. */
+  facilityCode: string
+  /** Register facility name. A crossing the register cannot name is never published. */
+  facilityName: string
   direction: 'I' | 'O'
   ezpassVehicles: number
   vtollVehicles: number

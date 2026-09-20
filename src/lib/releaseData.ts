@@ -236,6 +236,8 @@ export const parseFacilityCrossings = (
       measureId: requireString(record.measure_id, assetLabel, `${field}.measure_id`),
       observedOn: requireMatch(record.observed_on, ISO_DATE, assetLabel, `${field}.observed_on`, 'a YYYY-MM-DD date'),
       plazaId,
+      facilityCode: requireString(record.facility_code, assetLabel, `${field}.facility_code`),
+      facilityName: requireString(record.facility_name, assetLabel, `${field}.facility_name`),
       direction,
       ezpassVehicles,
       vtollVehicles,

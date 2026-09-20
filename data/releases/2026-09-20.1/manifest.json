@@ -1,9 +1,9 @@
 {
-  "release_id": "2026-09-16.2",
-  "schema_version": "1.1.0",
-  "generated_at": "2026-09-16T04:05:02.000Z",
+  "release_id": "2026-09-20.1",
+  "schema_version": "1.2.0",
+  "generated_at": "2026-09-20T23:43:56.000Z",
   "status": "validated",
-  "transform_version": "pipeline-release-1.1.0",
+  "transform_version": "pipeline-release-1.2.0",
   "source_ids": [
     "dot_automated_traffic_counts_archive_20260915",
     "mta_daily_bridge_tunnel_traffic_archive_20260915"
@@ -19,7 +19,7 @@
   "assets": [
     {
       "kind": "traffic_observations",
-      "path": "/data/releases/2026-09-16.2/traffic_observations.geojson",
+      "path": "/data/releases/2026-09-20.1/traffic_observations.geojson",
       "format": "geojson",
       "sha256": "c3baeeaff9799c77e5e26448a8d3723ac90b81106b1302fb2c03d6015fc92ab7",
       "coverage": {
@@ -30,7 +30,7 @@
       "source_ids": [
         "dot_automated_traffic_counts_archive_20260915"
       ],
-      "transform_version": "pipeline-release-1.1.0",
+      "transform_version": "pipeline-release-1.2.0",
       "status": "validated",
       "limitations": [
         "DOT counts are samples and do not represent continuous or full-year traffic measurement",
@@ -43,9 +43,9 @@
     },
     {
       "kind": "facility_crossings",
-      "path": "/data/releases/2026-09-16.2/facility_crossings.json",
+      "path": "/data/releases/2026-09-20.1/facility_crossings.json",
       "format": "json",
-      "sha256": "e412c3168de14ec1a0597d8a5f11d0f5ad59d66cc2014c71eaba11f78afc8f44",
+      "sha256": "b39cb694bd8f98f0ef3a2dfb844dd55fdf1a18b83794b4b0a20c2fa39f4452a8",
       "coverage": {
         "start": "2024-01-01",
         "end": "2025-04-12"
@@ -54,14 +54,14 @@
       "source_ids": [
         "mta_daily_bridge_tunnel_traffic_archive_20260915"
       ],
-      "transform_version": "pipeline-release-1.1.0",
+      "transform_version": "pipeline-release-1.2.0",
       "status": "validated",
       "limitations": [
         "source is a daily aggregate view and cannot support hourly analysis",
         "facility comparisons are descriptive and do not estimate a congestion-pricing effect",
         "archive coverage ends 2025-04-12"
       ],
-      "bytes": 2890818
+      "bytes": 3596098
     }
   ],
   "policy_reference_date": "2025-01-05"

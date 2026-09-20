@@ -32,6 +32,8 @@ const crossingRecord = (overrides: Record<string, unknown> = {}) => ({
   measure_id: 'mta_daily_facility_crossings',
   observed_on: '2024-01-01',
   plaza_id: 21,
+  facility_code: 'TBX',
+  facility_name: 'Robert F. Kennedy Bridge (Bronx and Queens plazas)',
   direction: 'I',
   ezpass_vehicles: 93274,
   vtoll_vehicles: 18784,

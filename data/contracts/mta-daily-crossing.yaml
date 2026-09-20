@@ -11,6 +11,8 @@ output:
   fields:
     observed_on: ISO-8601 calendar date
     plaza_id: positive integer
+    facility_code: register facility code, e.g. TBX
+    facility_name: register facility name, e.g. Robert F. Kennedy Bridge (Bronx and Queens plazas)
     direction: [I, O]
     ezpass_vehicles: non-negative integer
     vtoll_vehicles: non-negative integer

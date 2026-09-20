@@ -50,3 +50,31 @@ export async function* parseMtaDailyCrossings(filePath) {
     yield normalizeMtaDailyRow(row, rowNumber);
   }
 }
+
+/**
+ * Facility names come from the source register, not from the CSV, which carries plaza identifiers
+ * only. PRD FR-04 asks for named facilities, so a crossing that cannot be named is refused rather
+ * than published with a bare identifier.
+ */
+export function buildFacilityLookup(catalogEntry) {
+  const entries = catalogEntry?.schema?.facility_ids;
+  if (!Array.isArray(entries) || entries.length === 0) {
+    throw new Error('source catalog: the MTA source must declare schema.facility_ids with plaza names');
+  }
+  const lookup = new Map();
+  for (const entry of entries) {
+    if (!Number.isInteger(entry?.plaza_id) || !entry.facility_code || !entry.facility_name) {
+      throw new Error('source catalog: every facility_ids entry needs plaza_id, facility_code and facility_name');
+    }
+    lookup.set(entry.plaza_id, { code: entry.facility_code, name: entry.facility_name });
+  }
+  return lookup;
+}
+
+export function facilityFor(plazaId, lookup, rowNumber) {
+  const facility = lookup.get(plazaId);
+  if (!facility) {
+    throw new CsvContractError(`plaza ${plazaId} has no facility name in the source register`, rowNumber);
+  }
+  return facility;
+}

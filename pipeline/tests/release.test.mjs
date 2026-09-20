@@ -19,7 +19,7 @@ describe('buildRelease', () => {
     const temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'toll-shadow-release-'));
     temporaryDirectories.push(temporaryRoot);
     const result = await buildRelease({
-      releaseId: '2026-09-16.2',
+      releaseId: '2026-09-20.1',
       generatedAt: '2026-09-16T03:30:00.000Z',
       trafficInput: fixture('traffic-valid.csv'),
       mtaInput: fixture('mta-valid.csv'),
@@ -33,7 +33,7 @@ describe('buildRelease', () => {
     const publicManifest = JSON.parse(await readFile(path.join(temporaryRoot, 'public-data/manifest.json'), 'utf8'));
     expect(publicManifest.policy_reference_date).toBe('2025-01-05');
     await expect(buildRelease({
-      releaseId: '2026-09-16.2',
+      releaseId: '2026-09-20.1',
       generatedAt: '2026-09-16T03:30:00.000Z',
       trafficInput: fixture('traffic-valid.csv'),
       mtaInput: fixture('mta-valid.csv'),

@@ -33,9 +33,8 @@ const formatShare = (value: number): string => `${value.toFixed(1)}%`
 /**
  * MTA facility-crossing module (PRD FR-04).
  *
- * Plazas are shown by published identifier only. The release does not publish facility names, and
- * the verified mapping for plazas 21-30 is still an open provenance item, so no bridge name is
- * invented here.
+ * Facilities are named from the source register, which resolves plaza identifiers from authority
+ * metadata; the published identifier is shown alongside the name. Names are never invented here.
  */
 export function CrossingsModule({ state, release, start, end, onRangeChange }: CrossingsModuleProps) {
   const crossings = state.status === 'ready' ? state.data : NO_CROSSINGS
@@ -142,12 +141,13 @@ export function CrossingsModule({ state, release, start, end, onRangeChange }: C
               </section>
 
               <section className="module-section">
-                <h4>By plaza (published identifiers)</h4>
+                <h4>By facility</h4>
                 <ul className="module-rows">
                   {byPlaza.map((plaza) => (
                     <li key={plaza.plazaId}>
-                      <span className="module-row-main">Plaza {plaza.plazaId}</span>
+                      <span className="module-row-main">{plaza.facilityName}</span>
                       <span className="module-row-meta">
+                        {plaza.facilityCode} · plaza {plaza.plazaId} ·{' '}
                         {formatVehicles(plaza.totalVehicles)} vehicles ·{' '}
                         {formatShare(plaza.ezpassSharePct)} E-ZPass ·{' '}
                         {formatVehicles(plaza.publishedDays)} daily rows ·{' '}
@@ -157,8 +157,10 @@ export function CrossingsModule({ state, release, start, end, onRangeChange }: C
                   ))}
                 </ul>
                 <p className="sources-note">
-                  Plaza identifiers are shown as published. This release does not publish a facility
-                  name mapping, so no bridge or tunnel name is asserted for these rows.
+                  Facility names and codes come from the source register, which resolves each plaza
+                  identifier from authority metadata. The published plaza identifier is shown beside
+                  each name. A crossing the register cannot name is refused by the pipeline rather
+                  than published with a bare identifier.
                 </p>
               </section>
             </>

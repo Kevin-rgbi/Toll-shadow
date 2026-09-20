@@ -1,5 +1,5 @@
 schema_version: 1.1.0
-release_id: 2026-09-16.2
+release_id: 2026-09-20.1
 policy_reference:
   date: '2025-01-05'
   source_url: https://www.mta.info/press-release/new-york-joins-world-cities-launch-of-first-nation-program-deliver-cleaner-air-less
@@ -49,6 +49,8 @@ measures:
       - valid MTA daily contract row with a known plaza ID and I/O direction
     exclusion_rules:
       - invalid source row
+      - a plaza identifier with no facility name in the source register
+    facility_naming: plaza identifiers are resolved to a name and code from the source register; a crossing the register cannot name is refused rather than published with a bare identifier
     limitations:
       - source is a daily aggregate view and cannot support hourly analysis
       - facility comparisons are descriptive and do not estimate a congestion-pricing effect

@@ -5,10 +5,10 @@ import { parse } from 'yaml';
 import { readContractCsv } from './csv.mjs';
 import { epsg2263ToWgs84 } from './geospatial.mjs';
 import { loadMeasureSpecification } from './measure-spec.mjs';
-import { normalizeMtaDailyRow, MTA_REQUIRED_COLUMNS } from './mta.mjs';
+import { buildFacilityLookup, facilityFor, normalizeMtaDailyRow, MTA_REQUIRED_COLUMNS } from './mta.mjs';
 import { normalizeTrafficRow, TRAFFIC_REQUIRED_COLUMNS } from './traffic.mjs';
 
-const TRANSFORM_VERSION = 'pipeline-release-1.1.0';
+const TRANSFORM_VERSION = 'pipeline-release-1.2.0';
 const MAX_ASSET_BYTES = 5 * 1024 * 1024;
 
 function sha256(content) {
@@ -123,7 +123,7 @@ async function collectTraffic({ filePath, coverage }) {
   return { featureCollection: { type: 'FeatureCollection', features }, quality };
 }
 
-async function collectMta({ filePath, coverage }) {
+async function collectMta({ filePath, coverage, facilityLookup }) {
   const records = [];
   const quality = { total_rows: 0, valid_rows: 0, included_rows: 0, invalid_rows: 0, invalid_examples: [] };
   let rowNumber = 1;
@@ -134,12 +134,16 @@ async function collectMta({ filePath, coverage }) {
       const crossing = normalizeMtaDailyRow(row, rowNumber);
       quality.valid_rows += 1;
       if (!isWithinCoverage(crossing.observedOn, coverage)) continue;
+      // Resolved after the coverage check so an out-of-window plaza does not fail the build.
+      const facility = facilityFor(crossing.plazaId, facilityLookup, rowNumber);
       quality.included_rows += 1;
       records.push({
         source_id: 'mta_daily_bridge_tunnel_traffic_archive_20260915',
         measure_id: 'mta_daily_facility_crossings',
         observed_on: crossing.observedOn,
         plaza_id: crossing.plazaId,
+        facility_code: facility.code,
+        facility_name: facility.name,
         direction: crossing.direction,
         ezpass_vehicles: crossing.ezpassVehicles,
         vtoll_vehicles: crossing.vtollVehicles,
@@ -216,7 +220,11 @@ export async function buildRelease({
     await mkdir(publicReleaseDirectory, { recursive: false });
     const [traffic, mta] = await Promise.all([
       collectTraffic({ filePath: trafficInput, coverage: trafficMeasure.coverage }),
-      collectMta({ filePath: mtaInput, coverage: mtaMeasure.coverage }),
+      collectMta({
+        filePath: mtaInput,
+        coverage: mtaMeasure.coverage,
+        facilityLookup: buildFacilityLookup(catalog.get('mta_daily_bridge_tunnel_traffic_archive_20260915')),
+      }),
     ]);
     const trafficContent = serializeJson(traffic.featureCollection);
     const mtaContent = serializeJson({ records: mta.records });
@@ -245,7 +253,7 @@ export async function buildRelease({
       release_id: releaseId,
       // 1.1.0: additive. The traffic asset gained day_type and time_band dimensions; no field was
       // renamed, retyped, or given a new meaning.
-      schema_version: '1.1.0',
+      schema_version: '1.2.0',
       generated_at: generatedAt,
       status: 'validated',
       transform_version: TRANSFORM_VERSION,

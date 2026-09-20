@@ -55,7 +55,9 @@ describe('shipped release pointer', () => {
       expect(result.status).toBe('ready')
       if (result.status !== 'ready') throw new Error('shipped pointer is not a validated release')
 
-      expect(result.manifest.release_id).toBe('2026-09-16.2')
+      // Read the ID from the pointer rather than pinning it: this test is about the shipped
+      // artifact being a valid release, not about which release is currently published.
+      expect(result.manifest.release_id).toMatch(/^\d{4}-\d{2}-\d{2}\.\d+$/)
       expect(result.manifest.status).toBe('validated')
       expect(result.manifest.assets.length).toBeGreaterThan(0)
     } finally {
