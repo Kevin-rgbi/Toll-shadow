@@ -85,17 +85,41 @@ sources:
     source_semantics: The catalog view aggregates an hourly source to date, plaza ID, and direction. It is not suitable for hourly analysis.
     schema:
       required_columns: [Date, Plaza ID, Direction, '# Vehicles - E-ZPass', '# Vehicles - VToll']
+      # Structured so the pipeline can publish a name and a code with every crossing record
+      # (PRD FR-04 asks for named facilities). Identifiers 1-9 and 11 appear in the raw file but are
+      # not named by authority metadata, so they carry no mapping here; the pipeline refuses to
+      # publish a crossing it cannot name rather than rendering a bare identifier.
       facility_ids:
-        '21': Robert F. Kennedy Bridge Bronx and Queens plazas (TBX)
-        '22': Robert F. Kennedy Bridge Manhattan plaza (TBM)
-        '23': Bronx-Whitestone Bridge (BWB)
-        '24': Henry Hudson Bridge (HHB)
-        '25': Marine Parkway-Gil Hodges Memorial Bridge (MPB)
-        '26': Cross Bay Veterans Memorial Bridge (CBB)
-        '27': Queens Midtown Tunnel (QMT)
-        '28': Hugh L. Carey Tunnel (HCT)
-        '29': Throgs Neck Bridge (TNB)
-        '30': Verrazzano-Narrows Bridge (VNB)
+        - plaza_id: 21
+          facility_code: TBX
+          facility_name: Robert F. Kennedy Bridge (Bronx and Queens plazas)
+        - plaza_id: 22
+          facility_code: TBM
+          facility_name: Robert F. Kennedy Bridge (Manhattan plaza)
+        - plaza_id: 23
+          facility_code: BWB
+          facility_name: Bronx-Whitestone Bridge
+        - plaza_id: 24
+          facility_code: HHB
+          facility_name: Henry Hudson Bridge
+        - plaza_id: 25
+          facility_code: MPB
+          facility_name: Marine Parkway-Gil Hodges Memorial Bridge
+        - plaza_id: 26
+          facility_code: CBB
+          facility_name: Cross Bay Veterans Memorial Bridge
+        - plaza_id: 27
+          facility_code: QMT
+          facility_name: Queens Midtown Tunnel
+        - plaza_id: 28
+          facility_code: HCT
+          facility_name: Hugh L. Carey Tunnel
+        - plaza_id: 29
+          facility_code: TNB
+          facility_name: Throgs Neck Bridge
+        - plaza_id: 30
+          facility_code: VNB
+          facility_name: Verrazzano-Narrows Bridge
       direction_values:
         I: inbound; official meaning varies by facility and is documented by the source
         O: outbound; official meaning varies by facility and is documented by the source
@@ -319,4 +343,36 @@ sources:
       - internal Kepler comparison and historical-context review
     forbidden_claims:
       - neighborhood, current, post-policy, or causal health result
+    transformations: []
+
+  - source_id: mta_crz_entries_archive_20260920
+    title: MTA Congestion Relief Zone vehicle entries, aggregated by detection group and month
+    role: raw_observation
+    approval_status: approved_for_pipeline
+    original_path: raw/crz/crz_entries_by_group_month.json
+    original_filename: crz_entries_by_group_month.json
+    sha256: 4ff45139abd08bccd0ec84c00864d113b6d0124808c576c2128ef2b9cc238f59
+    authoritative_url: https://data.ny.gov/Transportation/MTA-Congestion-Relief-Zone-Vehicle-Entries-Beginni/t6yz-b64h/about_data
+    publisher: Metropolitan Transportation Authority
+    license_status: public_open_data_catalog; license terms must be retained from the live source at refresh
+    acquired_at: '2026-09-20'
+    temporal_coverage:
+      start: '2025-01-01'
+      end: '2026-09-30'
+    geographic_coverage: twelve detection groups around the Manhattan Central Business District
+    geometry: null
+    grain: one month of summed entries per detection group
+    source_semantics: The authoritative dataset is 10-minute interval entries by crossing and vehicle class. This archive is one documented SoQL aggregate of it, not the raw grain.
+    recipe:
+      query: https://data.ny.gov/resource/t6yz-b64h.json?$select=detection_group,detection_region,date_trunc_ym(toll_date) as month,sum(crz_entries) as crz_entries,sum(excluded_roadway_entries) as excluded_roadway_entries&$group=detection_group,detection_region,month&$order=detection_group,month&$limit=50000
+      note: Re-run this single query to reproduce the archived file byte for byte; the row count and checksum above pin it.
+    schema:
+      required_columns: [detection_group, detection_region, month, crz_entries, excluded_roadway_entries]
+      known_quality_exceptions: []
+    allowed_uses:
+      - observed CRZ entry context per detection group and month, after adapter validation
+    forbidden_claims:
+      - exact detector geometry; detection groups are areas, not sensor points
+      - toll revenue, payment behaviour, route displacement, or a causal policy effect
+      - hourly analysis from a monthly aggregate
     transformations: []

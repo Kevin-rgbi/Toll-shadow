@@ -1,0 +1,29 @@
+schema_version: 1.0.0
+contract_id: crz-entry-summary
+title: Validated CRZ entry aggregate by detection group and month
+source_ids:
+  - mta_crz_entries_archive_20260920
+input:
+  format: json
+  required_columns: [detection_group, detection_region, month, crz_entries, excluded_roadway_entries]
+  grain: one month of summed entries per detection group
+output:
+  grain: one monthly aggregate per detection group
+  fields:
+    detection_group: string
+    detection_region: string
+    month: YYYY-MM
+    crz_entries: non-negative integer
+    excluded_roadway_entries: non-negative integer
+quality:
+  reject_on:
+    - missing required key
+    - unparseable month
+    - non-integer or negative entry count
+claims:
+  allowed:
+    - observed descriptive CRZ entry context with an aggregation window
+  prohibited:
+    - exact detector location
+    - causal policy impact
+    - hourly analysis from a monthly aggregate

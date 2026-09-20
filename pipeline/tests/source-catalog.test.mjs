@@ -11,6 +11,6 @@ describe('source catalog', () => {
     await expect(validateSourceCatalog({
       catalogFile: path.join(workspaceRoot, 'data/catalog/sources.yaml'),
       root: path.join(workspaceRoot, 'data'),
-    })).resolves.toMatchObject({ sourceCount: 11 });
+    })).resolves.toMatchObject({ sourceCount: 12 });
   });
 });

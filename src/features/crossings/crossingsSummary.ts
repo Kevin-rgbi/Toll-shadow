@@ -14,6 +14,9 @@ import type { FacilityCrossing } from '../../types/releaseData'
 
 export interface PlazaSummary {
   plazaId: number
+  /** From the source register, so a summary is never a bare identifier. */
+  facilityName: string
+  facilityCode: string
   /** Published daily rows behind this summary. */
   publishedDays: number
   totalVehicles: number
@@ -96,6 +99,8 @@ export const summarizeCrossingsByPlaza = (crossings: FacilityCrossing[]): PlazaS
 
       return {
         plazaId,
+        facilityName: rows[0].facilityName,
+        facilityCode: rows[0].facilityCode,
         publishedDays: rows.length,
         totalVehicles,
         ezpassVehicles,

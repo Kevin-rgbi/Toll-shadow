@@ -13,7 +13,7 @@
 
 import { ReleaseManifestError } from './releaseManifest'
 import { TRAFFIC_DAY_TYPES, TRAFFIC_TIME_BANDS } from '../types/releaseData'
-import type { FacilityCrossing, TrafficDayType, TrafficObservation } from '../types/releaseData'
+import type { CrzEntrySummary, FacilityCrossing, TrafficDayType, TrafficObservation } from '../types/releaseData'
 
 const MONTH = /^\d{4}-\d{2}$/
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/
@@ -236,11 +236,58 @@ export const parseFacilityCrossings = (
       measureId: requireString(record.measure_id, assetLabel, `${field}.measure_id`),
       observedOn: requireMatch(record.observed_on, ISO_DATE, assetLabel, `${field}.observed_on`, 'a YYYY-MM-DD date'),
       plazaId,
+      facilityCode: requireString(record.facility_code, assetLabel, `${field}.facility_code`),
+      facilityName: requireString(record.facility_name, assetLabel, `${field}.facility_name`),
       direction,
       ezpassVehicles,
       vtollVehicles,
       totalVehicles,
       ezpassSharePct,
+    }
+  })
+}
+
+/**
+ * Parse the published `crz_context` asset. Monthly sums per detection group, so every count must be a
+ * non-negative integer and the month a real `YYYY-MM`.
+ */
+export const parseCrzEntries = (
+  input: unknown,
+  assetLabel = 'crz_entry_summary',
+): CrzEntrySummary[] => {
+  const root = requireRecord(input, assetLabel, 'asset')
+
+  const records = root.records
+  if (!Array.isArray(records)) malformed(assetLabel, 'asset.records must be an array')
+  if (records.length === 0) malformed(assetLabel, 'asset.records must not be empty')
+
+  return records.map((entry, index) => {
+    const field = `records[${index}]`
+    const record = requireRecord(entry, assetLabel, field)
+
+    const crzEntries = requireCount(record.crz_entries, assetLabel, `${field}.crz_entries`)
+    const excludedRoadwayEntries = requireCount(
+      record.excluded_roadway_entries, assetLabel, `${field}.excluded_roadway_entries`,
+    )
+    const totalEntries = requireCount(record.total_entries, assetLabel, `${field}.total_entries`)
+
+    if (totalEntries !== crzEntries + excludedRoadwayEntries) {
+      malformed(
+        assetLabel,
+        `${field}.total_entries (${totalEntries}) must equal crz_entries + excluded_roadway_entries `
+        + `(${crzEntries} + ${excludedRoadwayEntries})`,
+      )
+    }
+
+    return {
+      sourceId: requireString(record.source_id, assetLabel, `${field}.source_id`),
+      measureId: requireString(record.measure_id, assetLabel, `${field}.measure_id`),
+      detectionGroup: requireString(record.detection_group, assetLabel, `${field}.detection_group`),
+      detectionRegion: requireString(record.detection_region, assetLabel, `${field}.detection_region`),
+      month: requireMatch(record.month, MONTH, assetLabel, `${field}.month`, 'a YYYY-MM month'),
+      crzEntries,
+      excludedRoadwayEntries,
+      totalEntries,
     }
   })
 }

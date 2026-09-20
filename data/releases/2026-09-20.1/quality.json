@@ -1,0 +1,35 @@
+{
+  "release_id": "2026-09-20.1",
+  "status": "validated",
+  "source_quality": {
+    "dot": {
+      "total_rows": 1875154,
+      "valid_rows": 1875153,
+      "included_rows": 177571,
+      "invalid_rows": 1,
+      "invalid_examples": [
+        "row 1367021: Vol must be an integer >= 0"
+      ]
+    },
+    "mta": {
+      "total_rows": 98053,
+      "valid_rows": 98053,
+      "included_rows": 8352,
+      "invalid_rows": 0,
+      "invalid_examples": []
+    }
+  },
+  "asset_budget_bytes": 5242880,
+  "assets": [
+    {
+      "kind": "traffic_observations",
+      "bytes": 2082788,
+      "sha256": "c3baeeaff9799c77e5e26448a8d3723ac90b81106b1302fb2c03d6015fc92ab7"
+    },
+    {
+      "kind": "facility_crossings",
+      "bytes": 3596098,
+      "sha256": "b39cb694bd8f98f0ef3a2dfb844dd55fdf1a18b83794b4b0a20c2fa39f4452a8"
+    }
+  ]
+}

@@ -92,6 +92,18 @@ Every browser-facing asset must declare:
 
 ## Browser asset budget
 
+**Agreed numbers** (Release 1, measured by `scripts/release_acceptance.py`, which fails the build when
+any of them is exceeded). They existed only as "the agreed budget" before this table, which left the
+PRD success metric unverifiable.
+
+| Measure | Budget | Rationale |
+|---|---:|---|
+| Entry bundle, gzipped (JS + CSS) | 130 kB | The shell must paint before the map chunk is requested. |
+| Lazy map chunk, gzipped | 330 kB | MapLibre dominates this and is loaded only when a map view opens. |
+| Total published data assets in one release | 6 MiB | Two pre-aggregated assets today; a third must justify itself against this ceiling. |
+| Initial requests to first render | 12 | Fonts, shell, styles, manifest. |
+
+
 - Do not ship raw CSV, original ESRI GRID components, or full statewide geometry without measurement.
 - Publish pre-aggregated JSON/GeoJSON for the first release; simplify and split large geometry by layer.
 - Add PMTiles/vector tiles only after a measured published layer exceeds the agreed performance budget or MapLibre profiling shows a real bottleneck.
