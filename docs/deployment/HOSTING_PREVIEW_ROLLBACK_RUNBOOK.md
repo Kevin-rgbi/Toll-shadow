@@ -14,12 +14,12 @@ This runbook is the only approved path from a candidate build to `tollshallow.we
 | Project number | `1094344081770` | `firebase projects:list` |
 | Default Hosting site | `tollshallow` — `https://tollshallow.web.app` | `firebase hosting:sites:list --project tollshallow` |
 | Plural `tollshallows` | not accessible to this account — HTTP 403 | `firebase hosting:sites:list --project tollshallows` |
-| Current singular site state | HTTP 404, Firebase "Site Not Found" | `curl https://tollshallow.web.app/` |
+| Current singular site state | HTTP 200, serving release `2026-09-16.2` | `curl https://tollshallow.web.app/` |
 | Current plural site state | HTTP 200, unrelated page (636 bytes) | `curl https://tollshallows.web.app/` |
 
 The repository `.firebaserc` previously named the plural project. It now names `tollshallow`; see "Configuration change" below.
 
-**Do not treat the singular site as repaired.** It returns Site Not Found until a successful preview/deploy is verified in step 5.
+**The site is serving.** It returned Site Not Found until the production deploy below; the smoke checks in step 4 are still the required verification for every future release.
 
 ## Preconditions (all must hold)
 
@@ -71,7 +71,7 @@ curl -fsSI "$PREVIEW/data/manifest.json"   | grep -i cache-control
 curl -fsSI "$PREVIEW/assets/<hashed>.js"   | grep -i cache-control
 ```
 
-Expected cache behavior from `firebase.json`: `data/manifest.json` → `no-cache, max-age=0, must-revalidate`; hashed JS/CSS → `max-age=31536000, immutable`; other `/data/**` → `max-age=3600`.
+Expected cache behavior from `firebase.json`: `/` and `data/manifest.json` → `no-cache, max-age=0, must-revalidate`; `/data/releases/**` and hashed JS/CSS/woff2 → `max-age=31536000, immutable`; images, XML and text → `max-age=3600`. There is no blanket `/data/**` rule.
 
 Confirm the manifest served in the preview is the release built in step 1 — compare `release_id` and the asset `sha256` values against the gate output. A preview that serves a different release is a stop condition.
 
@@ -118,5 +118,5 @@ After any rollback: re-run the step 4 smoke checks, record which release the liv
 ## Open items
 
 1. ~~**Cache policy vs. immutable releases.**~~ **Resolved.** `firebase.json` now serves `/data/manifest.json` with `no-cache, max-age=0, must-revalidate` and `/data/releases/**` with `public, max-age=31536000, immutable`. The previous blanket `/data/**` 3600 s rule was removed rather than reordered, so no two rules overlap and there is no glob-precedence ambiguity. The release acceptance gate now asserts both headers.
-2. **Asset budget is provisional.** The gate's 8 MiB `dist/data` ceiling is a placeholder until real payloads are measured. The current release payload is 3.1 MB.
+2. **Asset budget is provisional.** The gate's 8 MiB `dist/data` ceiling is a placeholder; the current release payload is 4.98 MB.
 3. **Preview smoke checks are manual.** They can move into CI once a release exists and the channel name is stable.

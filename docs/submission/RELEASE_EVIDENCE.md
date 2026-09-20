@@ -42,8 +42,8 @@ The one rejected DOT row is the archived negative-volume sentinel recorded in th
 
 ```text
 $ npm run test
- Test Files  21 passed (21)
-      Tests  116 passed (116)
+ Test Files  22 passed (22)
+      Tests  130 passed (130)
 ```
 
 The suite includes pipeline tests (contract validation, MTA/traffic parsers, geospatial checks, measure spec, source catalog) and frontend tests, including the module failure-state copy checks in `tests/frontend/moduleStates.test.ts`.
@@ -91,7 +91,7 @@ The >500 kB warning is the lazy-loaded MapLibre chunk, unchanged from the pre-im
 $ python3 scripts/release_acceptance.py
 Release acceptance gate: .../source/github-repo/dist
 
-26 checks passed, 0 failed
+36 checks passed, 0 failed
 
 RELEASE ACCEPTED — proceed to the preview-channel runbook.
 ```
@@ -129,7 +129,7 @@ $ npx firebase hosting:sites:list --project tollshallows
 Error: ... HTTP Error: 403, The caller does not have permission
 
 $ curl -o /dev/null -w "%{http_code}" https://tollshallow.web.app/
-404
+200   (was 404 before the production deploy below)
 ```
 
 `.firebaserc` was corrected from the plural `tollshallows` to the confirmed singular `tollshallow`.

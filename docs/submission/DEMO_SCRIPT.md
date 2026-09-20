@@ -71,7 +71,7 @@ Restore both files (or rebuild) afterwards.
 
 ```bash
 cd source/github-repo
-python3 scripts/release_acceptance.py        # 26 checks, 0 failed
+python3 scripts/release_acceptance.py        # 36 checks, 0 failed
 ```
 
 The release itself is rebuilt from registered raw inputs by the pipeline builder, which requires an

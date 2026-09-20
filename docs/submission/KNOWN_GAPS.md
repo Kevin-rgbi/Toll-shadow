@@ -24,7 +24,7 @@ The published traffic asset contains 2,561 aggregates over 195 segments, derived
 
 ## 5. Performance: the MapLibre chunk is large
 
-`npm run build` emits a >500 kB warning for the lazy-loaded MapLibre chunk (1,050 kB raw / 287 kB gzip). This is unchanged from the pre-implementation baseline. The data payload is small (3.1 MB total, within the gate budget), so the remaining work is code-splitting and asset chunking, not data reduction. No tiling decision has been made; `docs/ARCHITECTURE.md` requires a measured justification before adding PMTiles.
+`npm run build` emits a >500 kB warning for the lazy-loaded MapLibre chunk (1,061 kB raw / ~289 kB gzip), plus a 277 kB main bundle. The data payload is 4.98 MB against the gate's 8 MiB ceiling. The remaining work is code-splitting the map chunk and loading each asset only for the module that needs it: today both release assets are fetched on load regardless of module. No tiling decision has been made; `docs/DATA_STRATEGY.md` requires a measured bottleneck before adding PMTiles.
 
 ## 6. Accessibility and E2E coverage are incomplete
 
@@ -36,7 +36,7 @@ Keyboard navigation, visible focus, `aria-live` status regions, and reduced-moti
 
 ## 8. Two files exceed the 400-line guideline
 
-`src/App.tsx` (499 lines) and `src/components/Map/MapShell.tsx` (693 lines) are above the typical range and below the 800-line ceiling. Both are cohesive, and splitting them mid-release-risk was judged worse than deferring; the extraction points are the release-selection logic and the synthetic overlay renderer.
+`src/App.tsx` (570 lines) and `src/components/Map/MapShell.tsx` (790 lines) are above the typical 400-line range. App.tsx is cohesive; MapShell.tsx is now within ten lines of the 800-line hard ceiling and should be split before more work lands in it. The extraction points are the synthetic overlay renderer (dev-only) and the release layer wiring.
 
 ## 9. The Kepler artifact still rests on undocumented legacy derivatives
 
@@ -44,8 +44,8 @@ Keyboard navigation, visible focus, `aria-live` status regions, and reduced-moti
 
 ## 10. The deployment gate has provisional thresholds
 
-The gate's 8 MiB budget for `dist/data` is a placeholder until real payload measurement. The gate is also manual — there is no CI workflow that runs it on push.
+The gate's 8 MiB budget for `dist/data` is a placeholder; the current payload is 4.98 MB, so the margin is real but unmeasured against a stated target. No numeric performance budget was ever agreed in `docs/`, which leaves one PRD success metric unverifiable as written. The gate is also manual — there is no CI workflow that runs it on push.
 
-## 11. No commits were made
+## 11. The work is committed, but unreviewed
 
-All work sits uncommitted on the branch `release-1-evidence-modules` in `source/github-repo/`, which also carries earlier uncommitted work from the other workstreams. Nothing has been committed or pushed.
+Everything is committed on `main` in the `Toll-shadow` repository and pushed, with `release-1-evidence-modules` merged. It has not had an independent code or data review by anyone else on the team, and there is no CI running the checks on push.
