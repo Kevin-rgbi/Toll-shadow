@@ -5,13 +5,14 @@ import axe from 'axe-core'
 import { describe, expect, it } from 'vitest'
 import { TrafficModule } from '../../src/features/traffic/TrafficModule'
 import { CrossingsModule } from '../../src/features/crossings/CrossingsModule'
+import { CrzModule } from '../../src/features/crz/CrzModule'
 import { SourcesPanel } from '../../src/components/Detail/SourcesPanel'
 import { NarrativeOverlay } from '../../src/components/Story/NarrativeOverlay'
 import { DataRibbon } from '../../src/components/Status/DataRibbon'
 import { ModuleUnavailable } from '../../src/components/Detail/ModuleUnavailable'
 import type { ReleaseManifest, ReleaseAsset } from '../../src/lib/releaseManifest'
 import type { ReleaseManifestState } from '../../src/hooks/useReleaseManifest'
-import type { FacilityCrossing, TrafficObservation } from '../../src/types/releaseData'
+import type { CrzEntrySummary, FacilityCrossing, TrafficObservation } from '../../src/types/releaseData'
 
 /**
  * Automated accessibility gate (PRD FR-09 asks for one; there was none).
@@ -131,6 +132,25 @@ const surfaces: Array<{ name: string, element: ReturnType<typeof createElement> 
       start: '2024-01-01',
       end: '2024-01-01',
       onRangeChange: () => undefined,
+    }),
+  },
+  {
+    name: 'CRZ module with published data',
+    element: createElement(CrzModule, {
+      state: {
+        status: 'ready',
+        data: [{
+          sourceId: 'mta_crz_entries_archive_20260920',
+          measureId: 'crz_monthly_detection_group_entries',
+          detectionGroup: 'Brooklyn Bridge',
+          detectionRegion: 'Brooklyn',
+          month: '2025-01',
+          crzEntries: 100,
+          excludedRoadwayEntries: 20,
+          totalEntries: 120,
+        } satisfies CrzEntrySummary],
+      },
+      release,
     }),
   },
   { name: 'sources panel', element: createElement(SourcesPanel, { state: releaseState }) },

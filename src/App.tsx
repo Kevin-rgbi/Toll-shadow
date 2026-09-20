@@ -11,7 +11,7 @@ import { useReleaseManifest } from './hooks/useReleaseManifest'
 import { useReleaseBoundary } from './hooks/useReleaseBoundary'
 import { useReleaseAsset } from './hooks/useReleaseAsset'
 import { getReleaseTimelineBounds } from './lib/releaseManifest'
-import { parseFacilityCrossings, parseTrafficObservations } from './lib/releaseData'
+import { parseCrzEntries, parseFacilityCrossings, parseTrafficObservations } from './lib/releaseData'
 import type { TrafficDayType, TrafficObservation } from './types/releaseData'
 import { getDevSyntheticTimelineBounds } from './lib/devSyntheticDataset'
 import { APP_MODES, useAppStore } from './state/appStore'
@@ -31,6 +31,7 @@ import {
   toTrafficFeatureCollection,
 } from './features/traffic/trafficSummary'
 import { CrossingsModule } from './features/crossings/CrossingsModule'
+import { CrzModule } from './features/crz/CrzModule'
 import { crossingsDateBounds } from './features/crossings/crossingsSummary'
 import { buildViewStateQuery, readViewStateFromLocation } from './lib/viewState'
 import { BUILD_ID, isStaleBuild, readExpectedBuildIdFromLocation } from './lib/buildInfo'
@@ -53,6 +54,7 @@ const NO_OBSERVATIONS: TrafficObservation[] = []
 const MODULE_TITLES: Partial<Record<(typeof APP_MODES)[number], string>> = {
   TRAFFIC: 'TRAFFIC OBSERVATIONS',
   CROSSINGS: 'MTA FACILITY CROSSINGS',
+  CRZ: 'CRZ ENTRY CONTEXT',
   AIR: 'HISTORICAL AIR AND HEALTH CONTEXT',
   EQUITY: 'EQUITY CONTEXT',
   CONFIDENCE: 'CONFIDENCE CHECK',
@@ -86,6 +88,7 @@ function App() {
   // data by URL and by selected module".
   const trafficState = useReleaseAsset(release, 'traffic_observations', parseTrafficObservations, mode === 'TRAFFIC')
   const crossingsState = useReleaseAsset(release, 'facility_crossings', parseFacilityCrossings, mode === 'CROSSINGS')
+  const crzState = useReleaseAsset(release, 'crz_context', parseCrzEntries, mode === 'CRZ')
   // A shared link seeds the filters once, at mount. Later edits go through the store and the URL
   // writer below; the URL is never re-read, so user interaction cannot be overwritten by history.
   const [initialView] = useState(readViewStateFromLocation)
@@ -342,6 +345,10 @@ function App() {
           onRangeChange={(start, end) => setCrossingsRangeOverride({ start, end })}
         />
       )
+    }
+
+    if (mode === 'CRZ') {
+      return <CrzModule state={crzState} release={release} />
     }
 
     if (mode === 'STORY') {

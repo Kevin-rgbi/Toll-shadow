@@ -25,6 +25,7 @@ export const MODULE_ASSET_KIND: Record<AppMode, ReleaseAssetKind | null> = {
   STORY: null,
   TRAFFIC: 'traffic_observations',
   CROSSINGS: 'facility_crossings',
+  CRZ: 'crz_context',
   AIR: 'historical_context',
   EQUITY: 'dac_context',
   CONFIDENCE: null,
