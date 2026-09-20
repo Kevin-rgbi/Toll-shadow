@@ -57,7 +57,7 @@ export function CrossingsModule({ state, release, start, end, onRangeChange }: C
       <p className="analysis-kicker">MTA FACILITY CROSSINGS</p>
       <h3>Daily counts through published toll plazas</h3>
 
-      {state.status === 'loading' && <p className="sources-note">Reading the published crossings asset…</p>}
+      {(state.status === 'loading' || state.status === 'idle') && <p className="sources-note">Reading the published crossings asset…</p>}
 
       {state.status === 'unavailable' && (
         <p className="sources-note">

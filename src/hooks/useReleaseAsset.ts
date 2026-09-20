@@ -15,6 +15,8 @@ import type { ReleaseAssetKind, ReleaseManifest } from '../lib/releaseManifest'
  * inline closure refetches on every render.
  */
 export type ReleaseAssetState<T> =
+  /** Not requested yet: the module that needs this asset is not open. */
+  | { status: 'idle' }
   | { status: 'unavailable' }
   | { status: 'loading' }
   | { status: 'ready', data: T }
@@ -54,8 +56,13 @@ export function useReleaseAsset<T>(
   release: ReleaseManifest | null,
   kind: ReleaseAssetKind,
   parse: Parser<T>,
+  /**
+   * Fetch only when the module that consumes this asset is open. Both release assets used to load on
+   * every page view, which contradicted the data strategy's rule to load by module.
+   */
+  enabled = true,
 ): ReleaseAssetState<T> {
-  const asset = release ? getReleaseAssets(release, kind)[0] ?? null : null
+  const asset = release && enabled ? getReleaseAssets(release, kind)[0] ?? null : null
   const path = asset?.path ?? null
   const declaredSha = asset?.sha256 ?? null
 
@@ -97,6 +104,7 @@ export function useReleaseAsset<T>(
     }
   }, [declaredSha, parse, path])
 
+  if (!enabled) return { status: 'idle' }
   if (path === null) return { status: 'unavailable' }
   if (!isCurrent) return { status: 'loading' }
   return loaded.result

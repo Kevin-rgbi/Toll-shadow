@@ -82,8 +82,10 @@ function App() {
   const releaseState = useReleaseManifest()
   const { release, isDevSynthetic, devSynthetic, status, reason } = releaseState
   const boundaryState = useReleaseBoundary(release)
-  const trafficState = useReleaseAsset(release, 'traffic_observations', parseTrafficObservations)
-  const crossingsState = useReleaseAsset(release, 'facility_crossings', parseFacilityCrossings)
+  // Each asset is fetched only while the module that reads it is open; see DATA_STRATEGY, "load map
+  // data by URL and by selected module".
+  const trafficState = useReleaseAsset(release, 'traffic_observations', parseTrafficObservations, mode === 'TRAFFIC')
+  const crossingsState = useReleaseAsset(release, 'facility_crossings', parseFacilityCrossings, mode === 'CROSSINGS')
   // A shared link seeds the filters once, at mount. Later edits go through the store and the URL
   // writer below; the URL is never re-read, so user interaction cannot be overwritten by history.
   const [initialView] = useState(readViewStateFromLocation)
