@@ -9,41 +9,48 @@ or a post-2025 health outcome.**
 
 ---
 
-## Status: INCOMPLETE
+## Status: a complete Release 1 slice, not the whole project
 
-This build is a working slice of Release 1, not the finished product. Read this before judging it.
+This build does what Release 1 asked for and states what it still does not do. Read both lists.
 
-**Working, with real published data:**
+**Shipped, with published data and a link to the source for every figure:**
 
-- Release `2026-09-20.4` is built from the raw source downloads and served by the app.
-- **TRAFFIC** module: 2,561 published segment aggregates over 195 street segments and 21 months, with
-  month, borough, day type, and time band filters.
-- **CROSSINGS** module: 8,352 published MTA daily crossing rows, 10 plazas, 464 dates, and source-register facility names.
-- **CRZ** module: published monthly entry context by detection group, labeled as descriptive counts.
-- **AIR** module: modelled historical air context plus historical health context, labeled as context
-  rather than a current measurement.
-- **EQUITY** module: archived disadvantaged-community geography context.
-- All modules show source, method, coverage, grain, checksum, and the asset's own limitations.
-- The browser verifies each asset's SHA-256 against the release manifest before parsing it.
+- Six published assets from six registered sources, served by the app: traffic observations, MTA
+  facility crossings, CRZ entry aggregates, a modelled historical air surface, historical asthma
+  context, and archived equity geography.
+- Six evidence modules: **TRAFFIC**, **CROSSINGS**, **CRZ**, **AIR**, **EQUITY**, and **SOURCES**.
+  Every module shows source URL, coverage window, grain, transform version, checksum, and the asset's
+  own limitations.
+- The browser verifies each asset's SHA-256 against the release manifest before parsing it. A missing,
+  malformed, or unvalidated manifest renders a failure state and no figures.
+- Filters, a shared timeline, keyboard navigation, reduced-motion support, and shareable URL state.
 - Map: MapLibre with OpenStreetMap tiles, plus a WebGL-free raster map for browsers without a WebGL2
-  context (`?map=software` forces it).
-- Shareable URL state, visible build stamp, stale-build detection.
+  context (`?map=software` forces it, `?map=gpu` forces the attempt).
+- Automated accessibility gate, a browser end-to-end suite, and CI running the gate, the suites, and
+  the size ratchet on every push.
 
-**Not finished:**
+**Not finished, and not hidden:**
 
-- **CONFIDENCE / HOTSPOTS** render an explicit "Not available for this claim" state outside the
-  development-only synthetic dataset.
-- **CBD taxi-zone boundary**: not published yet. The authoritative source URL is recorded and it is
-  the next candidate.
-- **MTA facility points and the 12 CRZ detection points**: blocked on a provenance decision, not on
-  code. Their coordinates exist only in a legacy derivative whose transformation recipe was never
-  recorded, and the archive itself notes the CRZ points are approximate markers.
-- CI runs lint, unit/frontend tests, E2E tests, build, and the release gate; automated accessibility
-  coverage exists for key rendered states.
-- Production `https://tollshallow.web.app` serves release `2026-09-20.4`, verified live against its
-  manifest. Rollback is manual.
-- Nothing here is a final visual brand direction; the current interface is a deliberate editorial
-  pass, not a signed-off design.
+- **CBD taxi-zone boundary** is not published. Its source is registered and it is the next candidate.
+- **MTA facility points and the CRZ detection points** are blocked on a provenance decision, not on
+  code: their coordinates exist only in a legacy derivative whose transformation recipe was never
+  recorded.
+- **The map is view-only for published points.** The click-to-inspect card can only open in a
+  development build, because the hit targets come from the synthetic prototype frame and a production
+  bundle never loads one. Making published points selectable is unbuilt work.
+- **`CONFIDENCE` and `HOTSPOTS`** render only under the development flag: a confidence composition and
+  a hotspot ranking both imply an inference this data cannot support.
+- **No uptime or error monitoring**, and **no independent human review** of the code or the data. Both
+  are recorded owner decisions.
+- **The two derivation recipes cannot be re-run here** (`rasterio` and `shapely` are not installed),
+  so the published derivatives are currently the only copy of that step's output.
+- Development-labelled strings remain in components that ship, in development-guarded branches. The
+  prototype modules themselves are absent from the production bundle; the strings are not.
+- Nothing here is a final visual brand direction; the interface is a deliberate editorial pass.
+
+`docs/submission/KNOWN_GAPS.md` states all of this at length, and
+`docs/submission/TRACEABILITY.md` maps every Release 1 requirement to the test or release check that
+proves it.
 
 ---
 

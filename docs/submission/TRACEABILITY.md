@@ -6,7 +6,7 @@ plan's "definition of done" item that was missing until now: previously no FR wa
 Run everything below with:
 
 ```bash
-npm run test                                  # 166 tests, includes the accessibility and size gates
+npm run test                                  # 205 tests, includes the accessibility and size gates
 npm run test:e2e                              # 59 end-to-end tests, desktop and phone viewports
 npm run lint
 npx tsc -b
