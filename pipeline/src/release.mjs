@@ -234,15 +234,37 @@ function assetMetadata({ kind, path: assetPath, format, content, coverage, grain
   };
 }
 
+/**
+ * The quality block is generated from whatever sources the build reported, so a source added to the
+ * release cannot be left out of its own documentation by forgetting a line here. An earlier revision
+ * listed three sources by name and silently omitted the three context sources that had been added.
+ */
+const SOURCE_LABELS = {
+  dot: 'DOT',
+  mta: 'MTA',
+  crz: 'CRZ aggregate',
+  air: 'NYCCAS modelled surface',
+  health: 'NYS asthma context',
+  equity: 'NYC disadvantaged-communities context',
+};
+
 function releaseReadme({ releaseId, manifest, quality }) {
+  const qualityLines = Object.entries(quality)
+    .map(([key, report]) => {
+      const label = SOURCE_LABELS[key] ?? key;
+      return `- ${label} rows: ${report.total_rows} inspected; ${report.included_rows} included; ${report.invalid_rows} rejected source rows.`;
+    })
+    .join('\n');
+
   return `# Toll Shadow Data Release ${releaseId}\n\n` +
     `Generated with transform version \`${manifest.transform_version}\`.\n\n` +
     `## Assets\n\n` + manifest.assets.map((asset) => `- \`${asset.kind}\`: \`${asset.path}\` (${asset.bytes} bytes, SHA-256 \`${asset.sha256}\`)`).join('\n') +
-    `\n\n## Quality\n\n` +
-    `- DOT rows: ${quality.dot.total_rows} inspected; ${quality.dot.included_rows} included; ${quality.dot.invalid_rows} rejected source rows recorded.\n` +
-    `- MTA rows: ${quality.mta.total_rows} inspected; ${quality.mta.included_rows} included; ${quality.mta.invalid_rows} rejected source rows.\n` +
-    `- CRZ aggregate rows: ${quality.crz.total_rows} inspected; ${quality.crz.included_rows} included; ${quality.crz.invalid_rows} rejected source rows.\n` +
-    `\n## Claim boundary\n\nThis release contains descriptive sampled traffic and daily crossing records only. It does not provide a causal policy estimate, current air-quality outcome, or health outcome.\n`;
+    `\n\n## Quality\n\n` + qualityLines + '\n' +
+    `\n## Claim boundary\n\nThis release is descriptive. It carries sampled traffic counts, daily crossing records, ` +
+    `monthly CRZ entry aggregates, and archived context layers -- a modelled 2016 air surface published as a relative ` +
+    `field with no established units, asthma rates in multi-year periods ending 2019 or earlier, and the 2023 ` +
+    `disadvantaged-communities criteria, which the 2025 revision makes historical. Nothing here is a causal policy ` +
+    `estimate, a current air-quality or health outcome, or a current designation.\n`;
 }
 
 export async function buildRelease({
@@ -361,7 +383,7 @@ export async function buildRelease({
       coverage: trafficMeasure.coverage,
       limitations: [
         'Release 1 is descriptive only and does not estimate a causal congestion-pricing effect.',
-        'Historical air-quality, asthma, DAC, CRZ-summary, and CBD-derivative assets are excluded pending their separate gates.',
+        'The CBD-derivative boundary asset is excluded pending geometry and release validation.',
       ],
       assets: allAssets,
       policy_reference_date: specification.policy_reference.date,
@@ -389,7 +411,7 @@ export async function buildRelease({
       ['equity_context.geojson', equityContent],
       ['manifest.json', serializeJson(manifest)],
       ['quality.json', serializeJson(quality)],
-      ['README.md', releaseReadme({ releaseId, manifest, quality: { dot: traffic.quality, mta: mta.quality, crz: crz.quality } })],
+      ['README.md', releaseReadme({ releaseId, manifest, quality: quality.source_quality })],
     ]);
     await Promise.all([...files].map(([file, content]) => writeFile(path.join(canonicalReleaseDirectory, file), content)));
     await Promise.all([...files].filter(([file]) => file !== 'quality.json' && file !== 'README.md').map(([file, content]) => writeFile(path.join(publicReleaseDirectory, file), content)));

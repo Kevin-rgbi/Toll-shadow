@@ -11,7 +11,7 @@ npm run preview      # serves the built release bundle
 
 ## 1. The product states its boundary before showing data
 
-Open `/`. The landing story view names the release window (`NYC · 2024-01-01 → 2025-12-31`) and the status strip reads `RELEASE 2026-09-16.2 · VALIDATED`. The summary ribbon reports the release ID, coverage window, published asset count, and source-register count — release facts, not modelled metrics.
+Open `/`. The landing story view names the release window (`NYC · 2024-01-01 → 2025-12-31`) and the status strip reads the current release ID and `· VALIDATED`. The summary ribbon reports the release ID, coverage window, published asset count, and source-register count — release facts, not modelled metrics.
 
 Open **METHODS** for the claim guardrail and the release limitations.
 
@@ -40,7 +40,7 @@ Open **CROSSINGS**. This module reads `facility_crossings`, not the traffic asse
 - Set the window with the two date inputs (defaults to the asset's own published bounds, 2024-01-01 → 2025-04-12).
 - The summary reports published daily rows, plazas in the window, total counted vehicles, and the window itself.
 - **By direction** and **By plaza** aggregate the published daily counts. The E-ZPass share is recomputed from summed components, not averaged across daily shares.
-- Plazas appear as **published identifiers** (`Plaza 21`, `Plaza 22`, …) with a note that the release publishes no facility-name mapping.
+- Plazas appear as **named facilities** resolved from the source register's `facility_ids` mapping, alongside their published identifier. An unmapped plaza fails the build rather than rendering nameless.
 - The provenance block repeats the asset's own limitations, including that the source is a daily aggregate and cannot support hourly analysis.
 
 ```text
@@ -63,7 +63,7 @@ With the built preview running, confirm the honest failure paths:
 # "NO VALIDATED RELEASE PUBLISHED" and renders no module content.
 ```
 
-A tampered asset is also refused: change one byte in `dist/data/releases/2026-09-16.2/traffic_observations.geojson` and reload the TRAFFIC module. The browser-side checksum verification fails and the module reports the mismatch instead of drawing a subset of the data.
+A tampered asset is also refused: change one byte in the built copy of `traffic_observations.geojson` under `dist/data/releases/<release-id>/` and reload the TRAFFIC module. The browser-side checksum verification fails and the module reports the mismatch instead of drawing a subset of the data.
 
 Restore both files (or rebuild) afterwards.
 
@@ -71,7 +71,7 @@ Restore both files (or rebuild) afterwards.
 
 ```bash
 cd source/github-repo
-python3 scripts/release_acceptance.py        # 36 checks, 0 failed
+python3 scripts/release_acceptance.py        # 47 checks, 0 failed
 ```
 
 The release itself is rebuilt from registered raw inputs by the pipeline builder, which requires an
@@ -79,14 +79,15 @@ explicit release ID and generation timestamp:
 
 ```bash
 node pipeline/scripts/build-release.mjs \
-  --release-id 2026-09-16.2 \
-  --generated-at 2026-09-16T02:19:51.000Z
+  --release-id 2026-09-20.4 \
+  --generated-at 2026-09-21T00:46:32.000Z
 ```
 
-This rewrites `public/data/manifest.json` and `data/releases/<id>/`. Running it with the published
-release ID and timestamp reproduces the published assets **byte for byte** (see
-`RELEASE_EVIDENCE.md`, "Determinism"); running it with a new ID publishes a new release and repoints
-the manifest, which is the intended release path.
+This rewrites `public/data/manifest.json` and `data/releases/<id>/`. The builder refuses a release ID
+that disagrees with `pipeline/methods/release-1.yaml` and refuses to overwrite an existing release
+directory, so a rebuild either matches the declared release or fails. Reproducibility was checked by
+building a scratch ID from the same inputs and timestamp and comparing the payloads: **6 of 6 assets
+byte-identical** (see `RELEASE_EVIDENCE.md`, "Determinism").
 
 The Kepler artifact is separate and source-side only:
 

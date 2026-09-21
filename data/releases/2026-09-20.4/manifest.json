@@ -1,7 +1,7 @@
 {
-  "release_id": "2026-09-20.3",
+  "release_id": "2026-09-20.4",
   "schema_version": "1.4.0",
-  "generated_at": "2026-09-21T00:11:15.000Z",
+  "generated_at": "2026-09-21T00:46:32.000Z",
   "status": "validated",
   "transform_version": "pipeline-release-1.4.0",
   "source_ids": [
@@ -18,12 +18,12 @@
   },
   "limitations": [
     "Release 1 is descriptive only and does not estimate a causal congestion-pricing effect.",
-    "Historical air-quality, asthma, DAC, CRZ-summary, and CBD-derivative assets are excluded pending their separate gates."
+    "The CBD-derivative boundary asset is excluded pending geometry and release validation."
   ],
   "assets": [
     {
       "kind": "traffic_observations",
-      "path": "/data/releases/2026-09-20.3/traffic_observations.geojson",
+      "path": "/data/releases/2026-09-20.4/traffic_observations.geojson",
       "format": "geojson",
       "sha256": "c3baeeaff9799c77e5e26448a8d3723ac90b81106b1302fb2c03d6015fc92ab7",
       "coverage": {
@@ -47,7 +47,7 @@
     },
     {
       "kind": "facility_crossings",
-      "path": "/data/releases/2026-09-20.3/facility_crossings.json",
+      "path": "/data/releases/2026-09-20.4/facility_crossings.json",
       "format": "json",
       "sha256": "b39cb694bd8f98f0ef3a2dfb844dd55fdf1a18b83794b4b0a20c2fa39f4452a8",
       "coverage": {
@@ -69,7 +69,7 @@
     },
     {
       "kind": "crz_context",
-      "path": "/data/releases/2026-09-20.3/crz_entry_summary.json",
+      "path": "/data/releases/2026-09-20.4/crz_entry_summary.json",
       "format": "json",
       "sha256": "2b0f37d2a57975ea3068668f7a7212efdd6a2d982cead979215f685d04da1372",
       "coverage": {
@@ -92,7 +92,7 @@
     },
     {
       "kind": "historical_context",
-      "path": "/data/releases/2026-09-20.3/air_context.json",
+      "path": "/data/releases/2026-09-20.4/air_context.json",
       "format": "json",
       "sha256": "51bd201f71dcad62a878a49c61432a6faffcac6f1a705f823c95d145813b8b97",
       "coverage": {
@@ -115,7 +115,7 @@
     },
     {
       "kind": "health_context",
-      "path": "/data/releases/2026-09-20.3/health_context.json",
+      "path": "/data/releases/2026-09-20.4/health_context.json",
       "format": "json",
       "sha256": "770554d942def23710a4de899f220ff221d5ff969a47a8013d815933bb022097",
       "coverage": {
@@ -137,7 +137,7 @@
     },
     {
       "kind": "dac_context",
-      "path": "/data/releases/2026-09-20.3/equity_context.geojson",
+      "path": "/data/releases/2026-09-20.4/equity_context.geojson",
       "format": "geojson",
       "sha256": "e27c3f063511107c0b0a0ada77a7e31a1d0b98f97c7b066cd00157faadeba16e",
       "coverage": {

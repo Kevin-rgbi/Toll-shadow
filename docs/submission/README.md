@@ -1,8 +1,8 @@
 # Toll Shadow — Submission Evidence Package
 
-**Release under review:** `2026-09-16.2`
+**Release under review:** `2026-09-20.4`
 **Application:** React + TypeScript + MapLibre SPA, static-first, hosted on Firebase Hosting
-**Deployment status:** deployed. Production `https://tollshallow.web.app` serves this release; the preview channel `tollshallow--preview-2026-09-16-8jkfku3o.web.app` remains available until it expires.
+**Deployment status:** deployed. Production `https://tollshallow.web.app` serves this release, verified live against its manifest (six assets, `status: validated`). No preview channel is currently live; the rollback rehearsal's channel was deleted on 2026-09-20 and its record is in the runbook.
 
 This package exists so a reviewer can understand, run, inspect, and verify the product without undocumented context. It is written to be checkable, not persuasive: every number below is produced by a command whose output is quoted in `RELEASE_EVIDENCE.md`.
 

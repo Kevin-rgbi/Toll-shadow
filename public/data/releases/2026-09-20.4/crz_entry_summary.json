@@ -1,0 +1,2524 @@
+{
+  "records": [
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Brooklyn Bridge",
+      "detection_region": "Brooklyn",
+      "month": "2025-01",
+      "crz_entries": 769760,
+      "excluded_roadway_entries": 539089,
+      "total_entries": 1308849
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Brooklyn Bridge",
+      "detection_region": "Brooklyn",
+      "month": "2025-02",
+      "crz_entries": 780771,
+      "excluded_roadway_entries": 566637,
+      "total_entries": 1347408
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Brooklyn Bridge",
+      "detection_region": "Brooklyn",
+      "month": "2025-03",
+      "crz_entries": 873360,
+      "excluded_roadway_entries": 651636,
+      "total_entries": 1524996
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Brooklyn Bridge",
+      "detection_region": "Brooklyn",
+      "month": "2025-04",
+      "crz_entries": 835560,
+      "excluded_roadway_entries": 614211,
+      "total_entries": 1449771
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Brooklyn Bridge",
+      "detection_region": "Brooklyn",
+      "month": "2025-05",
+      "crz_entries": 861576,
+      "excluded_roadway_entries": 646835,
+      "total_entries": 1508411
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Brooklyn Bridge",
+      "detection_region": "Brooklyn",
+      "month": "2025-06",
+      "crz_entries": 793708,
+      "excluded_roadway_entries": 626927,
+      "total_entries": 1420635
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Brooklyn Bridge",
+      "detection_region": "Brooklyn",
+      "month": "2025-07",
+      "crz_entries": 818153,
+      "excluded_roadway_entries": 599745,
+      "total_entries": 1417898
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Brooklyn Bridge",
+      "detection_region": "Brooklyn",
+      "month": "2025-08",
+      "crz_entries": 789862,
+      "excluded_roadway_entries": 662362,
+      "total_entries": 1452224
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Brooklyn Bridge",
+      "detection_region": "Brooklyn",
+      "month": "2025-09",
+      "crz_entries": 814338,
+      "excluded_roadway_entries": 621898,
+      "total_entries": 1436236
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Brooklyn Bridge",
+      "detection_region": "Brooklyn",
+      "month": "2025-10",
+      "crz_entries": 868011,
+      "excluded_roadway_entries": 620300,
+      "total_entries": 1488311
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Brooklyn Bridge",
+      "detection_region": "Brooklyn",
+      "month": "2025-11",
+      "crz_entries": 807801,
+      "excluded_roadway_entries": 572852,
+      "total_entries": 1380653
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Brooklyn Bridge",
+      "detection_region": "Brooklyn",
+      "month": "2025-12",
+      "crz_entries": 799854,
+      "excluded_roadway_entries": 551224,
+      "total_entries": 1351078
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Brooklyn Bridge",
+      "detection_region": "Brooklyn",
+      "month": "2026-01",
+      "crz_entries": 726975,
+      "excluded_roadway_entries": 546771,
+      "total_entries": 1273746
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Brooklyn Bridge",
+      "detection_region": "Brooklyn",
+      "month": "2026-02",
+      "crz_entries": 653696,
+      "excluded_roadway_entries": 479849,
+      "total_entries": 1133545
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Brooklyn Bridge",
+      "detection_region": "Brooklyn",
+      "month": "2026-03",
+      "crz_entries": 784403,
+      "excluded_roadway_entries": 598462,
+      "total_entries": 1382865
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Brooklyn Bridge",
+      "detection_region": "Brooklyn",
+      "month": "2026-04",
+      "crz_entries": 801890,
+      "excluded_roadway_entries": 594132,
+      "total_entries": 1396022
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Brooklyn Bridge",
+      "detection_region": "Brooklyn",
+      "month": "2026-05",
+      "crz_entries": 842669,
+      "excluded_roadway_entries": 615197,
+      "total_entries": 1457866
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Brooklyn Bridge",
+      "detection_region": "Brooklyn",
+      "month": "2026-06",
+      "crz_entries": 795812,
+      "excluded_roadway_entries": 599994,
+      "total_entries": 1395806
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Brooklyn Bridge",
+      "detection_region": "Brooklyn",
+      "month": "2026-07",
+      "crz_entries": 796216,
+      "excluded_roadway_entries": 610624,
+      "total_entries": 1406840
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Brooklyn Bridge",
+      "detection_region": "Brooklyn",
+      "month": "2026-08",
+      "crz_entries": 799728,
+      "excluded_roadway_entries": 646354,
+      "total_entries": 1446082
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Brooklyn Bridge",
+      "detection_region": "Brooklyn",
+      "month": "2026-09",
+      "crz_entries": 308894,
+      "excluded_roadway_entries": 247375,
+      "total_entries": 556269
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "East 60th St",
+      "detection_region": "East 60th St",
+      "month": "2025-01",
+      "crz_entries": 2044450,
+      "excluded_roadway_entries": 0,
+      "total_entries": 2044450
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "East 60th St",
+      "detection_region": "East 60th St",
+      "month": "2025-02",
+      "crz_entries": 2109454,
+      "excluded_roadway_entries": 0,
+      "total_entries": 2109454
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "East 60th St",
+      "detection_region": "East 60th St",
+      "month": "2025-03",
+      "crz_entries": 2346506,
+      "excluded_roadway_entries": 0,
+      "total_entries": 2346506
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "East 60th St",
+      "detection_region": "East 60th St",
+      "month": "2025-04",
+      "crz_entries": 2344799,
+      "excluded_roadway_entries": 0,
+      "total_entries": 2344799
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "East 60th St",
+      "detection_region": "East 60th St",
+      "month": "2025-05",
+      "crz_entries": 2429647,
+      "excluded_roadway_entries": 0,
+      "total_entries": 2429647
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "East 60th St",
+      "detection_region": "East 60th St",
+      "month": "2025-06",
+      "crz_entries": 2286860,
+      "excluded_roadway_entries": 0,
+      "total_entries": 2286860
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "East 60th St",
+      "detection_region": "East 60th St",
+      "month": "2025-07",
+      "crz_entries": 2312840,
+      "excluded_roadway_entries": 0,
+      "total_entries": 2312840
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "East 60th St",
+      "detection_region": "East 60th St",
+      "month": "2025-08",
+      "crz_entries": 2216671,
+      "excluded_roadway_entries": 0,
+      "total_entries": 2216671
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "East 60th St",
+      "detection_region": "East 60th St",
+      "month": "2025-09",
+      "crz_entries": 2260376,
+      "excluded_roadway_entries": 0,
+      "total_entries": 2260376
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "East 60th St",
+      "detection_region": "East 60th St",
+      "month": "2025-10",
+      "crz_entries": 2445294,
+      "excluded_roadway_entries": 0,
+      "total_entries": 2445294
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "East 60th St",
+      "detection_region": "East 60th St",
+      "month": "2025-11",
+      "crz_entries": 2276344,
+      "excluded_roadway_entries": 0,
+      "total_entries": 2276344
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "East 60th St",
+      "detection_region": "East 60th St",
+      "month": "2025-12",
+      "crz_entries": 2222892,
+      "excluded_roadway_entries": 0,
+      "total_entries": 2222892
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "East 60th St",
+      "detection_region": "East 60th St",
+      "month": "2026-01",
+      "crz_entries": 2081613,
+      "excluded_roadway_entries": 0,
+      "total_entries": 2081613
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "East 60th St",
+      "detection_region": "East 60th St",
+      "month": "2026-02",
+      "crz_entries": 1840967,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1840967
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "East 60th St",
+      "detection_region": "East 60th St",
+      "month": "2026-03",
+      "crz_entries": 2233546,
+      "excluded_roadway_entries": 0,
+      "total_entries": 2233546
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "East 60th St",
+      "detection_region": "East 60th St",
+      "month": "2026-04",
+      "crz_entries": 2276523,
+      "excluded_roadway_entries": 0,
+      "total_entries": 2276523
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "East 60th St",
+      "detection_region": "East 60th St",
+      "month": "2026-05",
+      "crz_entries": 2326715,
+      "excluded_roadway_entries": 0,
+      "total_entries": 2326715
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "East 60th St",
+      "detection_region": "East 60th St",
+      "month": "2026-06",
+      "crz_entries": 2239726,
+      "excluded_roadway_entries": 0,
+      "total_entries": 2239726
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "East 60th St",
+      "detection_region": "East 60th St",
+      "month": "2026-07",
+      "crz_entries": 2188759,
+      "excluded_roadway_entries": 0,
+      "total_entries": 2188759
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "East 60th St",
+      "detection_region": "East 60th St",
+      "month": "2026-08",
+      "crz_entries": 2156296,
+      "excluded_roadway_entries": 0,
+      "total_entries": 2156296
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "East 60th St",
+      "detection_region": "East 60th St",
+      "month": "2026-09",
+      "crz_entries": 829438,
+      "excluded_roadway_entries": 0,
+      "total_entries": 829438
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "FDR Drive at 60th St",
+      "detection_region": "FDR Drive",
+      "month": "2025-01",
+      "crz_entries": 1349826,
+      "excluded_roadway_entries": 770448,
+      "total_entries": 2120274
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "FDR Drive at 60th St",
+      "detection_region": "FDR Drive",
+      "month": "2025-02",
+      "crz_entries": 1384967,
+      "excluded_roadway_entries": 825209,
+      "total_entries": 2210176
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "FDR Drive at 60th St",
+      "detection_region": "FDR Drive",
+      "month": "2025-03",
+      "crz_entries": 1613193,
+      "excluded_roadway_entries": 961926,
+      "total_entries": 2575119
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "FDR Drive at 60th St",
+      "detection_region": "FDR Drive",
+      "month": "2025-04",
+      "crz_entries": 1551232,
+      "excluded_roadway_entries": 918394,
+      "total_entries": 2469626
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "FDR Drive at 60th St",
+      "detection_region": "FDR Drive",
+      "month": "2025-05",
+      "crz_entries": 1624504,
+      "excluded_roadway_entries": 961619,
+      "total_entries": 2586123
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "FDR Drive at 60th St",
+      "detection_region": "FDR Drive",
+      "month": "2025-06",
+      "crz_entries": 1558688,
+      "excluded_roadway_entries": 934247,
+      "total_entries": 2492935
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "FDR Drive at 60th St",
+      "detection_region": "FDR Drive",
+      "month": "2025-07",
+      "crz_entries": 1553405,
+      "excluded_roadway_entries": 907944,
+      "total_entries": 2461349
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "FDR Drive at 60th St",
+      "detection_region": "FDR Drive",
+      "month": "2025-08",
+      "crz_entries": 1527972,
+      "excluded_roadway_entries": 961334,
+      "total_entries": 2489306
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "FDR Drive at 60th St",
+      "detection_region": "FDR Drive",
+      "month": "2025-09",
+      "crz_entries": 1511455,
+      "excluded_roadway_entries": 896347,
+      "total_entries": 2407802
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "FDR Drive at 60th St",
+      "detection_region": "FDR Drive",
+      "month": "2025-10",
+      "crz_entries": 1540246,
+      "excluded_roadway_entries": 882818,
+      "total_entries": 2423064
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "FDR Drive at 60th St",
+      "detection_region": "FDR Drive",
+      "month": "2025-11",
+      "crz_entries": 1476882,
+      "excluded_roadway_entries": 848994,
+      "total_entries": 2325876
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "FDR Drive at 60th St",
+      "detection_region": "FDR Drive",
+      "month": "2025-12",
+      "crz_entries": 1561952,
+      "excluded_roadway_entries": 846249,
+      "total_entries": 2408201
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "FDR Drive at 60th St",
+      "detection_region": "FDR Drive",
+      "month": "2026-01",
+      "crz_entries": 1460301,
+      "excluded_roadway_entries": 739456,
+      "total_entries": 2199757
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "FDR Drive at 60th St",
+      "detection_region": "FDR Drive",
+      "month": "2026-02",
+      "crz_entries": 1347080,
+      "excluded_roadway_entries": 686214,
+      "total_entries": 2033294
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "FDR Drive at 60th St",
+      "detection_region": "FDR Drive",
+      "month": "2026-03",
+      "crz_entries": 1590883,
+      "excluded_roadway_entries": 857547,
+      "total_entries": 2448430
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "FDR Drive at 60th St",
+      "detection_region": "FDR Drive",
+      "month": "2026-04",
+      "crz_entries": 1546859,
+      "excluded_roadway_entries": 890788,
+      "total_entries": 2437647
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "FDR Drive at 60th St",
+      "detection_region": "FDR Drive",
+      "month": "2026-05",
+      "crz_entries": 1568124,
+      "excluded_roadway_entries": 909283,
+      "total_entries": 2477407
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "FDR Drive at 60th St",
+      "detection_region": "FDR Drive",
+      "month": "2026-06",
+      "crz_entries": 1528718,
+      "excluded_roadway_entries": 902806,
+      "total_entries": 2431524
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "FDR Drive at 60th St",
+      "detection_region": "FDR Drive",
+      "month": "2026-07",
+      "crz_entries": 1611289,
+      "excluded_roadway_entries": 915244,
+      "total_entries": 2526533
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "FDR Drive at 60th St",
+      "detection_region": "FDR Drive",
+      "month": "2026-08",
+      "crz_entries": 1575074,
+      "excluded_roadway_entries": 920762,
+      "total_entries": 2495836
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "FDR Drive at 60th St",
+      "detection_region": "FDR Drive",
+      "month": "2026-09",
+      "crz_entries": 627217,
+      "excluded_roadway_entries": 357515,
+      "total_entries": 984732
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Holland Tunnel",
+      "detection_region": "New Jersey",
+      "month": "2025-01",
+      "crz_entries": 1004872,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1004872
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Holland Tunnel",
+      "detection_region": "New Jersey",
+      "month": "2025-02",
+      "crz_entries": 1080143,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1080143
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Holland Tunnel",
+      "detection_region": "New Jersey",
+      "month": "2025-03",
+      "crz_entries": 1253871,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1253871
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Holland Tunnel",
+      "detection_region": "New Jersey",
+      "month": "2025-04",
+      "crz_entries": 1244351,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1244351
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Holland Tunnel",
+      "detection_region": "New Jersey",
+      "month": "2025-05",
+      "crz_entries": 1332467,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1332467
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Holland Tunnel",
+      "detection_region": "New Jersey",
+      "month": "2025-06",
+      "crz_entries": 1298694,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1298694
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Holland Tunnel",
+      "detection_region": "New Jersey",
+      "month": "2025-07",
+      "crz_entries": 1313092,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1313092
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Holland Tunnel",
+      "detection_region": "New Jersey",
+      "month": "2025-08",
+      "crz_entries": 1332336,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1332336
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Holland Tunnel",
+      "detection_region": "New Jersey",
+      "month": "2025-09",
+      "crz_entries": 1283612,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1283612
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Holland Tunnel",
+      "detection_region": "New Jersey",
+      "month": "2025-10",
+      "crz_entries": 1314069,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1314069
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Holland Tunnel",
+      "detection_region": "New Jersey",
+      "month": "2025-11",
+      "crz_entries": 1269411,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1269411
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Holland Tunnel",
+      "detection_region": "New Jersey",
+      "month": "2025-12",
+      "crz_entries": 1297392,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1297392
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Holland Tunnel",
+      "detection_region": "New Jersey",
+      "month": "2026-01",
+      "crz_entries": 1102227,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1102227
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Holland Tunnel",
+      "detection_region": "New Jersey",
+      "month": "2026-02",
+      "crz_entries": 1019935,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1019935
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Holland Tunnel",
+      "detection_region": "New Jersey",
+      "month": "2026-03",
+      "crz_entries": 1271149,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1271149
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Holland Tunnel",
+      "detection_region": "New Jersey",
+      "month": "2026-04",
+      "crz_entries": 1247691,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1247691
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Holland Tunnel",
+      "detection_region": "New Jersey",
+      "month": "2026-05",
+      "crz_entries": 1328522,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1328522
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Holland Tunnel",
+      "detection_region": "New Jersey",
+      "month": "2026-06",
+      "crz_entries": 1317847,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1317847
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Holland Tunnel",
+      "detection_region": "New Jersey",
+      "month": "2026-07",
+      "crz_entries": 1318050,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1318050
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Holland Tunnel",
+      "detection_region": "New Jersey",
+      "month": "2026-08",
+      "crz_entries": 1308169,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1308169
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Holland Tunnel",
+      "detection_region": "New Jersey",
+      "month": "2026-09",
+      "crz_entries": 509789,
+      "excluded_roadway_entries": 0,
+      "total_entries": 509789
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Hugh L. Carey Tunnel",
+      "detection_region": "Brooklyn",
+      "month": "2025-01",
+      "crz_entries": 517688,
+      "excluded_roadway_entries": 241399,
+      "total_entries": 759087
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Hugh L. Carey Tunnel",
+      "detection_region": "Brooklyn",
+      "month": "2025-02",
+      "crz_entries": 564895,
+      "excluded_roadway_entries": 269025,
+      "total_entries": 833920
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Hugh L. Carey Tunnel",
+      "detection_region": "Brooklyn",
+      "month": "2025-03",
+      "crz_entries": 652085,
+      "excluded_roadway_entries": 321819,
+      "total_entries": 973904
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Hugh L. Carey Tunnel",
+      "detection_region": "Brooklyn",
+      "month": "2025-04",
+      "crz_entries": 639158,
+      "excluded_roadway_entries": 308596,
+      "total_entries": 947754
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Hugh L. Carey Tunnel",
+      "detection_region": "Brooklyn",
+      "month": "2025-05",
+      "crz_entries": 688269,
+      "excluded_roadway_entries": 327002,
+      "total_entries": 1015271
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Hugh L. Carey Tunnel",
+      "detection_region": "Brooklyn",
+      "month": "2025-06",
+      "crz_entries": 656132,
+      "excluded_roadway_entries": 326716,
+      "total_entries": 982848
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Hugh L. Carey Tunnel",
+      "detection_region": "Brooklyn",
+      "month": "2025-07",
+      "crz_entries": 638614,
+      "excluded_roadway_entries": 321427,
+      "total_entries": 960041
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Hugh L. Carey Tunnel",
+      "detection_region": "Brooklyn",
+      "month": "2025-08",
+      "crz_entries": 646176,
+      "excluded_roadway_entries": 348024,
+      "total_entries": 994200
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Hugh L. Carey Tunnel",
+      "detection_region": "Brooklyn",
+      "month": "2025-09",
+      "crz_entries": 667947,
+      "excluded_roadway_entries": 314333,
+      "total_entries": 982280
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Hugh L. Carey Tunnel",
+      "detection_region": "Brooklyn",
+      "month": "2025-10",
+      "crz_entries": 707120,
+      "excluded_roadway_entries": 312519,
+      "total_entries": 1019639
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Hugh L. Carey Tunnel",
+      "detection_region": "Brooklyn",
+      "month": "2025-11",
+      "crz_entries": 674297,
+      "excluded_roadway_entries": 302149,
+      "total_entries": 976446
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Hugh L. Carey Tunnel",
+      "detection_region": "Brooklyn",
+      "month": "2025-12",
+      "crz_entries": 688555,
+      "excluded_roadway_entries": 284479,
+      "total_entries": 973034
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Hugh L. Carey Tunnel",
+      "detection_region": "Brooklyn",
+      "month": "2026-01",
+      "crz_entries": 588602,
+      "excluded_roadway_entries": 250219,
+      "total_entries": 838821
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Hugh L. Carey Tunnel",
+      "detection_region": "Brooklyn",
+      "month": "2026-02",
+      "crz_entries": 542386,
+      "excluded_roadway_entries": 238674,
+      "total_entries": 781060
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Hugh L. Carey Tunnel",
+      "detection_region": "Brooklyn",
+      "month": "2026-03",
+      "crz_entries": 655353,
+      "excluded_roadway_entries": 294066,
+      "total_entries": 949419
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Hugh L. Carey Tunnel",
+      "detection_region": "Brooklyn",
+      "month": "2026-04",
+      "crz_entries": 629807,
+      "excluded_roadway_entries": 286281,
+      "total_entries": 916088
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Hugh L. Carey Tunnel",
+      "detection_region": "Brooklyn",
+      "month": "2026-05",
+      "crz_entries": 672592,
+      "excluded_roadway_entries": 303580,
+      "total_entries": 976172
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Hugh L. Carey Tunnel",
+      "detection_region": "Brooklyn",
+      "month": "2026-06",
+      "crz_entries": 669539,
+      "excluded_roadway_entries": 316680,
+      "total_entries": 986219
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Hugh L. Carey Tunnel",
+      "detection_region": "Brooklyn",
+      "month": "2026-07",
+      "crz_entries": 638034,
+      "excluded_roadway_entries": 310244,
+      "total_entries": 948278
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Hugh L. Carey Tunnel",
+      "detection_region": "Brooklyn",
+      "month": "2026-08",
+      "crz_entries": 590144,
+      "excluded_roadway_entries": 294268,
+      "total_entries": 884412
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Hugh L. Carey Tunnel",
+      "detection_region": "Brooklyn",
+      "month": "2026-09",
+      "crz_entries": 247534,
+      "excluded_roadway_entries": 121903,
+      "total_entries": 369437
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Lincoln Tunnel",
+      "detection_region": "New Jersey",
+      "month": "2025-01",
+      "crz_entries": 1142997,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1142997
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Lincoln Tunnel",
+      "detection_region": "New Jersey",
+      "month": "2025-02",
+      "crz_entries": 1199471,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1199471
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Lincoln Tunnel",
+      "detection_region": "New Jersey",
+      "month": "2025-03",
+      "crz_entries": 1403171,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1403171
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Lincoln Tunnel",
+      "detection_region": "New Jersey",
+      "month": "2025-04",
+      "crz_entries": 1386469,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1386469
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Lincoln Tunnel",
+      "detection_region": "New Jersey",
+      "month": "2025-05",
+      "crz_entries": 1527555,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1527555
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Lincoln Tunnel",
+      "detection_region": "New Jersey",
+      "month": "2025-06",
+      "crz_entries": 1448610,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1448610
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Lincoln Tunnel",
+      "detection_region": "New Jersey",
+      "month": "2025-07",
+      "crz_entries": 1426386,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1426386
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Lincoln Tunnel",
+      "detection_region": "New Jersey",
+      "month": "2025-08",
+      "crz_entries": 1459800,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1459800
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Lincoln Tunnel",
+      "detection_region": "New Jersey",
+      "month": "2025-09",
+      "crz_entries": 1408787,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1408787
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Lincoln Tunnel",
+      "detection_region": "New Jersey",
+      "month": "2025-10",
+      "crz_entries": 1423902,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1423902
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Lincoln Tunnel",
+      "detection_region": "New Jersey",
+      "month": "2025-11",
+      "crz_entries": 1359150,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1359150
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Lincoln Tunnel",
+      "detection_region": "New Jersey",
+      "month": "2025-12",
+      "crz_entries": 1319992,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1319992
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Lincoln Tunnel",
+      "detection_region": "New Jersey",
+      "month": "2026-01",
+      "crz_entries": 1136670,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1136670
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Lincoln Tunnel",
+      "detection_region": "New Jersey",
+      "month": "2026-02",
+      "crz_entries": 1014590,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1014590
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Lincoln Tunnel",
+      "detection_region": "New Jersey",
+      "month": "2026-03",
+      "crz_entries": 1292050,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1292050
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Lincoln Tunnel",
+      "detection_region": "New Jersey",
+      "month": "2026-04",
+      "crz_entries": 1246087,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1246087
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Lincoln Tunnel",
+      "detection_region": "New Jersey",
+      "month": "2026-05",
+      "crz_entries": 1330266,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1330266
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Lincoln Tunnel",
+      "detection_region": "New Jersey",
+      "month": "2026-06",
+      "crz_entries": 1257848,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1257848
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Lincoln Tunnel",
+      "detection_region": "New Jersey",
+      "month": "2026-07",
+      "crz_entries": 1265261,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1265261
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Lincoln Tunnel",
+      "detection_region": "New Jersey",
+      "month": "2026-08",
+      "crz_entries": 1280395,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1280395
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Lincoln Tunnel",
+      "detection_region": "New Jersey",
+      "month": "2026-09",
+      "crz_entries": 492258,
+      "excluded_roadway_entries": 0,
+      "total_entries": 492258
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Manhattan Bridge",
+      "detection_region": "Brooklyn",
+      "month": "2025-01",
+      "crz_entries": 740563,
+      "excluded_roadway_entries": 0,
+      "total_entries": 740563
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Manhattan Bridge",
+      "detection_region": "Brooklyn",
+      "month": "2025-02",
+      "crz_entries": 790342,
+      "excluded_roadway_entries": 0,
+      "total_entries": 790342
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Manhattan Bridge",
+      "detection_region": "Brooklyn",
+      "month": "2025-03",
+      "crz_entries": 891531,
+      "excluded_roadway_entries": 0,
+      "total_entries": 891531
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Manhattan Bridge",
+      "detection_region": "Brooklyn",
+      "month": "2025-04",
+      "crz_entries": 885173,
+      "excluded_roadway_entries": 0,
+      "total_entries": 885173
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Manhattan Bridge",
+      "detection_region": "Brooklyn",
+      "month": "2025-05",
+      "crz_entries": 940421,
+      "excluded_roadway_entries": 0,
+      "total_entries": 940421
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Manhattan Bridge",
+      "detection_region": "Brooklyn",
+      "month": "2025-06",
+      "crz_entries": 856920,
+      "excluded_roadway_entries": 0,
+      "total_entries": 856920
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Manhattan Bridge",
+      "detection_region": "Brooklyn",
+      "month": "2025-07",
+      "crz_entries": 889206,
+      "excluded_roadway_entries": 0,
+      "total_entries": 889206
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Manhattan Bridge",
+      "detection_region": "Brooklyn",
+      "month": "2025-08",
+      "crz_entries": 874867,
+      "excluded_roadway_entries": 0,
+      "total_entries": 874867
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Manhattan Bridge",
+      "detection_region": "Brooklyn",
+      "month": "2025-09",
+      "crz_entries": 890277,
+      "excluded_roadway_entries": 0,
+      "total_entries": 890277
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Manhattan Bridge",
+      "detection_region": "Brooklyn",
+      "month": "2025-10",
+      "crz_entries": 933731,
+      "excluded_roadway_entries": 0,
+      "total_entries": 933731
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Manhattan Bridge",
+      "detection_region": "Brooklyn",
+      "month": "2025-11",
+      "crz_entries": 893569,
+      "excluded_roadway_entries": 0,
+      "total_entries": 893569
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Manhattan Bridge",
+      "detection_region": "Brooklyn",
+      "month": "2025-12",
+      "crz_entries": 873245,
+      "excluded_roadway_entries": 0,
+      "total_entries": 873245
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Manhattan Bridge",
+      "detection_region": "Brooklyn",
+      "month": "2026-01",
+      "crz_entries": 770576,
+      "excluded_roadway_entries": 0,
+      "total_entries": 770576
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Manhattan Bridge",
+      "detection_region": "Brooklyn",
+      "month": "2026-02",
+      "crz_entries": 681603,
+      "excluded_roadway_entries": 0,
+      "total_entries": 681603
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Manhattan Bridge",
+      "detection_region": "Brooklyn",
+      "month": "2026-03",
+      "crz_entries": 850468,
+      "excluded_roadway_entries": 0,
+      "total_entries": 850468
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Manhattan Bridge",
+      "detection_region": "Brooklyn",
+      "month": "2026-04",
+      "crz_entries": 866153,
+      "excluded_roadway_entries": 0,
+      "total_entries": 866153
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Manhattan Bridge",
+      "detection_region": "Brooklyn",
+      "month": "2026-05",
+      "crz_entries": 909035,
+      "excluded_roadway_entries": 0,
+      "total_entries": 909035
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Manhattan Bridge",
+      "detection_region": "Brooklyn",
+      "month": "2026-06",
+      "crz_entries": 853968,
+      "excluded_roadway_entries": 0,
+      "total_entries": 853968
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Manhattan Bridge",
+      "detection_region": "Brooklyn",
+      "month": "2026-07",
+      "crz_entries": 868013,
+      "excluded_roadway_entries": 0,
+      "total_entries": 868013
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Manhattan Bridge",
+      "detection_region": "Brooklyn",
+      "month": "2026-08",
+      "crz_entries": 852902,
+      "excluded_roadway_entries": 0,
+      "total_entries": 852902
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Manhattan Bridge",
+      "detection_region": "Brooklyn",
+      "month": "2026-09",
+      "crz_entries": 330744,
+      "excluded_roadway_entries": 0,
+      "total_entries": 330744
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Queens Midtown Tunnel",
+      "detection_region": "Queens",
+      "month": "2025-01",
+      "crz_entries": 1062297,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1062297
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Queens Midtown Tunnel",
+      "detection_region": "Queens",
+      "month": "2025-02",
+      "crz_entries": 1155091,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1155091
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Queens Midtown Tunnel",
+      "detection_region": "Queens",
+      "month": "2025-03",
+      "crz_entries": 1346429,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1346429
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Queens Midtown Tunnel",
+      "detection_region": "Queens",
+      "month": "2025-04",
+      "crz_entries": 1323747,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1323747
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Queens Midtown Tunnel",
+      "detection_region": "Queens",
+      "month": "2025-05",
+      "crz_entries": 1448912,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1448912
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Queens Midtown Tunnel",
+      "detection_region": "Queens",
+      "month": "2025-06",
+      "crz_entries": 1414801,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1414801
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Queens Midtown Tunnel",
+      "detection_region": "Queens",
+      "month": "2025-07",
+      "crz_entries": 1405530,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1405530
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Queens Midtown Tunnel",
+      "detection_region": "Queens",
+      "month": "2025-08",
+      "crz_entries": 1426185,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1426185
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Queens Midtown Tunnel",
+      "detection_region": "Queens",
+      "month": "2025-09",
+      "crz_entries": 1419573,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1419573
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Queens Midtown Tunnel",
+      "detection_region": "Queens",
+      "month": "2025-10",
+      "crz_entries": 1436178,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1436178
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Queens Midtown Tunnel",
+      "detection_region": "Queens",
+      "month": "2025-11",
+      "crz_entries": 1328080,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1328080
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Queens Midtown Tunnel",
+      "detection_region": "Queens",
+      "month": "2025-12",
+      "crz_entries": 1299343,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1299343
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Queens Midtown Tunnel",
+      "detection_region": "Queens",
+      "month": "2026-01",
+      "crz_entries": 1190799,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1190799
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Queens Midtown Tunnel",
+      "detection_region": "Queens",
+      "month": "2026-02",
+      "crz_entries": 1080824,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1080824
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Queens Midtown Tunnel",
+      "detection_region": "Queens",
+      "month": "2026-03",
+      "crz_entries": 1321215,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1321215
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Queens Midtown Tunnel",
+      "detection_region": "Queens",
+      "month": "2026-04",
+      "crz_entries": 1290052,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1290052
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Queens Midtown Tunnel",
+      "detection_region": "Queens",
+      "month": "2026-05",
+      "crz_entries": 1393062,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1393062
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Queens Midtown Tunnel",
+      "detection_region": "Queens",
+      "month": "2026-06",
+      "crz_entries": 1362373,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1362373
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Queens Midtown Tunnel",
+      "detection_region": "Queens",
+      "month": "2026-07",
+      "crz_entries": 1352344,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1352344
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Queens Midtown Tunnel",
+      "detection_region": "Queens",
+      "month": "2026-08",
+      "crz_entries": 1334670,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1334670
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Queens Midtown Tunnel",
+      "detection_region": "Queens",
+      "month": "2026-09",
+      "crz_entries": 547393,
+      "excluded_roadway_entries": 0,
+      "total_entries": 547393
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Queensboro Bridge",
+      "detection_region": "Queens",
+      "month": "2025-01",
+      "crz_entries": 929023,
+      "excluded_roadway_entries": 0,
+      "total_entries": 929023
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Queensboro Bridge",
+      "detection_region": "Queens",
+      "month": "2025-02",
+      "crz_entries": 956940,
+      "excluded_roadway_entries": 0,
+      "total_entries": 956940
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Queensboro Bridge",
+      "detection_region": "Queens",
+      "month": "2025-03",
+      "crz_entries": 1108137,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1108137
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Queensboro Bridge",
+      "detection_region": "Queens",
+      "month": "2025-04",
+      "crz_entries": 1115230,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1115230
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Queensboro Bridge",
+      "detection_region": "Queens",
+      "month": "2025-05",
+      "crz_entries": 1200334,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1200334
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Queensboro Bridge",
+      "detection_region": "Queens",
+      "month": "2025-06",
+      "crz_entries": 1118381,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1118381
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Queensboro Bridge",
+      "detection_region": "Queens",
+      "month": "2025-07",
+      "crz_entries": 1095295,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1095295
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Queensboro Bridge",
+      "detection_region": "Queens",
+      "month": "2025-08",
+      "crz_entries": 1090948,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1090948
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Queensboro Bridge",
+      "detection_region": "Queens",
+      "month": "2025-09",
+      "crz_entries": 1103060,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1103060
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Queensboro Bridge",
+      "detection_region": "Queens",
+      "month": "2025-10",
+      "crz_entries": 1158988,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1158988
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Queensboro Bridge",
+      "detection_region": "Queens",
+      "month": "2025-11",
+      "crz_entries": 1052997,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1052997
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Queensboro Bridge",
+      "detection_region": "Queens",
+      "month": "2025-12",
+      "crz_entries": 1055812,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1055812
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Queensboro Bridge",
+      "detection_region": "Queens",
+      "month": "2026-01",
+      "crz_entries": 940258,
+      "excluded_roadway_entries": 0,
+      "total_entries": 940258
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Queensboro Bridge",
+      "detection_region": "Queens",
+      "month": "2026-02",
+      "crz_entries": 855805,
+      "excluded_roadway_entries": 0,
+      "total_entries": 855805
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Queensboro Bridge",
+      "detection_region": "Queens",
+      "month": "2026-03",
+      "crz_entries": 1055695,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1055695
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Queensboro Bridge",
+      "detection_region": "Queens",
+      "month": "2026-04",
+      "crz_entries": 1074734,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1074734
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Queensboro Bridge",
+      "detection_region": "Queens",
+      "month": "2026-05",
+      "crz_entries": 1136401,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1136401
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Queensboro Bridge",
+      "detection_region": "Queens",
+      "month": "2026-06",
+      "crz_entries": 1091679,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1091679
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Queensboro Bridge",
+      "detection_region": "Queens",
+      "month": "2026-07",
+      "crz_entries": 1078185,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1078185
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Queensboro Bridge",
+      "detection_region": "Queens",
+      "month": "2026-08",
+      "crz_entries": 1078673,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1078673
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Queensboro Bridge",
+      "detection_region": "Queens",
+      "month": "2026-09",
+      "crz_entries": 434875,
+      "excluded_roadway_entries": 0,
+      "total_entries": 434875
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "West 60th St",
+      "detection_region": "West 60th St",
+      "month": "2025-01",
+      "crz_entries": 1033376,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1033376
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "West 60th St",
+      "detection_region": "West 60th St",
+      "month": "2025-02",
+      "crz_entries": 1060141,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1060141
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "West 60th St",
+      "detection_region": "West 60th St",
+      "month": "2025-03",
+      "crz_entries": 1172091,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1172091
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "West 60th St",
+      "detection_region": "West 60th St",
+      "month": "2025-04",
+      "crz_entries": 1163627,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1163627
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "West 60th St",
+      "detection_region": "West 60th St",
+      "month": "2025-05",
+      "crz_entries": 1191981,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1191981
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "West 60th St",
+      "detection_region": "West 60th St",
+      "month": "2025-06",
+      "crz_entries": 1092685,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1092685
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "West 60th St",
+      "detection_region": "West 60th St",
+      "month": "2025-07",
+      "crz_entries": 1085325,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1085325
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "West 60th St",
+      "detection_region": "West 60th St",
+      "month": "2025-08",
+      "crz_entries": 1073732,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1073732
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "West 60th St",
+      "detection_region": "West 60th St",
+      "month": "2025-09",
+      "crz_entries": 1157648,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1157648
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "West 60th St",
+      "detection_region": "West 60th St",
+      "month": "2025-10",
+      "crz_entries": 1222308,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1222308
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "West 60th St",
+      "detection_region": "West 60th St",
+      "month": "2025-11",
+      "crz_entries": 1199062,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1199062
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "West 60th St",
+      "detection_region": "West 60th St",
+      "month": "2025-12",
+      "crz_entries": 1188072,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1188072
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "West 60th St",
+      "detection_region": "West 60th St",
+      "month": "2026-01",
+      "crz_entries": 1073650,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1073650
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "West 60th St",
+      "detection_region": "West 60th St",
+      "month": "2026-02",
+      "crz_entries": 926371,
+      "excluded_roadway_entries": 0,
+      "total_entries": 926371
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "West 60th St",
+      "detection_region": "West 60th St",
+      "month": "2026-03",
+      "crz_entries": 1136018,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1136018
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "West 60th St",
+      "detection_region": "West 60th St",
+      "month": "2026-04",
+      "crz_entries": 1153664,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1153664
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "West 60th St",
+      "detection_region": "West 60th St",
+      "month": "2026-05",
+      "crz_entries": 1162579,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1162579
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "West 60th St",
+      "detection_region": "West 60th St",
+      "month": "2026-06",
+      "crz_entries": 1087868,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1087868
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "West 60th St",
+      "detection_region": "West 60th St",
+      "month": "2026-07",
+      "crz_entries": 1090203,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1090203
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "West 60th St",
+      "detection_region": "West 60th St",
+      "month": "2026-08",
+      "crz_entries": 1033574,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1033574
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "West 60th St",
+      "detection_region": "West 60th St",
+      "month": "2026-09",
+      "crz_entries": 409269,
+      "excluded_roadway_entries": 0,
+      "total_entries": 409269
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "West Side Highway at 60th St",
+      "detection_region": "West Side Highway",
+      "month": "2025-01",
+      "crz_entries": 1094644,
+      "excluded_roadway_entries": 113354,
+      "total_entries": 1207998
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "West Side Highway at 60th St",
+      "detection_region": "West Side Highway",
+      "month": "2025-02",
+      "crz_entries": 1180243,
+      "excluded_roadway_entries": 127637,
+      "total_entries": 1307880
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "West Side Highway at 60th St",
+      "detection_region": "West Side Highway",
+      "month": "2025-03",
+      "crz_entries": 1359990,
+      "excluded_roadway_entries": 148066,
+      "total_entries": 1508056
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "West Side Highway at 60th St",
+      "detection_region": "West Side Highway",
+      "month": "2025-04",
+      "crz_entries": 1351860,
+      "excluded_roadway_entries": 146921,
+      "total_entries": 1498781
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "West Side Highway at 60th St",
+      "detection_region": "West Side Highway",
+      "month": "2025-05",
+      "crz_entries": 1374750,
+      "excluded_roadway_entries": 150854,
+      "total_entries": 1525604
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "West Side Highway at 60th St",
+      "detection_region": "West Side Highway",
+      "month": "2025-06",
+      "crz_entries": 1328095,
+      "excluded_roadway_entries": 148943,
+      "total_entries": 1477038
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "West Side Highway at 60th St",
+      "detection_region": "West Side Highway",
+      "month": "2025-07",
+      "crz_entries": 1362149,
+      "excluded_roadway_entries": 164985,
+      "total_entries": 1527134
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "West Side Highway at 60th St",
+      "detection_region": "West Side Highway",
+      "month": "2025-08",
+      "crz_entries": 1311347,
+      "excluded_roadway_entries": 173115,
+      "total_entries": 1484462
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "West Side Highway at 60th St",
+      "detection_region": "West Side Highway",
+      "month": "2025-09",
+      "crz_entries": 1365887,
+      "excluded_roadway_entries": 160118,
+      "total_entries": 1526005
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "West Side Highway at 60th St",
+      "detection_region": "West Side Highway",
+      "month": "2025-10",
+      "crz_entries": 1424137,
+      "excluded_roadway_entries": 162349,
+      "total_entries": 1586486
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "West Side Highway at 60th St",
+      "detection_region": "West Side Highway",
+      "month": "2025-11",
+      "crz_entries": 1337528,
+      "excluded_roadway_entries": 155137,
+      "total_entries": 1492665
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "West Side Highway at 60th St",
+      "detection_region": "West Side Highway",
+      "month": "2025-12",
+      "crz_entries": 1330612,
+      "excluded_roadway_entries": 143149,
+      "total_entries": 1473761
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "West Side Highway at 60th St",
+      "detection_region": "West Side Highway",
+      "month": "2026-01",
+      "crz_entries": 1158958,
+      "excluded_roadway_entries": 117936,
+      "total_entries": 1276894
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "West Side Highway at 60th St",
+      "detection_region": "West Side Highway",
+      "month": "2026-02",
+      "crz_entries": 1098306,
+      "excluded_roadway_entries": 101668,
+      "total_entries": 1199974
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "West Side Highway at 60th St",
+      "detection_region": "West Side Highway",
+      "month": "2026-03",
+      "crz_entries": 1330395,
+      "excluded_roadway_entries": 149281,
+      "total_entries": 1479676
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "West Side Highway at 60th St",
+      "detection_region": "West Side Highway",
+      "month": "2026-04",
+      "crz_entries": 1350862,
+      "excluded_roadway_entries": 144738,
+      "total_entries": 1495600
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "West Side Highway at 60th St",
+      "detection_region": "West Side Highway",
+      "month": "2026-05",
+      "crz_entries": 1394955,
+      "excluded_roadway_entries": 152486,
+      "total_entries": 1547441
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "West Side Highway at 60th St",
+      "detection_region": "West Side Highway",
+      "month": "2026-06",
+      "crz_entries": 1364381,
+      "excluded_roadway_entries": 157253,
+      "total_entries": 1521634
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "West Side Highway at 60th St",
+      "detection_region": "West Side Highway",
+      "month": "2026-07",
+      "crz_entries": 1308438,
+      "excluded_roadway_entries": 145201,
+      "total_entries": 1453639
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "West Side Highway at 60th St",
+      "detection_region": "West Side Highway",
+      "month": "2026-08",
+      "crz_entries": 1272194,
+      "excluded_roadway_entries": 151104,
+      "total_entries": 1423298
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "West Side Highway at 60th St",
+      "detection_region": "West Side Highway",
+      "month": "2026-09",
+      "crz_entries": 511696,
+      "excluded_roadway_entries": 55826,
+      "total_entries": 567522
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Williamsburg Bridge",
+      "detection_region": "Brooklyn",
+      "month": "2025-01",
+      "crz_entries": 1048929,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1048929
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Williamsburg Bridge",
+      "detection_region": "Brooklyn",
+      "month": "2025-02",
+      "crz_entries": 1103448,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1103448
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Williamsburg Bridge",
+      "detection_region": "Brooklyn",
+      "month": "2025-03",
+      "crz_entries": 1264087,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1264087
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Williamsburg Bridge",
+      "detection_region": "Brooklyn",
+      "month": "2025-04",
+      "crz_entries": 1214972,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1214972
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Williamsburg Bridge",
+      "detection_region": "Brooklyn",
+      "month": "2025-05",
+      "crz_entries": 1280265,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1280265
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Williamsburg Bridge",
+      "detection_region": "Brooklyn",
+      "month": "2025-06",
+      "crz_entries": 1219405,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1219405
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Williamsburg Bridge",
+      "detection_region": "Brooklyn",
+      "month": "2025-07",
+      "crz_entries": 1257924,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1257924
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Williamsburg Bridge",
+      "detection_region": "Brooklyn",
+      "month": "2025-08",
+      "crz_entries": 1255031,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1255031
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Williamsburg Bridge",
+      "detection_region": "Brooklyn",
+      "month": "2025-09",
+      "crz_entries": 1235067,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1235067
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Williamsburg Bridge",
+      "detection_region": "Brooklyn",
+      "month": "2025-10",
+      "crz_entries": 1272899,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1272899
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Williamsburg Bridge",
+      "detection_region": "Brooklyn",
+      "month": "2025-11",
+      "crz_entries": 1227827,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1227827
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Williamsburg Bridge",
+      "detection_region": "Brooklyn",
+      "month": "2025-12",
+      "crz_entries": 1216189,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1216189
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Williamsburg Bridge",
+      "detection_region": "Brooklyn",
+      "month": "2026-01",
+      "crz_entries": 1136200,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1136200
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Williamsburg Bridge",
+      "detection_region": "Brooklyn",
+      "month": "2026-02",
+      "crz_entries": 1010690,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1010690
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Williamsburg Bridge",
+      "detection_region": "Brooklyn",
+      "month": "2026-03",
+      "crz_entries": 1222664,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1222664
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Williamsburg Bridge",
+      "detection_region": "Brooklyn",
+      "month": "2026-04",
+      "crz_entries": 1215326,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1215326
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Williamsburg Bridge",
+      "detection_region": "Brooklyn",
+      "month": "2026-05",
+      "crz_entries": 1259420,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1259420
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Williamsburg Bridge",
+      "detection_region": "Brooklyn",
+      "month": "2026-06",
+      "crz_entries": 1219227,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1219227
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Williamsburg Bridge",
+      "detection_region": "Brooklyn",
+      "month": "2026-07",
+      "crz_entries": 1224506,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1224506
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Williamsburg Bridge",
+      "detection_region": "Brooklyn",
+      "month": "2026-08",
+      "crz_entries": 1234026,
+      "excluded_roadway_entries": 0,
+      "total_entries": 1234026
+    },
+    {
+      "source_id": "mta_crz_entries_archive_20260920",
+      "measure_id": "crz_monthly_detection_group_entries",
+      "detection_group": "Williamsburg Bridge",
+      "detection_region": "Brooklyn",
+      "month": "2026-09",
+      "crz_entries": 486270,
+      "excluded_roadway_entries": 0,
+      "total_entries": 486270
+    }
+  ]
+}
