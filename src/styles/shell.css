@@ -1,0 +1,170 @@
+/* ------------------------------------------------------------------ shell */
+
+.app-shell {
+  display: grid;
+  grid-template-rows: auto auto auto minmax(0, 1fr);
+  /* minmax(0, 1fr) keeps wide children (scrolling tab strips, mono metric tables) from
+     expanding the page and creating horizontal overflow on small screens. */
+  grid-template-columns: minmax(0, 1fr);
+  /* A definite height, not just a minimum: with only min-height the 1fr workspace row grows to the
+     data rail's content height, which stretches the map column far past the viewport and draws the
+     map centre off-screen. The rail scrolls inside the row instead. */
+  height: 100svh;
+  min-height: 100svh;
+  background: var(--paper);
+}
+
+/* SOURCES is a document, not a map view: it scrolls with the page. */
+.mode-sources {
+  height: auto;
+  min-height: 100svh;
+}
+
+.mode-sources .data-rail {
+  overflow: visible;
+}
+
+/* --------------------------------------------------------------- masthead */
+
+.masthead {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 12px var(--gutter);
+  padding: 18px var(--gutter) 14px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.masthead h1 {
+  font-size: var(--step-display);
+  font-weight: 560;
+  line-height: 0.94;
+  letter-spacing: -0.035em;
+  text-transform: uppercase;
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: var(--step-micro);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.subtitle {
+  margin-top: 6px;
+  max-width: 52ch;
+  font-size: var(--step-body);
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.masthead-meta {
+  display: grid;
+  gap: 8px;
+  justify-items: end;
+}
+
+/* The build this browser is actually running. Top right on purpose: it is the first thing to check
+   when a page looks stale. */
+.build-stamp {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: var(--step-micro);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.build-stamp strong {
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--ink);
+}
+
+.stale-banner {
+  display: grid;
+  gap: 3px;
+  padding: 10px var(--gutter);
+  border-bottom: 1px solid var(--alert);
+  background: var(--alert-quiet);
+  font-size: var(--step-small);
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+
+.stale-banner strong {
+  color: var(--alert);
+}
+
+.stale-banner code {
+  font-family: var(--font-mono);
+  font-size: var(--step-micro);
+  color: var(--ink);
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 4px;
+}
+
+.status-copy {
+  font-family: var(--font-mono);
+  font-size: var(--step-micro);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+/* Semantic state only: release validated / loading / empty / error. */
+.status-dot {
+  width: 7px;
+  height: 7px;
+  background: var(--accent);
+}
+
+.state-loading .status-dot,
+.state-empty .status-dot {
+  background: var(--muted-quiet);
+}
+
+.state-error .status-dot {
+  background: var(--alert);
+}
+
+.masthead button,
+.mobile-methods-button {
+  padding: 7px 12px;
+  border: 1px solid var(--hairline-strong);
+  border-radius: 0;
+  background: transparent;
+  font-family: var(--font-mono);
+  font-size: var(--step-micro);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background-color 140ms ease, color 140ms ease, border-color 140ms ease;
+}
+
+.masthead button:hover,
+.mobile-methods-button:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.masthead button:active,
+.mobile-methods-button:active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+
+.mobile-methods-button {
+  display: none;
+}

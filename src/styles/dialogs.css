@@ -1,0 +1,99 @@
+/* ----------------------------------------------------------- methodology */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(20, 22, 26, 0.42);
+  z-index: 20;
+}
+
+.methodology-modal {
+  position: relative;
+  width: min(760px, 100%);
+  max-height: 84svh;
+  overflow-y: auto;
+  padding: 30px 32px 36px;
+  border: 1px solid var(--ink);
+  background: var(--paper);
+}
+
+.methodology-modal h3 {
+  font-size: var(--step-display);
+  font-weight: 540;
+  line-height: 0.98;
+  letter-spacing: -0.035em;
+}
+
+.methodology-modal h4 {
+  margin: 24px 0 8px;
+  font-size: var(--step-lead);
+  font-weight: 560;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+}
+
+.methodology-modal p,
+.methodology-modal li {
+  margin-top: 8px;
+  font-size: var(--step-body);
+  line-height: 1.6;
+  color: var(--ink-soft);
+}
+
+.modal-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--hairline-strong);
+  border-radius: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.modal-close:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.methodology-caution {
+  margin-top: 22px;
+  padding-top: 14px;
+  border-top: 1px solid var(--rule);
+  font-size: var(--step-small);
+  color: var(--muted);
+}
+
+/* --------------------------------------------------------- compare (dev) */
+
+.compare-mode-switch {
+  display: flex;
+  gap: 8px;
+  padding: 10px var(--gutter);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.compare-mode-switch button {
+  padding: 6px 10px;
+  border: 1px solid var(--hairline-strong);
+  border-radius: 0;
+  background: transparent;
+  font-family: var(--font-mono);
+  font-size: var(--step-micro);
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.compare-mode-switch button.is-active {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.compare-label-short {
+  display: none;
+}

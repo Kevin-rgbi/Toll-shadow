@@ -1,0 +1,131 @@
+/* ------------------------------------------------------------- mode tabs */
+
+.mode-tabs {
+  display: flex;
+  align-items: stretch;
+  gap: var(--gutter);
+  padding: 0 var(--gutter);
+  border-bottom: 1px solid var(--hairline);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.mode-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.mode-tab {
+  position: relative;
+  padding: 13px 0 11px;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: var(--step-micro);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 140ms ease;
+}
+
+.mode-tab::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 2px;
+  background: transparent;
+  transition: background-color 140ms ease;
+}
+
+.mode-tab:hover {
+  color: var(--ink);
+}
+
+.mode-tab.is-active {
+  color: var(--ink);
+}
+
+.mode-tab.is-active::after {
+  background: var(--accent);
+}
+
+.compare-tab {
+  color: var(--accent);
+}
+
+/* --------------------------------------------------------- figures strip */
+
+.data-ribbon {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  border-bottom: 1px solid var(--rule);
+}
+
+.data-ribbon p {
+  display: grid;
+  gap: 5px;
+  padding: 11px var(--gutter) 12px;
+  border-left: 1px solid var(--hairline);
+}
+
+.data-ribbon p:first-child {
+  border-left: 0;
+}
+
+.data-ribbon span {
+  font-family: var(--font-mono);
+  font-size: var(--step-micro);
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.data-ribbon strong {
+  font-size: var(--step-small);
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.metric-improved {
+  color: var(--accent);
+}
+
+.metric-worsened {
+  color: var(--alert);
+}
+
+/* -------------------------------------------------------------- workspace */
+
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--rail-width);
+  min-height: 0;
+  min-width: 0;
+}
+
+.map-column {
+  position: relative;
+  min-height: 0;
+  min-width: 0;
+  border-right: 1px solid var(--rule);
+  background: var(--paper-sunk);
+}
+
+/* Sources is a document, not a map view: the map column stands down. */
+.mode-sources .workspace {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.mode-sources .map-column {
+  display: none;
+}
+
+.data-rail {
+  min-height: 0;
+  min-width: 0;
+  overflow-y: auto;
+  background: var(--paper-rail);
+}
