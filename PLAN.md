@@ -1,5 +1,17 @@
 # PLAN.md - The Toll Shadow
 
+> **Superseded in two places by the PRD, deliberately.**
+>
+> This is the original frontend build plan. It scopes "comparison between observed and expected
+> states" and "confidence and uncertainty-aware rendering", and it says "current UI data remains
+> synthetic and clearly labeled". The PRD lists expected values, counterfactual estimates, and
+> synthetic data in the product as non-goals, and the architecture doc forbids dynamic expected values
+> until a reviewed analysis design exists. The compare-mode surfaces exist only behind the development
+> flag and never render in a production build.
+>
+> Everything else here still describes how the interface was built. Where this file and the PRD
+> disagree, the PRD governs.
+
 ## Project Goal
 
 Build a production-quality investigative map that answers:

@@ -6,12 +6,13 @@ plan's "definition of done" item that was missing until now: previously no FR wa
 Run everything below with:
 
 ```bash
-npm run test                                  # 205 tests, includes the accessibility and size gates
+npm run test                                  # 220 tests: accessibility, claim and size gates
+npm run pipeline:test                         # 38 tests, includes contract enforcement
 npm run test:e2e                              # 59 end-to-end tests, desktop and phone viewports
 npm run lint
 npx tsc -b
 npm run build
-python3 scripts/release_acceptance.py          # 49 checks
+python3 scripts/release_acceptance.py          # 60 release and deployment checks
 python3 visualization/kepler/validate_kepler_export.py   # 34 checks
 
 ```
@@ -21,15 +22,15 @@ CI (`.github/workflows/verify.yml`) runs the same set on every push to `main` an
 | FR | Condition | Evidence | Status |
 |---|---|---|---|
 | FR-01 | Load a versioned manifest before any data view; fail clearly when missing, malformed, or invalid | `tests/frontend/releaseManifest.test.ts`, `tests/frontend/shippedManifest.test.ts`; gate checks pointer caching, schema, status | Met |
-| FR-02 | Landing view names the window and the evidence boundary, with no synthetic, "expected", or causal language | `tests/frontend/moduleStates.test.ts` asserts the absence of causal/expected wording; `sourceMessaging.CLAIM_GUARDRAIL`; story view copy | Met (claim-lint is by test, not by a copy scanner) |
+| FR-02 | Landing view names the window and the evidence boundary, with no synthetic, "expected", or causal language | `tests/frontend/moduleStates.test.ts` asserts the absence of causal/expected wording; `tests/frontend/claimGate.test.ts` renders the air, health and equity modules and asserts no affirmative current or causal claim (the technical design document's claim-gate item that nothing enforced); story view copy | Met (claim-lint is by test, not by a copy scanner) |
 | FR-03 | Traffic module with filters, date range, grain, sample fields, source link | `tests/frontend/trafficSummary.test.ts`, `moduleStates.test.ts`, `releaseData.test.ts`; `tests/e2e/filters.spec.ts` (a filter narrows the figure, writes the URL, and the control reports the applied value); module renders `AssetProvenance` | Met |
 | FR-04 | MTA crossings module with **named** facilities, directions, and the MTA caveat | `tests/frontend/crossingsSummary.test.ts`, `moduleStates.test.ts` (name plus published identifier); `pipeline/tests/mta.test.mjs` naming rules; all 8,352 published records named; `tests/e2e/modules.spec.ts` | Met |
 | FR-05 | CRZ-entry module with aggregation window and coordinate-precision label | `tests/frontend/crzSummary.test.ts`, `releaseData.test.ts` (`parseCrzEntries`), `moduleStates` a11y surface; `pipeline/tests/release.test.mjs` covers the asset; module states areas-not-points; `tests/e2e/modules.spec.ts` | Met |
-| FR-06 | Equity/context module: DAC geography and historical air/health context with release year and non-causal labels | Release `2026-09-20.4` publishes `dac_context` (958 tracts, archived 2023 criteria, labelled historical throughout), `historical_context` (NYCCAS surface as a **relative** field with inferred pollutant and period labels), and `health_context` (132 archived NYS asthma records ending 2019); `tests/frontend/healthContext.test.ts` covers all three parsers against the shapes the sources publish; `tests/e2e/modules.spec.ts` asserts figures render, the canvas paints, the tracts draw, and no failure state is left on screen | Met |
-| FR-07 | Every module exposes source URL, coverage, grain, transform version, and limitations | `AssetProvenance` is rendered by all five live modules; `moduleStates.test.ts` asserts "Source and method" and a limitation line; `tests/e2e/modules.spec.ts` asserts every provenance block carries all five fields on both viewports | Met |
+| FR-06 | Equity/context module: DAC geography and historical air/health context with release year and non-causal labels | Release `2026-09-20.5` publishes `dac_context` (958 tracts, archived 2023 criteria, labelled historical throughout), `historical_context` (NYCCAS surface as a **relative** field with inferred pollutant and period labels), and `health_context` (132 archived NYS asthma records ending 2019); `tests/frontend/healthContext.test.ts` covers all three parsers against the shapes the sources publish; `tests/e2e/modules.spec.ts` asserts figures render, the canvas paints, the tracts draw, and no failure state is left on screen | Met |
+| FR-07 | Every module exposes source URL, coverage, grain, transform version, and limitations | Each published asset now carries a `source_urls` entry resolved from the source register, and `AssetProvenance` renders it as a link. The manifest contract requires it, `pipeline/tests/contracts.test.mjs` enforces it against the shipped manifest, the release gate refuses an unlinked asset (6 checks), and `tests/e2e/modules.spec.ts` asserts a rendered `http(s)` link in every module. Coverage, grain, transform, and limitations were already asserted by `moduleStates.test.ts`. **This row was previously marked Met while no URL was exposed anywhere in the product** | Met |
 | FR-08 | URL encodes the selected module and supported filter state | `tests/frontend/viewState.test.ts`, including build identity and renderer choice round-trip; `tests/e2e/view-state.spec.ts` opens deep links cold and asserts the module and filters are applied and survive a reload | Met |
 | FR-09 | Keyboard, focus, reduced motion, and an **automated accessibility gate** | `tests/frontend/accessibility.test.tsx`: nine surfaces (traffic, crossings, CRZ, air and health, equity, sources, story, figures strip, and the module-unavailable state), zero serious or critical violations, plus a negative test proving axe reports real violations; `tests/e2e/mobile.spec.ts` covers the phone sheet's `aria-expanded` state and horizontal overflow | Met |
-| FR-10 | Deployable through a preview channel before production | Preview channel `p10-rehearsal` deployed, smoke-checked (manifest `release_id` and `status`, cache headers per `firebase.json`), and deleted 2026-09-20; production deploy of `2026-09-20.4` verified live against its manifest. `docs/deployment/HOSTING_PREVIEW_ROLLBACK_RUNBOOK.md` records the rehearsal and the commands that actually exist in firebase-tools 15.30 | Met |
+| FR-10 | Deployable through a preview channel before production | Preview channel `p10-rehearsal` deployed, smoke-checked (manifest `release_id` and `status`, cache headers per `firebase.json`), and deleted 2026-09-20; production deploy of `2026-09-20.5` verified live against its manifest. `docs/deployment/HOSTING_PREVIEW_ROLLBACK_RUNBOOK.md` records the rehearsal and the commands that actually exist in firebase-tools 15.30 | Met |
 
 
 ## PRD success metrics
@@ -38,10 +39,9 @@ CI (`.github/workflows/verify.yml`) runs the same set on every push to `main` an
 |---|---|---|
 | 100% of public data assets have manifest entries, SHA-256, source reference, coverage, status | Gate refuses an asset without a checksum; manifest published with all six assets (traffic, crossings, CRZ, air, health, equity) | Met |
 | 0 synthetic records in production assets; **CI** blocks `synthetic: true` | Gate blocks it, and the workflow now runs the gate on push and PR | Met |
-| 100% of displayed metrics have a source/method link | `AssetProvenance` in every module | Met |
+| 100% of displayed metrics have a source/method link | `AssetProvenance` in every module now renders the registered source URL as a link, not only the register identifier | Met |
 | Initial payload inside the defined performance budget | Budget numbers live in `DATA_STRATEGY.md` and the gate measures the gzipped entry and map chunk plus the published data payload (6.02 MiB of the 64 MiB merged ceiling, six assets). Each asset is fetched only while the module that reads it is open, so the entry does not carry the data | Met |
-
-| All blocking acceptance tests pass before a production deploy | Gate run before each deploy; CI enforces on push | Met |
+| All blocking acceptance tests pass before a production deploy | Gate run before each deploy; CI runs the gate, both suites, and the size ratchet on push | Met |
 
 ## Known gaps that remain outside the FR list
 

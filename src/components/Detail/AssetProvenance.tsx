@@ -13,7 +13,9 @@ const shortSha = (sha: string): string => `${sha.slice(0, 12)}…`
  * Source, method, and limitation detail for one published asset (PRD FR-07).
  *
  * Every evidence module renders this, so a displayed metric always has a path back to the release
- * manifest entry that produced it.
+ * manifest entry that produced it, including the authoritative source URL the metric is based on:
+ * the PRD requires a source/method link on every displayed metric, and a register identifier is not
+ * a link.
  */
 export function AssetProvenance({ asset, measureId }: AssetProvenanceProps) {
   return (
@@ -33,6 +35,17 @@ export function AssetProvenance({ asset, measureId }: AssetProvenanceProps) {
         <div>
           <dt>Source register</dt>
           <dd>{asset.source_ids.join(', ')}</dd>
+        </div>
+        <div>
+          <dt>Source</dt>
+          <dd>
+            {asset.source_urls.map((url, index) => (
+              <span key={url}>
+                {index > 0 && ' · '}
+                <a href={url} target="_blank" rel="noopener noreferrer">{url}</a>
+              </span>
+            ))}
+          </dd>
         </div>
         <div>
           <dt>Coverage</dt>

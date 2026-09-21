@@ -18,6 +18,7 @@ const manifest = {
   status: 'validated' as const,
   transform_version: 'pipeline@0.1.0',
   source_ids: ['nyc-open-data-7ym2-wayt'],
+  source_urls: ['https://example.test/source-register'],
   coverage: { start: '2024-01-01', end: '2025-06-30' },
   limitations: ['Observed counts only.'],
   assets: [
@@ -29,6 +30,7 @@ const manifest = {
       coverage: { start: '2024-01-01', end: '2025-06-30' },
       grain: 'one row per location and month',
       source_ids: ['nyc-open-data-7ym2-wayt'],
+      source_urls: ['https://example.test/source-register'],
       transform_version: 'pipeline@0.1.0',
       status: 'validated' as const,
       limitations: ['Observed volumes only.'],

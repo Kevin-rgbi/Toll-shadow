@@ -1,0 +1,36 @@
+schema_version: 1.0.0
+contract_id: nyccas-air-context-relative
+title: Modelled historical air surface, published as a relative field
+source_ids:
+  - nyccas_air_context_derived_2016
+input:
+  format: esri-grid (converted by pipeline/scripts/derive-air-context.py)
+  grain: one modelled annual value per 300 m source cell
+output:
+  format: json
+  grain: one modelled value per pooled ~600 m grid cell
+  fields:
+    pollutant_label: string, labelled as inferred from the source filename
+    period_label: string, labelled as inferred
+    values: string, stating the field is relative
+    aggregation: string
+    bounds: "[west, south, east, north] in EPSG:4326"
+    width: non-negative integer
+    height: non-negative integer
+    grid: array of height rows, each of width cells, each null or a relative value in 0-1
+quality:
+  reject_on:
+    - a relative value outside 0-1, which would mean a concentration was published
+    - a grid whose rows do not match the declared height or whose cells do not match the width
+    - a non-integer dimension
+    - unequal width and height in the source grid, which would silently drop cells
+    - a constant surface, which has no range to normalise and would emit NaN
+claims:
+  allowed:
+    - historical modelled environmental context
+    - the relative position of a cell within this surface alone
+  prohibited:
+    - any concentration, unit, or instrument reading
+    - a 2025 or post-policy air-quality outcome
+    - a localized regulatory measurement
+    - a health outcome derived from this surface

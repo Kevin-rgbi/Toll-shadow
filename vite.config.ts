@@ -1,4 +1,5 @@
 import { execSync } from 'node:child_process'
+import { readFileSync } from 'node:fs'
 import { copyFile, mkdir, readFile, readdir, rm } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import react from '@vitejs/plugin-react'
@@ -37,6 +38,13 @@ const buildId = (): string => {
  * into the build output, so a built artifact must actively drop them: a published bundle must
  * never ship demo effects or demo geometry.
  */
+const releaseIdForIndex = (): string => {
+  const spec = readFileSync(resolve(process.cwd(), 'pipeline/methods/release-1.yaml'), 'utf8')
+  const match = /^release_id:\s*(\S+)/m.exec(spec)
+  if (!match) throw new Error('pipeline/methods/release-1.yaml declares no release_id')
+  return match[1]
+}
+
 const pruneSyntheticDevAssets = (): Plugin => ({
   name: 'prune-synthetic-dev-assets',
   apply: 'build',
@@ -84,6 +92,93 @@ const emitMapLibreWorker = (stamp: string): Plugin => ({
   },
 })
 
+
+/**
+ * Crawler-facing structured data is generated from the release the build actually ships.
+ *
+ * It used to be hand-written in `index.html`, and it went stale exactly as hand-written metadata does:
+ * it named a superseded release and advertised two distribution URLs that had since been removed, so a
+ * crawler following them got 404s while the page described two of six assets. Generating it from the
+ * published manifest removes the drift, and the deployment gate asserts the result matches the manifest.
+ */
+const KIND_MEASURES: Record<string, string> = {
+  traffic_observations: 'Mean observed 15-minute traffic volume, by segment and period',
+  facility_crossings: 'Daily E-ZPass and VToll vehicles, by toll plaza and direction',
+  crz_context: 'Monthly CRZ vehicle entries, by detection group',
+  historical_context: 'Modelled historical air surface, published as a relative field',
+  health_context: 'Historical asthma hospitalisations and ED visits, by borough',
+  dac_context: 'Archived 2023 disadvantaged-communities criteria, by census tract',
+};
+
+const injectDatasetJsonLd = (releaseId: string): Plugin => {
+  const readManifest = (): { release_id: string, coverage: { start: string, end: string }, source_urls?: string[], assets: Array<{ kind: string, path: string, format: string, source_urls: string[] }> } =>
+    JSON.parse(readFileSync(resolve(process.cwd(), 'public/data/manifest.json'), 'utf8'));
+
+  return {
+    name: 'toll-shadow-dataset-jsonld',
+    transformIndexHtml: {
+      order: 'post',
+      handler(html) {
+        const manifest = readManifest();
+        if (manifest.release_id !== releaseId) {
+          throw new Error(`index.html would describe ${releaseId} but the published manifest is ${manifest.release_id}`);
+        }
+        const origin = 'https://tollshallow.web.app';
+        const dataset = {
+          '@type': 'Dataset',
+          '@id': `${origin}/#dataset`,
+          name: `Toll Shadow Release ${manifest.release_id}`,
+          description:
+            `Descriptive aggregates published from six registered sources, covering `
+            + `${manifest.coverage.start} through ${manifest.coverage.end}. `
+            + 'No causal or counterfactual estimate is published.',
+          url: `${origin}/`,
+          isAccessibleForFree: true,
+          creator: { '@type': 'Organization', name: 'The Toll Shadow project' },
+          temporalCoverage: `${manifest.coverage.start}/${manifest.coverage.end}`,
+          spatialCoverage: {
+            '@type': 'Place',
+            name: 'New York City',
+            geo: { '@type': 'GeoShape', box: '40.45 -74.35 40.98 -73.55' },
+          },
+          variableMeasured: manifest.assets.map((asset) => KIND_MEASURES[asset.kind] ?? asset.kind),
+          isBasedOn: [...new Set(manifest.assets.flatMap((asset) => asset.source_urls))],
+          distribution: manifest.assets.map((asset) => ({
+            '@type': 'DataDownload',
+            name: asset.kind,
+            encodingFormat: asset.format === 'geojson' ? 'application/geo+json' : 'application/json',
+            contentUrl: `${origin}${asset.path}`,
+          })),
+        }
+        const noscriptItems = manifest.assets.map((asset) => {
+          const label = (KIND_MEASURES[asset.kind] ?? asset.kind).split(',')[0]
+          return `          <li>\n            <a href="${asset.path}">${label}</a>: published as <code>${asset.kind}</code>.\n          </li>`
+        }).join('\n')
+        const withAssets = html.replace(
+          /(<ul style="margin:0 0 16px;padding-left:20px">\n)([\s\S]*?)( {8}<\/ul>)/,
+          (_match, open, _body, close) =>
+            `${open}          <li>\n            <a href="/data/manifest.json">Release manifest</a>: release ID, coverage window, asset\n            checksums, sources, and limitations.\n          </li>\n${noscriptItems}\n          <li>\n            <a href="https://github.com/Kevin-rgbi/Toll-shadow">Source code and methodology</a>.\n          </li>\n${close}`,
+        )
+
+        return withAssets.replace(
+          /<script type="application\/ld\+json">[\s\S]*?<\/script>/,
+          `<script type="application/ld+json">${JSON.stringify({ '@context': 'https://schema.org', '@graph': [
+            {
+              '@type': 'WebSite',
+              '@id': `${origin}/#website`,
+              url: `${origin}/`,
+              name: 'Toll Shadow',
+              inLanguage: 'en',
+              description: 'A public explorer for New York City traffic observations around the Congestion Relief Zone.',
+            },
+            dataset,
+          ] })}</script>`,
+        )
+      },
+    },
+  };
+};
+
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
 
@@ -94,7 +189,7 @@ export default defineConfig(({ mode }) => {
   const stamp = mode === 'production' ? buildId() : 'dev'
 
   return {
-    plugins: [react(), pruneSyntheticDevAssets(), emitMapLibreWorker(stamp)],
+    plugins: [react(), pruneSyntheticDevAssets(), emitMapLibreWorker(stamp), injectDatasetJsonLd(releaseIdForIndex())],
     test: {
       env: {
         VITE_USE_DEMO_DATA: 'false',

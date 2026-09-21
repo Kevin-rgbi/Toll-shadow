@@ -49,11 +49,32 @@ export interface ReleaseAsset {
   coverage: ReleaseCoverage
   grain: string
   source_ids: string[]
+  /**
+   * The authoritative URL for each source, published with the asset.
+   *
+   * The PRD requires every module to expose a source URL and every displayed metric to carry a
+   * source/method link. A register identifier is not a link, so the release publishes the URL itself
+   * and the module renders it.
+   */
+  source_urls: string[]
   transform_version: string
   status: 'validated'
   limitations: string[]
   geometry_crs?: 'EPSG:4326'
   bytes?: number
+}
+
+/**
+ * Source URLs as published. A register identifier does not satisfy the requirement that a displayed
+ * metric carry a source link, so an asset without at least one resolvable http(s) URL is rejected
+ * rather than rendered with an unlinked metric.
+ */
+const requireSourceUrls = (value: unknown, field: string): string[] => {
+  const urls = requireStringArray(value, field)
+  for (const url of urls) {
+    if (!/^https?:\/\/[^\s]+$/.test(url)) malformed(field, `must contain http(s) URLs (got "${url}")`)
+  }
+  return urls
 }
 
 export interface ReleaseManifest {
@@ -222,6 +243,7 @@ const parseAsset = (value: unknown, index: number): ReleaseAsset => {
     coverage: requireCoverage(record.coverage, `${field}.coverage`),
     grain: requireNonEmptyString(record.grain, `${field}.grain`),
     source_ids: requireStringArray(record.source_ids, `${field}.source_ids`),
+    source_urls: requireSourceUrls(record.source_urls, `${field}.source_urls`),
     transform_version: requireNonEmptyString(record.transform_version, `${field}.transform_version`),
     status: 'validated',
     limitations: requireStringArray(record.limitations, `${field}.limitations`),

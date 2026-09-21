@@ -11,7 +11,7 @@ required_fields:
   - coverage
   - limitations
   - assets
-allowed_asset_kinds: [boundary_zone, traffic_observations, facility_crossings, crz_context, dac_context, historical_context, air_measurements]
+allowed_asset_kinds: [boundary_zone, traffic_observations, facility_crossings, crz_context, dac_context, historical_context, health_context, air_measurements]
 allowed_asset_formats: [json, geojson, csv]
 asset_required_fields:
   - kind
@@ -21,6 +21,7 @@ asset_required_fields:
   - coverage
   - grain
   - source_ids
+  - source_urls
   - transform_version
   - status
   - limitations
@@ -36,3 +37,7 @@ rules:
   - spatial browser assets must declare EPSG:4326
   - each asset kind is source-specific and may not silently merge unrelated measures
   - policy_reference_date is release metadata, never a frontend constant
+  - every published asset carries at least one http(s) source_urls entry, because the PRD requires a
+    source/method link on every displayed metric and a register identifier is not a link
+  - a contract exists in data/contracts for each published domain, and pipeline/tests asserts that
+    every published asset kind appears in allowed_asset_kinds

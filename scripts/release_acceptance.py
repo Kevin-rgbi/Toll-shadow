@@ -336,6 +336,26 @@ def gate(repo_root: Path, dist: Path, budget_bytes: int, dist_overridden: bool =
                 "every published asset must carry a checksum (DATA_STRATEGY)",
             )
 
+        # A register identifier is not a link. Refuse an asset that cannot expose an authoritative
+        # source URL in its module provenance.
+        source_urls = entry.get("source_urls")
+        if not isinstance(source_urls, list) or not source_urls:
+            result.check(
+                f"asset publishes a source URL: {label}",
+                False,
+                "every published asset must carry at least one source_urls entry (PRD FR-07)",
+            )
+        else:
+            bad = [
+                url for url in source_urls
+                if not isinstance(url, str) or not url.startswith(("http://", "https://"))
+            ]
+            result.check(
+                f"asset publishes a source URL: {label}",
+                not bad,
+                f"non-http entries={bad[:3]}",
+            )
+
     data_root = dist / "data"
     declared_csv_paths = {
         (entry.get("path") or entry.get("url") or "").split("?", 1)[0].lstrip("/")
@@ -378,6 +398,44 @@ def gate(repo_root: Path, dist: Path, budget_bytes: int, dist_overridden: bool =
         not raw_asset_paths,
         f"raw_or_demo={raw_asset_paths[:10]}",
     )
+
+    # --- 5a. The shell describes the release it actually ships -----------
+    # Hand-written crawler metadata went stale: index.html named a superseded release and advertised
+    # distribution URLs that had been removed, so a crawler following them got 404s. Both are generated
+    # from the manifest now, and this refuses a build where they disagree.
+    index_path = dist / "index.html"
+    if result.check("index.html exists", index_path.is_file(), str(index_path)):
+        index_html = index_path.read_text(encoding="utf-8")
+        release_id = manifest.get("release_id", "")
+        stale = sorted({rid for rid in re.findall(r"20\d\d-\d\d-\d\d\.\d+", index_html) if rid != release_id})
+        result.check(
+            "index.html names only the release the manifest serves",
+            not stale,
+            f"superseded ids present={stale}",
+        )
+
+        ld = re.search(r'<script type="application/ld\+json">(.*?)</script>', index_html, re.S)
+        if result.check("index.html carries structured data", ld is not None, "no ld+json block"):
+            try:
+                graph = json.loads(ld.group(1)).get("@graph", [])
+                dataset = next((node for node in graph if node.get("@type") == "Dataset"), None)
+            except json.JSONDecodeError as error:
+                dataset = None
+                result.check("index.html structured data is valid JSON", False, str(error))
+            if dataset is not None:
+                declared = dataset.get("distribution", [])
+                asset_paths = {entry.get("path") or entry.get("url") for entry in collect_asset_entries(manifest)}
+                linked = {entry.get("contentUrl", "").replace("https://tollshallow.web.app", "") for entry in declared}
+                result.check(
+                    "structured data links every published asset",
+                    asset_paths == linked,
+                    f"assets={sorted(p for p in asset_paths if p)} linked={sorted(linked)}",
+                )
+                result.check(
+                    "structured data cites the published source URLs",
+                    bool(dataset.get("isBasedOn")),
+                    "Dataset.isBasedOn is empty",
+                )
 
     # --- 5b. Exactly one published release --------------------------------
     # Superseded release directories must not keep shipping: they double the deployed payload and

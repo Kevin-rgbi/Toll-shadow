@@ -215,7 +215,23 @@ async function collectMta({ filePath, coverage, facilityLookup }) {
   return { records, quality };
 }
 
-function assetMetadata({ kind, path: assetPath, format, content, coverage, grain, sourceIds, limitations, geometryCrs = undefined }) {
+/**
+ * The authoritative URL for every source an asset is based on.
+ *
+ * The PRD requires every module to expose a source URL, and its success metric requires every
+ * displayed metric to have a source/method link. A register identifier is not a link, so the URL is
+ * published with the asset. A published asset whose source has no recorded URL fails the build
+ * instead of shipping an unlinked metric.
+ */
+export function assetSourceUrls(sourceIds, catalog) {
+  return sourceIds.map((sourceId) => {
+    const url = catalog.get(sourceId)?.authoritative_url;
+    if (!url) throw new Error(`source ${sourceId} has no authoritative_url in the register; cannot publish it`);
+    return url;
+  });
+}
+
+function assetMetadata({ kind, path: assetPath, format, content, coverage, grain, sourceIds, limitations, geometryCrs = undefined, catalog }) {
   const bytes = Buffer.byteLength(content);
   if (bytes > MAX_ASSET_BYTES) throw new Error(`${kind} asset is ${bytes} bytes; Release 1 budget is ${MAX_ASSET_BYTES}`);
   return {
@@ -226,6 +242,7 @@ function assetMetadata({ kind, path: assetPath, format, content, coverage, grain
     coverage,
     grain,
     source_ids: sourceIds,
+    source_urls: assetSourceUrls(sourceIds, catalog),
     transform_version: TRANSFORM_VERSION,
     status: 'validated',
     limitations,
@@ -258,7 +275,8 @@ function releaseReadme({ releaseId, manifest, quality }) {
 
   return `# Toll Shadow Data Release ${releaseId}\n\n` +
     `Generated with transform version \`${manifest.transform_version}\`.\n\n` +
-    `## Assets\n\n` + manifest.assets.map((asset) => `- \`${asset.kind}\`: \`${asset.path}\` (${asset.bytes} bytes, SHA-256 \`${asset.sha256}\`)`).join('\n') +
+    `## Assets\n\n` + manifest.assets.map((asset) => `- \`${asset.kind}\`: \`${asset.path}\` (${asset.bytes} bytes, SHA-256 \`${asset.sha256}\`)\n` +
+      asset.source_urls.map((url) => `  - source: ${url}`).join('\n')).join('\n') +
     `\n\n## Quality\n\n` + qualityLines + '\n' +
     `\n## Claim boundary\n\nThis release is descriptive. It carries sampled traffic counts, daily crossing records, ` +
     `monthly CRZ entry aggregates, and archived context layers -- a modelled 2016 air surface published as a relative ` +
@@ -323,6 +341,7 @@ export async function buildRelease({
     const healthContent = serializeCompact(context.health.payload);
     const equityContent = serializeCompact(context.equity.payload);
     const trafficAsset = assetMetadata({
+      catalog,
       kind: trafficMeasure.asset_kind,
       path: `/data/releases/${releaseId}/traffic_observations.geojson`,
       format: 'geojson',
@@ -334,6 +353,7 @@ export async function buildRelease({
       geometryCrs: 'EPSG:4326',
     });
     const mtaAsset = assetMetadata({
+      catalog,
       kind: mtaMeasure.asset_kind,
       path: `/data/releases/${releaseId}/facility_crossings.json`,
       format: 'json',
@@ -344,6 +364,7 @@ export async function buildRelease({
       limitations: mtaMeasure.limitations,
     });
     const crzAsset = assetMetadata({
+      catalog,
       kind: crzMeasure.asset_kind,
       path: `/data/releases/${releaseId}/crz_entry_summary.json`,
       format: 'json',
@@ -355,16 +376,19 @@ export async function buildRelease({
     });
     const contextAssets = [
       assetMetadata({
+      catalog,
         kind: airMeasure.asset_kind, path: `/data/releases/${releaseId}/air_context.json`, format: 'json',
         content: airContent, coverage: airMeasure.coverage, grain: airMeasure.grain,
         sourceIds: airMeasure.source_ids, limitations: airMeasure.limitations,
       }),
       assetMetadata({
+      catalog,
         kind: healthMeasure.asset_kind, path: `/data/releases/${releaseId}/health_context.json`, format: 'json',
         content: healthContent, coverage: healthMeasure.coverage, grain: healthMeasure.grain,
         sourceIds: healthMeasure.source_ids, limitations: healthMeasure.limitations,
       }),
       assetMetadata({
+      catalog,
         kind: equityMeasure.asset_kind, path: `/data/releases/${releaseId}/equity_context.geojson`, format: 'geojson',
         content: equityContent, coverage: equityMeasure.coverage, grain: equityMeasure.grain,
         sourceIds: equityMeasure.source_ids, limitations: equityMeasure.limitations, geometryCrs: 'EPSG:4326',

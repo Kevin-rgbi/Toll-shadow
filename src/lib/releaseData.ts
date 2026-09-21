@@ -450,8 +450,10 @@ const requireRings = (coordinates: unknown, assetLabel: string, field: string, t
     if (!Array.isArray(value) || value.length < 2) {
       malformed(assetLabel, `${at} must be a [lng, lat] pair`)
     }
-    requireNumber(value[0], assetLabel, `${at}[0]`)
-    requireNumber(value[1], assetLabel, `${at}[1]`)
+    // Bound every position to the city envelope. DATA_STRATEGY's spatial gate asks for coordinate
+    // bounds precisely to catch an axis swap, and a swapped tract still renders as a shape rather
+    // than as an error, so the shape check alone would let it through.
+    requireCoordinates(value, assetLabel, at)
   }
   const ring = (value: unknown, at: string): void => {
     if (!Array.isArray(value) || value.length < 3) {
