@@ -95,6 +95,21 @@ describe('parseEquityContext', () => {
     expect(() => parseEquityContext(equityAsset([equityFeature({ GEOID: '' })]))).toThrow(/GEOID/)
   })
 
+  it('rejects coordinates that are not rings, which would throw while drawing', () => {
+    const bad = { ...equityFeature(), geometry: { type: 'Polygon', coordinates: ['bad'] } }
+    expect(() => parseEquityContext(equityAsset([bad]))).toThrow(/ring of at least 3 positions/)
+  })
+
+  it('rejects a position that is not a coordinate pair', () => {
+    const short = { ...equityFeature(), geometry: { type: 'Polygon', coordinates: [[[-73.9], [-73.8, 40.8], [-73.8, 40.9]]] } }
+    expect(() => parseEquityContext(equityAsset([short]))).toThrow(/must be a \[lng, lat\] pair/)
+  })
+
+  it('rejects a coordinate that is not a number', () => {
+    const bad = { ...equityFeature(), geometry: { type: 'Polygon', coordinates: [[[-73.9, 'x'], [-73.8, 40.8], [-73.8, 40.9]]] } }
+    expect(() => parseEquityContext(equityAsset([bad]))).toThrow(/must be a finite number/)
+  })
+
   it('rejects a point where the contract promises a tract polygon', () => {
     expect(() =>
       parseEquityContext(

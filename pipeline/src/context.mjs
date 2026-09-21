@@ -31,14 +31,48 @@ function number(asset, value, field) {
   return value
 }
 
-function count(asset, value, field, { nullable = false } = {}) {
+function count(asset, value, field, { nullable = false, integer = false } = {}) {
   if (value === null || value === undefined) {
     if (nullable) return null
     fail(asset, `${field} is required`)
   }
   if (typeof value !== 'number' || !Number.isFinite(value)) fail(asset, `${field} must be a finite number`)
   if (value < 0) fail(asset, `${field} must not be negative`)
+  if (integer && !Number.isInteger(value)) fail(asset, `${field} must be a whole count (got ${value})`)
   return value
+}
+
+/**
+ * Ring structure is part of the contract, not a detail of the renderer.
+ *
+ * A geometry whose `coordinates` is an array of anything at all satisfies a shape check, but the
+ * module projects each position in turn, so a string or a coordinate of the wrong length fails at
+ * render time in the reader's browser. That is a build-time rejection, not a runtime one.
+ */
+function validateRings(asset, geometry, field) {
+  const position = (value, at) => {
+    if (!Array.isArray(value) || value.length < 2) fail(asset, `${field}.${at} must be a [lng, lat] pair`)
+    number(asset, value[0], `${field}.${at}[0]`)
+    number(asset, value[1], `${field}.${at}[1]`)
+  }
+  const ring = (value, at) => {
+    if (!Array.isArray(value) || value.length < 3) fail(asset, `${field}.${at} must be a ring of at least 3 positions`)
+    value.forEach((item, index) => position(item, `${at}[${index}]`))
+  }
+  const polygon = (value, at) => {
+    if (!Array.isArray(value) || value.length === 0) fail(asset, `${field}.${at} must be a non-empty array of rings`)
+    value.forEach((item, index) => ring(item, `${at}[${index}]`))
+  }
+
+  const coordinates = geometry.coordinates
+  if (!Array.isArray(coordinates) || coordinates.length === 0) {
+    fail(asset, `${field}.geometry.coordinates must be a non-empty array`)
+  }
+  if (geometry.type === 'Polygon') {
+    polygon(coordinates, 'geometry.coordinates')
+    return
+  }
+  coordinates.forEach((item, index) => polygon(item, `geometry.coordinates[${index}]`))
 }
 
 /** Modelled air surface, published as a relative field with inferred labels. */
@@ -99,8 +133,10 @@ export function validateHealthContext(payload, asset = 'health_context') {
     text(asset, record.borough, `${field}.borough`)
     const period = text(asset, record.period, `${field}.period`)
     if (!PERIOD.test(period)) fail(asset, `${field}.period must be YYYY-YYYY (got "${period}")`)
+    // A rate per 10,000 head and a daily mean are fractions; events is a whole count. The published
+    // asset and the browser parser have to agree, or a release builds here and is refused there.
     count(asset, record.age_adjusted_rate_per_10000, `${field}.age_adjusted_rate_per_10000`, { nullable: true })
-    count(asset, record.events, `${field}.events`, { nullable: true })
+    count(asset, record.events, `${field}.events`, { nullable: true, integer: true })
     count(asset, record.daily_mean_events, `${field}.daily_mean_events`, { nullable: true })
   })
 
@@ -124,6 +160,7 @@ export function validateEquityContext(payload, asset = 'dac_context') {
     if (!isObject(geometry) || (geometry.type !== 'Polygon' && geometry.type !== 'MultiPolygon')) {
       fail(asset, `${field}.geometry must be a Polygon or MultiPolygon`)
     }
+    validateRings(asset, geometry, field)
     const properties = feature.properties
     if (!isObject(properties)) fail(asset, `${field}.properties must be an object`)
     text(asset, properties.GEOID, `${field}.properties.GEOID`)

@@ -404,6 +404,45 @@ export const parseHealthContext = (input: unknown, assetLabel = 'health_context'
   }
 }
 
+/**
+ * Ring structure is part of the contract, not a detail of the renderer.
+ *
+ * Checking only that `coordinates` is an array accepts a payload whose rings are strings or whose
+ * positions are one number long. The module then projects each position in turn and throws during
+ * render, which reaches the reader as a blank module. Validate the structure here instead, so a
+ * malformed published asset fails as a data error with a named field.
+ */
+const requireRings = (coordinates: unknown, assetLabel: string, field: string, type: string): void => {
+  const position = (value: unknown, at: string): void => {
+    if (!Array.isArray(value) || value.length < 2) {
+      malformed(assetLabel, `${at} must be a [lng, lat] pair`)
+    }
+    requireNumber(value[0], assetLabel, `${at}[0]`)
+    requireNumber(value[1], assetLabel, `${at}[1]`)
+  }
+  const ring = (value: unknown, at: string): void => {
+    if (!Array.isArray(value) || value.length < 3) {
+      malformed(assetLabel, `${at} must be a ring of at least 3 positions`)
+    }
+    value.forEach((item, index) => position(item, `${at}[${index}]`))
+  }
+  const polygon = (value: unknown, at: string): void => {
+    if (!Array.isArray(value) || value.length === 0) {
+      malformed(assetLabel, `${at} must be a non-empty array of rings`)
+    }
+    value.forEach((item, index) => ring(item, `${at}[${index}]`))
+  }
+
+  if (!Array.isArray(coordinates) || coordinates.length === 0) {
+    malformed(assetLabel, `${field} must be a non-empty array`)
+  }
+  if (type === 'Polygon') {
+    polygon(coordinates, field)
+    return
+  }
+  coordinates.forEach((item, index) => polygon(item, `${field}[${index}]`))
+}
+
 /** Parse the published archived equity geography. */
 export const parseEquityContext = (input: unknown, assetLabel = 'dac_context'): EquityContext => {
   const root = requireRecord(input, assetLabel, 'asset')
@@ -420,7 +459,7 @@ export const parseEquityContext = (input: unknown, assetLabel = 'dac_context'): 
     if (geometry.type !== 'Polygon' && geometry.type !== 'MultiPolygon') {
       malformed(assetLabel, `${field}.geometry must be a Polygon or MultiPolygon (got "${String(geometry.type)}")`)
     }
-    if (!Array.isArray(geometry.coordinates)) malformed(assetLabel, `${field}.geometry.coordinates must be an array`)
+    requireRings(geometry.coordinates, assetLabel, `${field}.geometry.coordinates`, geometry.type)
 
     const properties = requireRecord(feature.properties, assetLabel, `${field}.properties`)
 

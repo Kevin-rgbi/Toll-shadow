@@ -12,8 +12,17 @@ from shapely.geometry import shape, mapping
 
 root = pathlib.Path(__file__).resolve().parents[4]
 src = json.load(open(root / 'data/raw/boundaries/disadvantaged-communities/NYC_Disadvantaged_Communities.geojson'))
-keys = [k for k in ('GEOID', 'County', 'Pop_Cnt', 'Vulner_Pct', 'Traff_Veh', 'Asthma', 'PM25')
-        if k in src['features'][0]['properties']]
+# The key set is the union across every feature, never one feature's shape. Taking it from the first
+# feature alone meant that a key it happened to lack was dropped from all of them, publishing nulls and
+# making the module state that no percentile is published for tracts that have one.
+EXPECTED = ('GEOID', 'County', 'Pop_Cnt', 'Vulner_Pct', 'Traff_Veh', 'Asthma', 'PM25')
+present = set()
+for f in src['features']:
+    present |= set(f['properties'])
+missing = [k for k in EXPECTED if k not in present]
+if missing:
+    raise SystemExit(f'archived layer is missing expected properties {missing}; refusing to publish a partial key set')
+keys = list(EXPECTED)
 out = []
 for f in src['features']:
     geom = shape(f['geometry'])

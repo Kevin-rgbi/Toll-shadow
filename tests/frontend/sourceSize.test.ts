@@ -21,11 +21,17 @@ const TYPICAL_LIMIT = 400
  * something to do late in a session. The stylesheet that used to sit at 1,612 lines is now the
  * nine-file system under `src/styles/`, so it no longer appears here.
  */
+/**
+ * `releaseData` sits at 483 after the equity parser grew a ring-structure validator: a published
+ * geometry whose `coordinates` is an array of anything at all used to pass the shape check and then
+ * throw during render, which reaches a reader as a blank module. Validating the published contract is
+ * that file's job, so the allowance was raised deliberately rather than the helper split out.
+ */
 const RECORDED: Record<string, number> = {
   'src/components/Map/MapShell.tsx': 795,
   'src/App.tsx': 640,
   'src/components/Map/RasterMap.tsx': 620,
-  'src/lib/releaseData.ts': 450,
+  'src/lib/releaseData.ts': 490,
 }
 
 const sourceFiles = (root: string): string[] => {

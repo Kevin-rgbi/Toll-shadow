@@ -28,7 +28,16 @@ with rasterio.open(GRID) as src:
 mask = values != nodata
 
 # 2x2 mean pooling: a context surface does not need 300 m cells, and the payload shrinks fourfold.
+# An odd dimension would silently drop its last row or column while the published bounds still spanned
+# the whole raster, stretching the remaining cells over ground they do not cover, so the usable extent
+# is computed first and the bounds are taken from it.
 pooled_h, pooled_w = height // 2, width // 2
+if pooled_h == 0 or pooled_w == 0:
+    raise SystemExit(f'source raster {width}x{height} is too small to pool 2x2')
+covered_w, covered_h = pooled_w * 2, pooled_h * 2
+if (covered_w, covered_h) != (width, height):
+    print(f'note: pooling covers {covered_w}x{covered_h} of {width}x{height}; bounds follow the covered extent')
+
 pooled = np.full((pooled_h, pooled_w), np.nan)
 for i in range(pooled_h):
     for j in range(pooled_w):
@@ -38,12 +47,21 @@ for i in range(pooled_h):
             pooled[i, j] = block[block_mask].mean()
 
 low, high = float(np.nanmin(pooled)), float(np.nanmax(pooled))
-relative = [
-    [None if np.isnan(v) else round((float(v) - low) / (high - low), 3) for v in row]
-    for row in pooled
-]
+span = high - low
+if not np.isfinite(span) or span <= 0:
+    # A constant surface has no range to normalise against. Dividing by it yields NaN, json.dumps
+    # writes the invalid token NaN, and the release build dies in JSON.parse. Publish it flat instead,
+    # which says what it is: every pooled cell carries the same value in this surface.
+    print(f'note: pooled surface is flat (low={low}, high={high}); publishing a flat relative field')
+    relative = [[None if np.isnan(v) else 0.5 for v in row] for row in pooled]
+else:
+    relative = [
+        [None if np.isnan(v) else round((float(v) - low) / span, 3) for v in row]
+        for row in pooled
+    ]
+
 left, top = transform * (0, 0)
-right, bottom = transform * (width, height)
+right, bottom = transform * (covered_w, covered_h)
 west, south, east, north = transform_bounds(crs, 'EPSG:4326', left, bottom, right, top)
 
 payload = {

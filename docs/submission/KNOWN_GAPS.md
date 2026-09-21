@@ -111,7 +111,23 @@ Fixing it means setting the JSX runtime in the test config, which is test-framew
 is deliberately not something an agent should change unattended. It is recorded rather than quietly
 worked around.
 
-## 12. The work is unreviewed by a second person
+## 12. The derivation recipes cannot be re-run on this machine
+
+`pipeline/scripts/derive-air-context.py` needs `rasterio` and `derive-equity-context.py` needs
+`shapely`, and neither is installed in any interpreter on this machine (the workspace `venv` has
+neither). The published derived inputs under `data/derived/` are therefore the only copy of that step's
+output right now: the recipe is recorded and reviewable, but nobody can currently execute it here to
+prove the published asset is reproducible from it.
+
+This matters for a change to a recipe. When the two recipes were hardened on 2026-09-20 — a truncated
+odd-sized raster, a flat surface that normalised to NaN, and a key set taken from one feature — the
+output could not be re-derived to compare. The conclusion that the published assets are unaffected
+rests on the artifacts instead: the pooled grid is 78x78 from an even 156x156 source, so no truncation
+occurred; its published range is 0.0 to 1.0, so the flat-surface branch is not taken; and every one of
+the seven expected equity keys is present in all 958 features with no null percentile, so the key-set
+change is a no-op for this input.
+
+## 13. The work is unreviewed by a second person
 
 CI now runs the typecheck, lint, unit tests, accessibility gate, build, release gate, and the
 end-to-end suite on every push and pull request, and the release gate blocks a `synthetic: true`
