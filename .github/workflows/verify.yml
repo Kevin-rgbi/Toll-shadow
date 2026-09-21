@@ -41,9 +41,24 @@ jobs:
       - name: Release acceptance gate
         run: python3 scripts/release_acceptance.py --json > gate-report.json
 
+      - name: Install the browser the end-to-end suite drives
+        run: npx playwright install --with-deps chromium
+
+      - name: End-to-end suite
+        # Runs against the build produced above, served by `vite preview`; the config starts it.
+        run: npm run test:e2e
+
       - name: Upload gate report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: release-gate-report
           path: gate-report.json
+
+      - name: Upload end-to-end report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: end-to-end-report
+          path: test-results/
+          if-no-files-found: ignore

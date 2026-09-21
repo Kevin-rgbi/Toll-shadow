@@ -10,6 +10,7 @@ import { DataRibbon } from './components/Status/DataRibbon'
 import { useReleaseManifest } from './hooks/useReleaseManifest'
 import { useReleaseBoundary } from './hooks/useReleaseBoundary'
 import { useReleaseAsset } from './hooks/useReleaseAsset'
+import type { ReleaseAssetState } from './hooks/useReleaseAsset'
 import { getReleaseTimelineBounds } from './lib/releaseManifest'
 import {
   parseAirContext,
@@ -252,6 +253,24 @@ function App() {
     [trafficBorough, trafficDayType, trafficForMonth],
   )
 
+  /**
+   * The option lists a control offers, including the value it is currently set to.
+   *
+   * Cross-filtering can rule out the selected value: a borough carried on a shared link may not be
+   * published for the month the link opens on. When it is ruled out the control falls back to its
+   * "all" option and reads as if nothing were filtered, while the filter is still applied and the
+   * figures below it are still narrowed. Carrying the applied value keeps the control honest about
+   * the state it is in.
+   */
+  const withAppliedValue = <T extends string>(options: T[], applied: T | null): T[] => {
+    if (!applied || options.includes(applied)) return options
+    return [...options, applied].sort((left, right) => left.localeCompare(right))
+  }
+
+  const trafficBoroughSelectOptions = withAppliedValue(trafficBoroughOptions, trafficBorough)
+  const trafficDayTypeSelectOptions = withAppliedValue(trafficDayTypeOptions, trafficDayType)
+  const trafficTimeBandSelectOptions = withAppliedValue(trafficTimeBandOptions, trafficTimeBand)
+
   const trafficFeatures = useMemo(
     () => (trafficSelected.length > 0 ? toTrafficFeatureCollection(trafficSelected) : null),
     [trafficSelected],
@@ -315,6 +334,19 @@ function App() {
 
   const unavailableReason = getModuleUnavailableReason(releaseState, mode)
 
+  /**
+   * An asset state seen through the release it belongs to.
+   *
+   * With no usable release, every asset path is null and the state reads `unavailable`, which a
+   * module would report as "this release does not publish that asset". That names the wrong cause:
+   * there is no release to publish anything. Only a release that actually loaded can be described
+   * as not publishing an asset, so the failure is reported as the release failure it is.
+   */
+  const moduleAssetState = <T,>(assetState: ReleaseAssetState<T>): ReleaseAssetState<T> =>
+    release === null && assetState.status === 'unavailable'
+      ? { status: 'error', reason: unavailableReason }
+      : assetState
+
   const renderModule = () => {
     if (mode === 'SOURCES') {
       return <SourcesPanel state={releaseState} />
@@ -323,7 +355,7 @@ function App() {
     if (mode === 'TRAFFIC') {
       return (
         <TrafficModule
-          state={trafficState}
+          state={moduleAssetState(trafficState)}
           release={release}
           month={trafficMonth}
           monthOptions={trafficMonths}
@@ -338,9 +370,9 @@ function App() {
           onDayTypeChange={setTrafficDayType}
           timeBand={trafficTimeBand}
           onTimeBandChange={setTrafficTimeBand}
-          boroughOptions={trafficBoroughOptions}
-          dayTypeOptions={trafficDayTypeOptions}
-          timeBandOptions={trafficTimeBandOptions}
+          boroughOptions={trafficBoroughSelectOptions}
+          dayTypeOptions={trafficDayTypeSelectOptions}
+          timeBandOptions={trafficTimeBandSelectOptions}
           monthTotal={trafficForMonth.length}
           observations={trafficSelected}
         />
@@ -350,7 +382,7 @@ function App() {
     if (mode === 'CROSSINGS') {
       return (
         <CrossingsModule
-          state={crossingsState}
+          state={moduleAssetState(crossingsState)}
           release={release}
           start={crossingsRange?.start ?? ''}
           end={crossingsRange?.end ?? ''}
@@ -360,15 +392,19 @@ function App() {
     }
 
     if (mode === 'AIR') {
-      return <AirContextModule airState={airState} healthState={healthState} release={release} />
+      return <AirContextModule
+            airState={moduleAssetState(airState)}
+            healthState={moduleAssetState(healthState)}
+            release={release}
+          />
     }
 
     if (mode === 'EQUITY') {
-      return <EquityContextModule state={equityState} release={release} />
+      return <EquityContextModule state={moduleAssetState(equityState)} release={release} />
     }
 
     if (mode === 'CRZ') {
-      return <CrzModule state={crzState} release={release} />
+      return <CrzModule state={moduleAssetState(crzState)} release={release} />
     }
 
     if (mode === 'STORY') {

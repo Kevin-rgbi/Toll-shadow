@@ -384,11 +384,15 @@ export const parseHealthContext = (input: unknown, assetLabel = 'health_context'
       county: requireString(record.county, assetLabel, `${field}.county`),
       borough: requireString(record.borough, assetLabel, `${field}.borough`),
       period: requireMatch(record.period, PERIOD_RANGE, assetLabel, `${field}.period`, 'a YYYY-YYYY period'),
-      ageAdjustedRatePer10000: optionalCount(
+      // A rate per 10,000 head and a daily mean are published as fractions of a case, so they are
+      // numbers rather than counts. Validating them as whole counts rejects the asset outright.
+      ageAdjustedRatePer10000: optionalNonNegativeNumber(
         record.age_adjusted_rate_per_10000, assetLabel, `${field}.age_adjusted_rate_per_10000`,
       ),
       events: optionalCount(record.events, assetLabel, `${field}.events`),
-      dailyMeanEvents: optionalCount(record.daily_mean_events, assetLabel, `${field}.daily_mean_events`),
+      dailyMeanEvents: optionalNonNegativeNumber(
+        record.daily_mean_events, assetLabel, `${field}.daily_mean_events`,
+      ),
     }
   })
 

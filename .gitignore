@@ -28,3 +28,6 @@ dist-ssr
 .firebase/
 __pycache__/
 *.pyc
+test-results/
+playwright-report/
+.fossil/
