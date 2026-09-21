@@ -1,7 +1,8 @@
 # Firebase Hosting Preview and Rollback Runbook
 
 **Owner:** Agent 3
-**Status:** production release `2026-09-16.2` was deployed and verified. Release `2026-09-18.1` is a locally built AIR candidate and has not been deployed. The steps below are the standing procedure.
+**Status:** executed and rehearsed. Production serves release `2026-09-20.4`, deployed 2026-09-20 after a green gate. The rollback section below was rehearsed on preview channel `p10-rehearsal` on 2026-09-20 against the installed CLI, which is how the two non-existent commands it used to name were found. The steps below are the standing procedure.
+
 
 This runbook is the only approved path from a candidate build to `tollshallow.web.app`. Its purpose is that hosting never conceals an invalid data release: every step before a channel deploy is a gate, and a failed gate stops the run.
 
@@ -14,7 +15,7 @@ This runbook is the only approved path from a candidate build to `tollshallow.we
 | Project number | `1094344081770` | `firebase projects:list` |
 | Default Hosting site | `tollshallow` — `https://tollshallow.web.app` | `firebase hosting:sites:list --project tollshallow` |
 | Plural `tollshallows` | not accessible to this account — HTTP 403 | `firebase hosting:sites:list --project tollshallows` |
-| Current singular site state | HTTP 200, serving release `2026-09-16.2` | `curl https://tollshallow.web.app/` |
+| Current singular site state | HTTP 200, serving release `2026-09-20.4` | `curl https://tollshallow.web.app/data/manifest.json` |
 | Current plural site state | HTTP 200, unrelated page (636 bytes) | `curl https://tollshallows.web.app/` |
 
 The repository `.firebaserc` previously named the plural project. It now names `tollshallow`; see "Configuration change" below.
@@ -87,20 +88,67 @@ Then re-run the smoke checks against `https://tollshallow.web.app/` and record t
 
 ## Rollback
 
-Rollback is a Hosting-level operation; it does not roll back data. Because published releases are immutable, a bad data release is corrected by publishing a new release ID and a new manifest pointer — never by patching a published asset in place.
+**Rehearsed 2026-09-20 on preview channel `p10-rehearsal`. Production was not touched.**
 
-```bash
-# list prior releases, newest first
-firebase hosting:releases:list --project tollshallow
+Rollback is a Hosting-level operation; it does not roll back data. Because published releases are
+immutable, a bad data release is corrected by publishing a new release ID and a new manifest pointer —
+never by patching a published asset in place.
 
-# roll the live site back to a previous release version
-firebase hosting:rollback --project tollshallow
+The commands in this section were re-verified against the installed `firebase-tools` **15.30**. The
+earlier revision of this runbook named `firebase hosting:releases:list` and `firebase hosting:channels:delete`,
+and neither exists in that version:
 
-# remove a bad preview channel
-firebase hosting:channels:delete <channel-id> --project tollshallow
+```
+$ npx firebase hosting:releases:list --project tollshallow
+Error: hosting:releases:list is not a Firebase command
+$ npx firebase hosting:channels:delete <channel-id> --project tollshallow
+Error: hosting:channels:delete is not a Firebase command
 ```
 
-After any rollback: re-run the step 4 smoke checks, record which release the live site is serving, and note the incident in the Agent 3 log.
+The Hosting command surface in this version is `hosting:clone`, `hosting:disable`, `hosting:channel`,
+and `hosting:sites`. There is **no CLI rollback command**: rolling the live site back to a previous
+release version is done in the Firebase console (Hosting → Release history → Rollback). Treat that as
+the only in-place restore path, and treat the redeploy path below as the rehearsed one.
+
+### Rehearsed procedure
+
+```bash
+# 1. deploy a candidate to its own channel
+npx firebase hosting:channel:deploy <release-id> --project tollshallow --expires 7d
+
+# 2. confirm the channel serves the release you built (step 4 smoke checks)
+# 3. redeploy to the same channel with the corrected artifact
+npx firebase hosting:channel:deploy <release-id> --project tollshallow --expires 7d
+
+# 4. confirm the channel now serves the corrected artifact
+# 5. remove the channel
+npx firebase hosting:channel:delete <channel-id> --project tollshallow --force
+
+# 6. roll the live site back: Firebase console, Hosting -> Release history -> Rollback,
+#    or redeploy the previous artifact with step 5 of this runbook
+```
+
+Observed during the rehearsal, in order:
+
+| Step | Action | Observed result |
+|---|---|---|
+| 1 | `hosting:channel:deploy p10-rehearsal` | Channel URL issued; `release_id 2026-09-20.3`, `status validated`, 6 assets |
+| 2 | smoke checks | `/` served the shell; `data/manifest.json` → `no-cache, max-age=0, must-revalidate`; `/data/releases/**/*.geojson` → `HTTP/2 200`, `public, max-age=31536000, immutable` |
+| 3 | redeploy with a marker comment in `index.html` | Channel served the marker: **1** occurrence |
+| 4 | redeploy with the marker removed | Channel served the marker: **0** occurrences — the same channel replaced its content in both directions |
+| 5 | production checked throughout | Marker present: **0**; production kept serving `2026-09-20.3` |
+| 6 | `hosting:channel:delete p10-rehearsal --force` | `Successfully deleted channel`; channel URL then returned **404**, production still **200** |
+
+Two things this establishes, and one it does not:
+
+- A preview channel can be updated in place, and an earlier artifact can be restored by redeploying
+  it. That is the motion a rollback needs, and it was observed rather than assumed.
+- Deleting a channel stops serving it without touching the live site.
+- It does **not** rehearse the console rollback of the live channel, because that operation acts on
+  production by definition. Nobody should run it as a drill.
+
+After any rollback: re-run the step 4 smoke checks, record which release the live site is serving, and
+note the incident in the log.
 
 ## Prohibited actions
 
@@ -118,5 +166,5 @@ After any rollback: re-run the step 4 smoke checks, record which release the liv
 ## Open items
 
 1. ~~**Cache policy vs. immutable releases.**~~ **Resolved.** `firebase.json` now serves `/data/manifest.json` with `no-cache, max-age=0, must-revalidate` and `/data/releases/**` with `public, max-age=31536000, immutable`. The previous blanket `/data/**` 3600 s rule was removed rather than reordered, so no two rules overlap and there is no glob-precedence ambiguity. The release acceptance gate now asserts both headers.
-2. **Asset budget is measured.** The gate's 64 MiB `dist/data` ceiling covers the on-demand hourly NYCCAS CSV; the `2026-09-18.1` candidate payload is about 45.9 MB. Entry and lazy map chunks have separate gzipped budgets.
-3. **Preview smoke checks are manual.** They can move into CI once a release exists and the channel name is stable.
+2. **Asset budget is sized to the merged branch, not surveyed.** The gate's 64 MiB `dist/data` ceiling keeps the retained AIR/PM2.5 candidate buildable; the current release payload is 6.02 MiB across six assets. Re-derive the ceiling when the PM2.5 candidate path is retired or a larger release is proposed.
+3. **Preview-channel smoke checks are still manual.** The application itself now has an end-to-end suite in CI (`npm run test:e2e`, 59 tests) that covers the shell, deep links, filters, the phone sheet, and the failure states, but nothing in CI deploys or probes a channel. Steps 4 and 5 stay manual until a release job exists.

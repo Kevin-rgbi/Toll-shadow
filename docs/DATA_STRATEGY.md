@@ -100,11 +100,11 @@ PRD success metric unverifiable.
 |---|---:|---|
 | Entry bundle, gzipped (JS + CSS) | 130 kB | The shell must paint before the map chunk is requested. |
 | Lazy map chunk, gzipped | 330 kB | MapLibre dominates this and is loaded only when a map view opens. |
-| Total published data assets in one release | 6 MiB | Two pre-aggregated assets today; a third must justify itself against this ceiling. |
+| Total published data assets in one release | 64 MiB | The browser-facing 2026-09-20.4 release ships six context/observation assets at 6.02 MiB, while the merged branch also retains the 2026-09-18.1 AIR/PM2.5 candidate whose hourly CSV requires the larger ceiling. Re-derive this if the PM2.5 release path is retired. |
 | Initial requests to first render | 12 | Fonts, shell, styles, manifest. |
 
 
 - Do not ship raw CSV, original ESRI GRID components, or full statewide geometry without measurement.
-- Publish pre-aggregated JSON/GeoJSON for most layers. A validated CSV may ship only as a declared release asset with a manifest checksum and an explicit on-demand loading path; the current NYCCAS hourly asset is measured at 41,705,713 bytes.
+- Publish pre-aggregated JSON/GeoJSON for most layers. A validated CSV may ship only as a declared release asset with a manifest checksum and an explicit on-demand loading path; the retained NYCCAS hourly candidate asset is measured at 41,705,713 bytes.
 - Add PMTiles/vector tiles only after a measured published layer exceeds the agreed performance budget or MapLibre profiling shows a real bottleneck.
 - Load map data by URL and by selected module, never inline in application code.

@@ -21,6 +21,7 @@ export const RELEASE_ASSET_KINDS = [
   'dac_context',
   'historical_context',
   'air_measurements',
+  'health_context',
 ] as const
 
 export type ReleaseAssetKind = (typeof RELEASE_ASSET_KINDS)[number]

@@ -36,12 +36,12 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 EXPECTED_PROJECT = "tollshallow"
 EXPECTED_PROJECT_NUMBER = "1094344081770"
 
-# Browser-asset budget for dist/data. The measured release includes the on-demand hourly
-# NYCCAS CSV, so the gate uses a 64 MiB ceiling and still reports the exact payload.
+# Browser-asset budget for dist/data. The merged branch keeps compatibility with the on-demand
+# NYCCAS hourly CSV candidate, so the gate uses a 64 MiB ceiling and still reports the exact payload.
 DEFAULT_BUDGET_BYTES = 64 * 1024 * 1024
 
 # Agreed browser-code budgets, documented in docs/DATA_STRATEGY.md. The data payload budget remains
-# configurable because the AIR release intentionally ships an on-demand hourly CSV.
+# configurable because retained AIR/PM2.5 releases intentionally ship an on-demand hourly CSV.
 ENTRY_BUDGET_GZIP_BYTES = 130 * 1024
 MAP_CHUNK_BUDGET_GZIP_BYTES = 330 * 1024
 

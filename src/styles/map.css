@@ -1,0 +1,325 @@
+/* ------------------------------------------------------------------- map */
+
+.map-shell {
+  position: absolute;
+  inset: 0;
+}
+
+.map-shell-loading {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: var(--paper-sunk);
+  font-family: var(--font-mono);
+  font-size: var(--step-micro);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.map-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border: 1px solid var(--hairline);
+}
+
+/* MapLibre ships rounded, shadowed controls. Override them so the shape lock (zero radius,
+   no shadows) holds across the whole page, including third-party chrome. */
+/* MapLibre sets the ring on `.maplibregl-ctrl-group:not(:empty)`, which outranks a bare class
+   selector, so the override has to match that specificity. */
+.maplibregl-ctrl-group,
+.maplibregl-ctrl-group:not(:empty) {
+  border-radius: 0;
+  box-shadow: none;
+  border: 1px solid var(--hairline-strong);
+  background: var(--paper);
+}
+
+.maplibregl-ctrl-group button {
+  border-radius: 0;
+  background: transparent;
+}
+
+.maplibregl-ctrl-group button + button {
+  border-top: 1px solid var(--hairline);
+}
+
+.maplibregl-ctrl-attrib,
+.maplibregl-ctrl-attrib-button {
+  border-radius: 0;
+  background: rgba(252, 252, 251, 0.82);
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  color: var(--muted);
+}
+
+.maplibregl-ctrl-attrib.maplibregl-compact {
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.maplibregl-ctrl-attrib a {
+  color: var(--muted);
+}
+
+.map-road-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.map-focus-indicator {
+  position: absolute;
+  width: 26px;
+  height: 26px;
+  margin: -13px 0 0 -13px;
+  border: 1px solid var(--accent);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.map-focus-indicator.is-active {
+  animation: focus-pulse 1.4s ease-out 1;
+}
+
+@keyframes focus-pulse {
+  0% { opacity: 0.9; transform: scale(0.6); }
+  100% { opacity: 0; transform: scale(2.1); }
+}
+
+/* Raster map: the WebGL-free path. Plain CSS-positioned tiles plus an SVG overlay, so it works
+   with hardware acceleration switched off. */
+.raster-map-wrap {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  background: var(--paper);
+}
+
+.raster-map {
+  position: relative;
+  overflow: hidden;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  background: var(--paper-sunk);
+  cursor: grab;
+  touch-action: none;
+}
+
+.raster-map.is-dragging {
+  cursor: grabbing;
+}
+
+.raster-map:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+/* Holds every tile and the overlay, and is the thing translated during a drag: one transform, no
+   React work per pointer move. */
+.raster-map-layer {
+  position: absolute;
+  inset: 0;
+  will-change: transform;
+}
+
+.raster-map-layer {
+  position: absolute;
+  inset: 0;
+}
+
+.raster-map.is-dragging .raster-map-layer,
+.raster-map.is-dragging .raster-map-tiles {
+  will-change: transform;
+}
+
+/* One filter pass over the whole tile sheet. Filtering each image separately costs a composite per
+   tile, which is what made panning heavy on a phone. */
+.raster-map-tiles {
+  position: absolute;
+  inset: 0;
+  filter: saturate(0.06) contrast(0.94) brightness(1.05);
+}
+
+.raster-map-tile {
+  position: absolute;
+  width: 256px;
+  height: 256px;
+  pointer-events: none;
+  user-select: none;
+}
+
+.raster-map-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+}
+
+.raster-map-boundary {
+  fill: var(--accent);
+  fill-opacity: 0.05;
+  stroke: var(--accent);
+  stroke-opacity: 0.55;
+  stroke-width: 1.2;
+  stroke-dasharray: 4 3;
+}
+
+.raster-map-point {
+  fill: var(--accent);
+}
+
+.raster-map-controls {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: grid;
+  border: 1px solid var(--hairline-strong);
+  background: var(--paper);
+}
+
+.raster-map-controls button {
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.raster-map-controls button + button {
+  border-top: 1px solid var(--hairline);
+}
+
+.raster-map-controls button:hover:not(:disabled) {
+  color: var(--accent);
+}
+
+.raster-map-controls button:disabled {
+  color: var(--muted-quiet);
+  cursor: not-allowed;
+}
+
+.raster-map-attribution {
+  position: absolute;
+  right: 8px;
+  bottom: 6px;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  color: var(--muted);
+}
+
+.raster-map-attribution a {
+  color: inherit;
+}
+
+.raster-map-notice {
+  display: grid;
+  gap: 4px;
+  padding: 12px var(--gutter) 14px;
+  border-top: 1px solid var(--rule);
+  font-size: var(--step-small);
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.raster-map-notice-label {
+  font-family: var(--font-mono);
+  font-size: var(--step-micro);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+/* Which renderer is on screen. Small, bottom-left, next to the attribution. */
+.map-renderer-note {
+  position: absolute;
+  left: 8px;
+  bottom: 6px;
+  z-index: 3;
+  max-width: 60%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  color: var(--muted);
+  pointer-events: none;
+}
+
+.map-fallback-panel,
+.data-error {
+  position: absolute;
+  left: var(--gutter);
+  bottom: 84px;
+  max-width: 46ch;
+  padding: 12px 14px;
+  border-left: 2px solid var(--alert);
+  background: var(--paper);
+  z-index: 3;
+}
+
+.map-fallback-panel p,
+.data-error {
+  font-size: var(--step-small);
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+
+.map-fallback-kicker {
+  font-family: var(--font-mono);
+  font-size: var(--step-micro);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--alert);
+}
+
+.map-fallback-panel h3 {
+  margin: 5px 0 4px;
+  font-size: var(--step-lead);
+  font-weight: 520;
+  letter-spacing: -0.01em;
+}
+
+.map-selection-card {
+  position: absolute;
+  right: 14px;
+  top: 14px;
+  max-width: 34ch;
+  padding: 10px 12px;
+  border: 1px solid var(--rule);
+  background: var(--paper);
+  z-index: 3;
+}
+
+.map-selection-card-left,
+.map-selection-card-story {
+  right: auto;
+  left: 14px;
+}
+
+.map-selection-kicker {
+  font-family: var(--font-mono);
+  font-size: var(--step-micro);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.map-selection-card h3 {
+  margin: 3px 0 2px;
+  font-size: 1rem;
+  font-weight: 520;
+}
+
+.map-selection-card p {
+  font-size: var(--step-small);
+  color: var(--ink-soft);
+}

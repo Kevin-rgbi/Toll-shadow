@@ -28,12 +28,18 @@ describe('buildRelease', () => {
       trafficInput: fixture('traffic-valid.csv'),
       mtaInput: fixture('mta-valid.csv'),
       crzInput: fixture('crz-valid.json'),
+      airInput: fixture('air-context-valid.json'),
+      healthInput: fixture('health-context-valid.json'),
+      equityInput: fixture('equity-context-valid.json'),
       catalogPath: path.join(workspaceRoot, 'data/catalog/sources.yaml'),
       methodSpecPath: path.join(repositoryRoot, 'pipeline/methods/release-1.yaml'),
       releaseRoot: path.join(temporaryRoot, 'releases'),
       publicDataRoot: path.join(temporaryRoot, 'public-data'),
     });
-    expect(result.manifest.assets.map((asset) => asset.kind)).toEqual(['traffic_observations', 'facility_crossings', 'crz_context']);
+    expect(result.manifest.assets.map((asset) => asset.kind)).toEqual([
+      'traffic_observations', 'facility_crossings', 'crz_context',
+      'historical_context', 'health_context', 'dac_context',
+    ]);
     expect(result.quality.source_quality.dot).toMatchObject({ included_rows: 1, invalid_rows: 0 });
     const publicManifest = JSON.parse(await readFile(path.join(temporaryRoot, 'public-data/manifest.json'), 'utf8'));
     expect(publicManifest.policy_reference_date).toBe('2025-01-05');
@@ -43,6 +49,9 @@ describe('buildRelease', () => {
       trafficInput: fixture('traffic-valid.csv'),
       mtaInput: fixture('mta-valid.csv'),
       crzInput: fixture('crz-valid.json'),
+      airInput: fixture('air-context-valid.json'),
+      healthInput: fixture('health-context-valid.json'),
+      equityInput: fixture('equity-context-valid.json'),
       catalogPath: path.join(workspaceRoot, 'data/catalog/sources.yaml'),
       methodSpecPath: path.join(repositoryRoot, 'pipeline/methods/release-1.yaml'),
       releaseRoot: path.join(temporaryRoot, 'releases'),

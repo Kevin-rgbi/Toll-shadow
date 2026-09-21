@@ -1,0 +1,208 @@
+/* -------------------------------------------------- rail modules (no cards) */
+
+.analysis-card,
+.module-card {
+  padding: 20px 22px 28px;
+  background: transparent;
+}
+
+.module-card h3,
+.analysis-card h3 {
+  font-size: var(--step-title);
+  font-weight: 540;
+  line-height: 1.04;
+  letter-spacing: -0.025em;
+}
+
+/* Kickers are retired from modules: the headline already names the view. */
+.analysis-kicker {
+  display: none;
+}
+
+.analysis-card p,
+.module-card p {
+  font-size: var(--step-body);
+  line-height: 1.58;
+  color: var(--muted);
+}
+
+.module-card > h3 + *,
+.analysis-card > h3 + * {
+  margin-top: 12px;
+}
+
+/* Filter row: labels above controls, square, mono. */
+.module-filter-row {
+  display: grid;
+  /* min(140px, 100%) prevents the track floor from forcing overflow on narrow screens. */
+  grid-template-columns: repeat(auto-fit, minmax(min(140px, 100%), 1fr));
+  gap: 12px;
+  margin: 16px 0 18px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.module-filter-row label {
+  display: grid;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: var(--step-micro);
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.module-filter-row select,
+.module-filter-row input[type="date"],
+.module-filter-row output {
+  /* A <select> sizes to its longest option by default, which forced the grid track wider than a
+     phone viewport. Grid items also default to min-width:auto, so both must be overridden. */
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  padding: 7px 9px;
+  border: 1px solid var(--hairline-strong);
+  border-radius: 0;
+  background: var(--paper);
+  font-size: var(--step-small);
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--ink);
+}
+
+.module-filter-row output {
+  border-style: dashed;
+  color: var(--ink-soft);
+}
+
+.module-count {
+  margin: 0 0 14px;
+  font-family: var(--font-mono);
+  font-size: var(--step-micro);
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.module-count strong {
+  font-weight: 500;
+  color: var(--ink);
+}
+
+/* Metrics as a numbered list with hairlines, never as cards. */
+.analysis-metrics {
+  display: grid;
+  gap: 0;
+}
+
+.analysis-metrics > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, max-content);
+  align-items: baseline;
+  gap: 12px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.analysis-metrics dt {
+  font-size: var(--step-small);
+  line-height: 1.4;
+  color: var(--muted);
+}
+
+.analysis-metrics dd {
+  min-width: 0;
+  font-size: 1.0625rem;
+  font-weight: 500;
+  color: var(--ink);
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.module-section {
+  margin-top: 22px;
+}
+
+/* Section labels inside a panel are sentence case, not uppercase micro-labels. Keeping them out
+   of the uppercase-mono style is what stops every section from reading as an eyebrow. */
+.module-card h4,
+.analysis-card h4,
+.module-provenance h4 {
+  margin-bottom: 8px;
+  font-size: var(--step-body);
+  font-weight: 560;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+
+.module-rows {
+  padding: 0;
+  list-style: none;
+}
+
+.module-rows li {
+  display: grid;
+  gap: 3px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.module-row-main {
+  font-size: var(--step-body);
+  line-height: 1.35;
+  color: var(--ink);
+}
+
+.module-row-meta {
+  font-size: var(--step-micro);
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.module-empty {
+  margin-top: 14px;
+  padding: 10px 12px;
+  border-left: 2px solid var(--accent);
+  background: var(--accent-quiet);
+  font-size: var(--step-small);
+  line-height: 1.55;
+  color: var(--ink-soft);
+}
+
+.module-provenance {
+  margin-top: 26px;
+  padding-top: 18px;
+  border-top: 1px solid var(--rule);
+}
+
+.module-provenance .analysis-metrics {
+  margin-top: 0;
+}
+
+.module-unavailable-card {
+  border-left: 2px solid var(--muted-quiet);
+}
+
+/* Context surfaces: a relative air field and projected equity geography. */
+.air-surface-canvas {
+  display: block;
+  width: 100%;
+  max-width: 320px;
+  margin-top: 8px;
+  border: 1px solid var(--hairline);
+  background: var(--paper-sunk);
+}
+
+.equity-map {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 320px;
+  margin-top: 8px;
+  border: 1px solid var(--hairline);
+  background: var(--paper-sunk);
+}
+
+.equity-map-tract {
+  stroke: rgba(252, 252, 251, 0.6);
+  stroke-width: 0.5;
+}

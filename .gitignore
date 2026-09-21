@@ -26,3 +26,11 @@ dist-ssr
 
 # Firebase CLI local state (not project source)
 .firebase/
+__pycache__/
+*.pyc
+test-results/
+playwright-report/
+.fossil/
+.serena/
+data/chroma_db/
+data/index_metadata.json

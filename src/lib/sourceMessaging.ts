@@ -17,8 +17,9 @@ export const RELEASE_ASSET_LABELS: Record<ReleaseAssetKind, string> = {
   facility_crossings: 'MTA facility crossing',
   crz_context: 'CRZ entry context',
   dac_context: 'disadvantaged-community context',
-  historical_context: 'historical air and health context',
+  historical_context: 'modelled historical air surface',
   air_measurements: 'Preliminary NYCCAS PM2.5 monitor measurements',
+  health_context: 'historical health context',
 }
 
 /** Asset kind that backs each evidence module, or null when the module needs an approved method first. */
@@ -27,7 +28,7 @@ export const MODULE_ASSET_KIND: Record<AppMode, ReleaseAssetKind | null> = {
   TRAFFIC: 'traffic_observations',
   CROSSINGS: 'facility_crossings',
   CRZ: 'crz_context',
-  AIR: 'air_measurements',
+  AIR: 'historical_context',
   EQUITY: 'dac_context',
   CONFIDENCE: null,
   HOTSPOTS: null,
@@ -63,6 +64,16 @@ export const getModuleUnavailableReason = (
 
   if (state.status === 'empty' || !state.release) {
     return 'No validated data release is published yet, so no evidence module can be shown.'
+  }
+
+  if (mode === 'AIR') {
+    const published = state.release.assets.some((asset) => (
+      asset.kind === 'air_measurements' || asset.kind === 'historical_context'
+    ))
+    if (!published) {
+      return `Release ${state.release.release_id} does not publish an AIR evidence asset.`
+    }
+    return `Release ${state.release.release_id} publishes an AIR evidence asset, but this build does not render it yet.`
   }
 
   if (!label) {

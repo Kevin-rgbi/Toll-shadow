@@ -8,8 +8,9 @@ import { loadMeasureSpecification } from './measure-spec.mjs';
 import { buildFacilityLookup, facilityFor, normalizeMtaDailyRow, MTA_REQUIRED_COLUMNS } from './mta.mjs';
 import { normalizeTrafficRow, TRAFFIC_REQUIRED_COLUMNS } from './traffic.mjs';
 import { normalizeCrzAggregateRows } from './crz.mjs';
+import { validateAirContext, validateEquityContext, validateHealthContext } from './context.mjs';
 
-const TRANSFORM_VERSION = 'pipeline-release-1.3.0';
+const TRANSFORM_VERSION = 'pipeline-release-1.4.0';
 const MAX_ASSET_BYTES = 5 * 1024 * 1024;
 
 function sha256(content) {
@@ -18,6 +19,11 @@ function sha256(content) {
 
 function serializeJson(value) {
   return `${JSON.stringify(value, null, 2)}\n`;
+}
+
+/** Context payloads are read by the app, not by people: compact saves about half the bytes. */
+function serializeCompact(value) {
+  return `${JSON.stringify(value)}\n`;
 }
 
 function isWithinCoverage(isoDate, coverage) {
@@ -155,6 +161,23 @@ async function collectCrz({ filePath, coverage }) {
   return { records, quality };
 }
 
+/**
+ * The three context assets are derivatives whose recipes live in the source register and whose
+ * transformation scripts are in pipeline/scripts/. Each is validated before it is published, so a
+ * malformed derivative fails the release instead of shipping a plausible shape.
+ */
+async function collectContext({ airInput, healthInput, equityInput }) {
+  const airPayload = JSON.parse(await readFile(airInput, 'utf8'));
+  const healthPayload = JSON.parse(await readFile(healthInput, 'utf8'));
+  const equityPayload = JSON.parse(await readFile(equityInput, 'utf8'));
+
+  return {
+    air: { payload: airPayload, summary: validateAirContext(airPayload) },
+    health: { payload: healthPayload, summary: validateHealthContext(healthPayload) },
+    equity: { payload: equityPayload, summary: validateEquityContext(equityPayload) },
+  };
+}
+
 async function collectMta({ filePath, coverage, facilityLookup }) {
   const records = [];
   const quality = { total_rows: 0, valid_rows: 0, included_rows: 0, invalid_rows: 0, invalid_examples: [] };
@@ -211,15 +234,37 @@ function assetMetadata({ kind, path: assetPath, format, content, coverage, grain
   };
 }
 
+/**
+ * The quality block is generated from whatever sources the build reported, so a source added to the
+ * release cannot be left out of its own documentation by forgetting a line here. An earlier revision
+ * listed three sources by name and silently omitted the three context sources that had been added.
+ */
+const SOURCE_LABELS = {
+  dot: 'DOT',
+  mta: 'MTA',
+  crz: 'CRZ aggregate',
+  air: 'NYCCAS modelled surface',
+  health: 'NYS asthma context',
+  equity: 'NYC disadvantaged-communities context',
+};
+
 function releaseReadme({ releaseId, manifest, quality }) {
+  const qualityLines = Object.entries(quality)
+    .map(([key, report]) => {
+      const label = SOURCE_LABELS[key] ?? key;
+      return `- ${label} rows: ${report.total_rows} inspected; ${report.included_rows} included; ${report.invalid_rows} rejected source rows.`;
+    })
+    .join('\n');
+
   return `# Toll Shadow Data Release ${releaseId}\n\n` +
     `Generated with transform version \`${manifest.transform_version}\`.\n\n` +
     `## Assets\n\n` + manifest.assets.map((asset) => `- \`${asset.kind}\`: \`${asset.path}\` (${asset.bytes} bytes, SHA-256 \`${asset.sha256}\`)`).join('\n') +
-    `\n\n## Quality\n\n` +
-    `- DOT rows: ${quality.dot.total_rows} inspected; ${quality.dot.included_rows} included; ${quality.dot.invalid_rows} rejected source rows recorded.\n` +
-    `- MTA rows: ${quality.mta.total_rows} inspected; ${quality.mta.included_rows} included; ${quality.mta.invalid_rows} rejected source rows.\n` +
-    `- CRZ aggregate rows: ${quality.crz.total_rows} inspected; ${quality.crz.included_rows} included; ${quality.crz.invalid_rows} rejected source rows.\n` +
-    `\n## Claim boundary\n\nThis release contains descriptive sampled traffic and daily crossing records only. It does not provide a causal policy estimate, current air-quality outcome, or health outcome.\n`;
+    `\n\n## Quality\n\n` + qualityLines + '\n' +
+    `\n## Claim boundary\n\nThis release is descriptive. It carries sampled traffic counts, daily crossing records, ` +
+    `monthly CRZ entry aggregates, and archived context layers -- a modelled 2016 air surface published as a relative ` +
+    `field with no established units, asthma rates in multi-year periods ending 2019 or earlier, and the 2023 ` +
+    `disadvantaged-communities criteria, which the 2025 revision makes historical. Nothing here is a causal policy ` +
+    `estimate, a current air-quality or health outcome, or a current designation.\n`;
 }
 
 export async function buildRelease({
@@ -228,6 +273,9 @@ export async function buildRelease({
   trafficInput,
   mtaInput,
   crzInput,
+  airInput,
+  healthInput,
+  equityInput,
   catalogPath,
   methodSpecPath,
   releaseRoot,
@@ -238,9 +286,14 @@ export async function buildRelease({
   const specification = await loadMeasureSpecification(methodSpecPath);
   if (specification.release_id !== releaseId) throw new Error(`release_id ${releaseId} does not match measure specification ${specification.release_id}`);
   const catalog = await loadCatalog(catalogPath);
-  const [trafficMeasure, mtaMeasure, crzMeasure] = specification.measures;
-  if (!crzMeasure) throw new Error('measure specification must declare the CRZ entry measure');
-  for (const sourceId of [...trafficMeasure.source_ids, ...mtaMeasure.source_ids, ...crzMeasure.source_ids]) {
+  const [trafficMeasure, mtaMeasure, crzMeasure, airMeasure, healthMeasure, equityMeasure] = specification.measures;
+  for (const measure of [trafficMeasure, mtaMeasure, crzMeasure, airMeasure, healthMeasure, equityMeasure]) {
+    if (!measure) throw new Error('measure specification must declare all six measures');
+  }
+  for (const sourceId of [
+    ...trafficMeasure.source_ids, ...mtaMeasure.source_ids, ...crzMeasure.source_ids,
+    ...airMeasure.source_ids, ...healthMeasure.source_ids, ...equityMeasure.source_ids,
+  ]) {
     if (catalog.get(sourceId)?.approval_status !== 'approved_for_pipeline') {
       throw new Error(`${sourceId} is not approved_for_pipeline`);
     }
@@ -253,7 +306,7 @@ export async function buildRelease({
   await mkdir(canonicalReleaseDirectory, { recursive: false });
   try {
     await mkdir(publicReleaseDirectory, { recursive: false });
-    const [traffic, mta, crz] = await Promise.all([
+    const [traffic, mta, crz, context] = await Promise.all([
       collectTraffic({ filePath: trafficInput, coverage: trafficMeasure.coverage }),
       collectMta({
         filePath: mtaInput,
@@ -261,10 +314,14 @@ export async function buildRelease({
         facilityLookup: buildFacilityLookup(catalog.get('mta_daily_bridge_tunnel_traffic_archive_20260915')),
       }),
       collectCrz({ filePath: crzInput, coverage: crzMeasure.coverage }),
+      collectContext({ airInput, healthInput, equityInput }),
     ]);
     const trafficContent = serializeJson(traffic.featureCollection);
     const mtaContent = serializeJson({ records: mta.records });
     const crzContent = serializeJson({ records: crz.records });
+    const airContent = serializeCompact(context.air.payload);
+    const healthContent = serializeCompact(context.health.payload);
+    const equityContent = serializeCompact(context.equity.payload);
     const trafficAsset = assetMetadata({
       kind: trafficMeasure.asset_kind,
       path: `/data/releases/${releaseId}/traffic_observations.geojson`,
@@ -296,37 +353,65 @@ export async function buildRelease({
       sourceIds: crzMeasure.source_ids,
       limitations: crzMeasure.limitations,
     });
+    const contextAssets = [
+      assetMetadata({
+        kind: airMeasure.asset_kind, path: `/data/releases/${releaseId}/air_context.json`, format: 'json',
+        content: airContent, coverage: airMeasure.coverage, grain: airMeasure.grain,
+        sourceIds: airMeasure.source_ids, limitations: airMeasure.limitations,
+      }),
+      assetMetadata({
+        kind: healthMeasure.asset_kind, path: `/data/releases/${releaseId}/health_context.json`, format: 'json',
+        content: healthContent, coverage: healthMeasure.coverage, grain: healthMeasure.grain,
+        sourceIds: healthMeasure.source_ids, limitations: healthMeasure.limitations,
+      }),
+      assetMetadata({
+        kind: equityMeasure.asset_kind, path: `/data/releases/${releaseId}/equity_context.geojson`, format: 'geojson',
+        content: equityContent, coverage: equityMeasure.coverage, grain: equityMeasure.grain,
+        sourceIds: equityMeasure.source_ids, limitations: equityMeasure.limitations, geometryCrs: 'EPSG:4326',
+      }),
+    ];
+    const allAssets = [trafficAsset, mtaAsset, crzAsset, ...contextAssets];
     const manifest = {
       release_id: releaseId,
       // 1.1.0: additive. The traffic asset gained day_type and time_band dimensions; no field was
       // renamed, retyped, or given a new meaning.
-      schema_version: '1.3.0',
+      schema_version: '1.4.0',
       generated_at: generatedAt,
       status: 'validated',
       transform_version: TRANSFORM_VERSION,
-      source_ids: [...new Set([...trafficMeasure.source_ids, ...mtaMeasure.source_ids, ...crzMeasure.source_ids])],
+      source_ids: [...new Set(allAssets.flatMap((asset) => asset.source_ids))],
       coverage: trafficMeasure.coverage,
       limitations: [
         'Release 1 is descriptive only and does not estimate a causal congestion-pricing effect.',
-        'Historical air-quality, asthma, DAC, CRZ-summary, and CBD-derivative assets are excluded pending their separate gates.',
+        'The CBD-derivative boundary asset is excluded pending geometry and release validation.',
       ],
-      assets: [trafficAsset, mtaAsset, crzAsset],
+      assets: allAssets,
       policy_reference_date: specification.policy_reference.date,
     };
     const quality = {
       release_id: releaseId,
       status: 'validated',
-      source_quality: { dot: traffic.quality, mta: mta.quality, crz: crz.quality },
+      source_quality: {
+        dot: traffic.quality,
+        mta: mta.quality,
+        crz: crz.quality,
+        air: { total_rows: context.air.summary.cells, valid_rows: context.air.summary.cells, included_rows: context.air.summary.cells, invalid_rows: 0, invalid_examples: [] },
+        health: { total_rows: context.health.summary.records, valid_rows: context.health.summary.records, included_rows: context.health.summary.records, invalid_rows: 0, invalid_examples: [] },
+        equity: { total_rows: context.equity.summary.features, valid_rows: context.equity.summary.features, included_rows: context.equity.summary.features, invalid_rows: 0, invalid_examples: [] },
+      },
       asset_budget_bytes: MAX_ASSET_BYTES,
-      assets: [trafficAsset, mtaAsset, crzAsset].map(({ kind, bytes, sha256: digest }) => ({ kind, bytes, sha256: digest })),
+      assets: allAssets.map(({ kind, bytes, sha256: digest }) => ({ kind, bytes, sha256: digest })),
     };
     const files = new Map([
       ['traffic_observations.geojson', trafficContent],
       ['facility_crossings.json', mtaContent],
       ['crz_entry_summary.json', crzContent],
+      ['air_context.json', airContent],
+      ['health_context.json', healthContent],
+      ['equity_context.geojson', equityContent],
       ['manifest.json', serializeJson(manifest)],
       ['quality.json', serializeJson(quality)],
-      ['README.md', releaseReadme({ releaseId, manifest, quality: { dot: traffic.quality, mta: mta.quality, crz: crz.quality } })],
+      ['README.md', releaseReadme({ releaseId, manifest, quality: quality.source_quality })],
     ]);
     await Promise.all([...files].map(([file, content]) => writeFile(path.join(canonicalReleaseDirectory, file), content)));
     await Promise.all([...files].filter(([file]) => file !== 'quality.json' && file !== 'README.md').map(([file, content]) => writeFile(path.join(publicReleaseDirectory, file), content)));

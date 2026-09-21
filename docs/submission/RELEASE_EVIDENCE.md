@@ -1,168 +1,167 @@
 # Release Evidence
 
-All commands below were run in the session that produced this document, from this repository root unless stated otherwise. Outputs are quoted as produced, including warnings.
+Every figure below was produced on **2026-09-20** in the session that published this release, by the
+command named next to it. Nothing here is carried forward from an earlier revision of this document.
 
-## Release contents — `2026-09-18.1`
+## Release contents — `2026-09-20.4`
 
 | Fact | Value |
 |---|---|
-| Release ID | `2026-09-18.1` |
-| Schema version | `2.1.0` (adds `air_measurements` and CSV assets) |
-| Transform version | `monthly-coverage-1.0.0` plus `supplied-kepler-derivative-1.0.0` for AIR |
+| Release ID | `2026-09-20.4` |
+| Schema version | `1.4.0` |
+| Transform version | `pipeline-release-1.4.0` |
+
 | Status | `validated` |
 | Release coverage | 2024-01-01 → 2026-09-17 |
 | Policy reference date | 2025-01-05 (timeline marker only) |
-| Source registers cited | `dot_automated_traffic_counts_archive_20260915`, `mta_crz_entries_2025_2026`, `mta_hourly_crossings_2025_2026`, `mta_cbd_geofence_20260916`, `nyccas_pm25_monitor_daily_2025_2026`, `nyccas_pm25_monitor_hourly_2025_2026` |
+| Published assets | 6 |
+| Payload | 6.02 MiB of the 64 MiB merged gate ceiling |
+| Source registers cited | `dot_automated_traffic_counts_archive_20260915`, `mta_daily_bridge_tunnel_traffic_archive_20260915`, `mta_crz_entries_archive_20260920`, `nyccas_air_context_derived_2016`, `nys_asthma_context_derived_historical`, `nyc_dac_context_derived_2023` |
 
-| Asset | Format | Bytes | SHA-256 |
-|---|---|---:|---|
-| `traffic_observations` | GeoJSON (EPSG:4326) | 2,082,788 | `c3baeeaff9799c77e5e26448a8d3723ac90b81106b1302fb2c03d6015fc92ab7` |
-| `facility_crossings` | JSON | 157,586 | `d0fd3ec23a8a4b182372c905055dc75b4ad3c672f64d5fbcff2a6a095c31b774` |
-| `crz_context` | JSON | 348,201 | `142ad78463811bf68ccc0ee387c49a48c4c9eaef1e824e6185e0bf34a099c3a4` |
-| `boundary_zone` | GeoJSON (EPSG:4326) | 8,740 | `355362a4e69d68503706b577fa3cd0a660de181fcdebec257984222b443730dd` |
-| `air_measurements` daily | CSV | 1,564,746 | `8c7ebc61df8bd095169556ec08fff7327089b86d8327e715dd7d80f0b1ffa4da` |
-| `air_measurements` hourly | CSV | 41,705,713 | `096a22707d802294a5a8788440c25a36834729ae4d8d4e0c348e7f80007ca4f6` |
+| Asset | Path | Format | Bytes | SHA-256 |
+|---|---|---|---:|---|
+| `traffic_observations` | `traffic_observations.geojson` | GeoJSON (EPSG:4326) | 2,082,788 | `c3baeeaff9799c77e5e26448a8d3723ac90b81106b1302fb2c03d6015fc92ab7` |
+| `facility_crossings` | `facility_crossings.json` | JSON | 3,596,098 | `b39cb694bd8f98f0ef3a2dfb844dd55fdf1a18b83794b4b0a20c2fa39f4452a8` |
+| `crz_context` | `crz_entry_summary.json` | JSON | 85,191 | `2b0f37d2a57975ea3068668f7a7212efdd6a2d982cead979215f685d04da1372` |
+| `historical_context` | `air_context.json` | JSON | 34,186 | `51bd201f71dcad62a878a49c61432a6faffcac6f1a705f823c95d145813b8b97` |
+| `health_context` | `health_context.json` | JSON | 28,287 | `770554d942def23710a4de899f220ff221d5ff969a47a8013d815933bb022097` |
+| `dac_context` | `equity_context.geojson` | GeoJSON | 481,251 | `e27c3f063511107c0b0a0ada77a7e31a1d0b98f97c7b066cd00157faadeba16e` |
 
-**Published traffic aggregates:** 2,561 point features covering 195 distinct street segments across 21 calendar months (2024-01 → 2025-12), split by day type and time band: 1,478 Weekday and 1,083 Weekend; roughly 510 in each of the five bands. A single month now carries up to 340 aggregates (2024-03), and 2025-12 carries 60. Months with no published rows: **2024-07, 2024-08, 2025-08** — the release publishes a gap rather than interpolating one.
 
-A group is only published where the source contains observations for that segment, month, day type, and time band. Absent combinations are omitted rather than zero-filled, which is why the total is 2,561 rather than 195 × 21 × 10.
-
-**Published facility crossings:** 8,352 daily rows across 464 distinct dates (2024-01-01 → 2025-04-12), plazas 21–30, directions `I` and `O`.
+Published releases are immutable. `2026-09-20.4` supersedes `2026-09-20.3` to correct the release's own
+documentation — its README omitted three of the six sources from its quality summary — and it publishes
+the **same six assets with identical checksums**, which is what makes that a documentation correction
+rather than a data change. `2026-09-20.3` went out of service with this deploy; its canonical copy stays
+under `data/releases/`.
 
 ## Quality results
 
-From the registered source checks and published parser results:
+From `data/releases/2026-09-20.4/quality.json`:
+
 
 | Source | Rows inspected | Rows included | Rows rejected | Example rejection |
 |---|---:|---:|---:|---|
 | DOT traffic | 1,875,154 | 177,571 | 1 | `row 1367021: Vol must be an integer >= 0` |
 | MTA crossings | 98,053 | 8,352 | 0 | — |
-
-The one rejected DOT row is the archived negative-volume sentinel recorded in the source register as a known quality exception. Nothing was coerced to zero or dropped quietly.
+| CRZ aggregates | 252 | 252 | 0 | — |
+| NYCCAS modelled surface | 2,607 | 2,607 | 0 | — |
+| NYS asthma context | 132 | 132 | 0 | — |
+| NYC disadvantaged-communities context | 958 | 958 | 0 | — |
 
 ## Verification commands and results
 
 ### Data pipeline and contracts
 
-```text
-$ npm run test
- Test Files  27 passed (27)
-      Tests  173 passed (173)
-```
 
-The suite includes pipeline tests (contract validation, MTA/traffic parsers, geospatial checks, measure spec, source catalog) and frontend tests, including the module failure-state copy checks in `tests/frontend/moduleStates.test.ts`.
+```
+$ npx vitest run pipeline/tests
+Test Files  6 passed (6)      Tests  17 passed (17)
+$ node pipeline/scripts/validate-source-catalog.mjs     # 17 sources, all present checksums match
+```
 
 ### Determinism
 
-The published release is reproducible from its registered inputs. The browser-facing copies match the
-manifest checksums, and the release acceptance gate verifies every declared asset:
+Two independent builds of the same inputs at the same timestamp produce byte-identical assets. This
+was checked by pointing the measure specification at a scratch release ID, building it, and comparing
+the six payload files:
 
-```text
-traffic_observations   MATCH
-facility_crossings     MATCH
-crz_context            MATCH
-boundary_zone          MATCH
-nyccas_pm25_daily      MATCH
-nyccas_pm25_hourly     MATCH
+```
+byte-identical assets across two independent builds: 6/6
 ```
 
-The check was run against the built `dist/data` tree, so it did not modify the published release or the release pointer.
+The builder also refuses a release ID that disagrees with the measure specification (`release_id
+2026-09-20.99 does not match measure specification`), and refuses to overwrite an existing release
+directory (`EEXIST`) — both observed while setting the check up.
 
 ### Application
 
-```text
-$ npx tsc -b --pretty false
-(no output, exit 0)
-
-$ npm run lint
-> eslint .
-(no findings)
-
+```
+$ npx tsc -b                # clean
+$ npm run lint              # clean
+$ npm run test              # Test Files 30 passed (30)      Tests 205 passed (205)
+$ npm run test:e2e          # 59 passed, 3 skipped (desktop and phone viewports)
 $ VITE_USE_DEMO_DATA=false npm run build
-dist/index.html                                                         8.32 kB │ gzip:   2.44 kB
-dist/assets/index-DwvIpg2a.css                                        117.35 kB │ gzip:   19.67 kB
-dist/assets/index-C86UzIF2.js                                         324.24 kB │ gzip:   99.20 kB
-dist/assets/MapShell-DzELj_Cj.js                                    1,066.58 kB │ gzip: 292.25 kB
-✓ built in 323ms
-(!) Some chunks are larger than 500 kB after minification.
-(plus seven self-hosted woff2 font files, 152 kB total)
+                            # entry 325 kB raw / 100 kB gzip; map chunk 1,065 kB raw / 292 kB gzip
+
 ```
 
-The >500 kB warning is the lazy-loaded MapLibre chunk, unchanged from the pre-implementation baseline. It is a known gap (see `KNOWN_GAPS.md`), not a regression.
+The unit suite includes the accessibility gate (axe over nine surfaces, zero serious or critical
+violations, plus a negative test that the gate is not vacuous) and the source-size ratchet.
+
+The end-to-end suite runs against the built site served by `vite preview`, not the dev server. It found
+two production defects on its first run, both fixed and recorded in the commit history: the historical
+health context rejected its own asset because a rate per 10,000 head was validated as a whole count, and
+a module reported "this release does not publish that asset" when the manifest itself had failed to load.
 
 ### Deployment gate
 
-```text
+```
 $ python3 scripts/release_acceptance.py
-Release acceptance gate: /Users/kevinguillermo/Downloads/Toll-shadow-main/dist
-
 49 checks passed, 0 failed
-
 RELEASE ACCEPTED — proceed to the preview-channel runbook.
 ```
 
-The gate blocks a candidate that is unbuilt, marked `synthetic: true`, unvalidated, missing release metadata, missing an asset checksum, shipping undeclared CSV or raw/archive payloads, over the browser-asset budget, carrying credentials, pointed at the wrong Firebase project, serving the release pointer with a cacheable lifetime, or publishing more than the one release the pointer serves. Each rejection path was exercised before being trusted, most recently the superseded-release check, which rejected a build carrying a stale release directory.
+The gate rejects a candidate that is unbuilt, marked `synthetic: true`, unvalidated, missing release
+metadata, missing an asset checksum, shipping raw/archive payloads, over the browser-asset budget,
+carrying credentials, pointed at the wrong Firebase project, serving the release pointer with a
+cacheable lifetime, or publishing more than the one release the pointer serves. It also asserts the
+security headers and the cache rules.
 
-Built data payload for the release: **45,890,466 bytes** against the measured 64 MiB ceiling. The two NYCCAS CSVs are declared release assets and are checksum-verified before parsing.
 
 ### Kepler reproducibility artifact
 
-```text
+```
 $ python3 visualization/kepler/validate_kepler_export.py
 34 checks passed, 0 failed
-
-Claim boundary: A passing comparison means only that the embedded export matches these declared
-legacy inputs by identity, row count, schema, and value. It does not mean the inputs are
-analytically approved, that the policy labels/formulas are documented, or that any measure is causal.
 ```
 
-The validator is not vacuous: against a deliberately tampered copy (one value changed, one row dropped, one field dropped) it reported 5 failures and exited 1.
+Previously this reported 18 passed and 4 failed: the validator resolved its workspace root one level too
+shallow, so the four identity checks that compare the export against its declared source CSVs never ran.
+The merged validator now checks the declared workspace paths and the retained `data/reference-legacy/`
+copies, then verifies SHA-256, header, row count, and embedded values.
 
 ### Firebase target
 
-```text
-$ npx firebase projects:list
-│ Project Display Name │ Project ID  │ Project Number │
-│ TollShallow          │ tollshallow │ 1094344081770  │
-1 project(s) total.
+Verified live: `https://tollshallow.web.app` serves release `2026-09-20.4`, `status: validated`, six
+assets:
 
-$ npx firebase hosting:sites:list --project tollshallow
-│ Site ID     │ Default URL                │
-│ tollshallow │ https://tollshallow.web.app │
-
-$ npx firebase hosting:sites:list --project tollshallows
-Error: ... HTTP Error: 403, The caller does not have permission
-
-$ curl -o /dev/null -w "%{http_code}" https://tollshallow.web.app/
-200
+```
+$ curl -s https://tollshallow.web.app/data/manifest.json       release 2026-09-20.4, validated, 6 assets
+$ curl -so /dev/null -w '%{http_code}\n' .../2026-09-20.4/equity_context.geojson     200
+$ curl -so /dev/null -w '%{http_code}\n' .../2026-09-20.4/health_context.json        200
+$ curl -so /dev/null -w '%{http_code}\n' .../2026-09-20.4/air_context.json           200
+$ curl -so /dev/null -w '%{http_code}\n' .../2026-09-20.4/crz_entry_summary.json     200
+$ curl -so /dev/null -w '%{http_code}\n' .../2026-09-20.3/equity_context.geojson     404   # superseded
 ```
 
-`.firebaserc` was corrected from the plural `tollshallows` to the confirmed singular `tollshallow`.
-Production serves the older verified `2026-09-16.2` release; the `2026-09-18.1` AIR candidate remains
-local until it follows the preview runbook.
+### Rendered in a browser, on the deployed build
 
-### Built preview verification (2026-09-18)
+Checked against production after the deploy, build stamp `20260920-2046-4be551d`:
 
-```text
-$ npm run build
-✓ built in 513ms
+| Module | Observed |
+|---|---|
+| EQUITY | 958 tract paths drawn, 5 counties, no failure state |
+| AIR | canvas painted at 42,763 opaque pixels; health records listed; no failure state |
+| TRAFFIC | count line and filters populated from published aggregates |
+| CROSSINGS | 8,352 published daily rows, **named** plazas, window stated |
+| CRZ | 12 detection groups, 21 published months, areas-not-points caveat |
 
-$ python3 scripts/release_acceptance.py --json
-"passed": 49, "failed": 0
-```
+### Rollback
 
-The candidate build serves the release pointer and all six assets from `dist/data`; the gate verifies
-their checksums and the 45,890,466-byte payload. The prior production deployment remains release
-`2026-09-16.2`; release `2026-09-18.1` has not been deployed.
 
-Preview-served verification: the built shell and release pointer are reachable, the status strip is configured for
-`RELEASE 2026-09-18.1 · VALIDATED`, and the AIR module is wired to load the daily monitor map and the
-hourly CSV on demand. A browser console check remains part of the deployment runbook.
-
+Rehearsed on preview channel `p10-rehearsal` on 2026-09-20, production untouched. The rehearsal found
+that two commands the runbook documented do not exist in firebase-tools 15.30 and that there is no CLI
+rollback command in that version. The runbook now records the working commands and the observed
+behaviour: `docs/deployment/HOSTING_PREVIEW_ROLLBACK_RUNBOOK.md`.
 
 ## Runtime claim enforcement (what a reviewer can verify in the browser)
 
-- A release pointer that is missing, malformed, synthetic, or not `validated` produces a visible failure state; no fallback content is substituted.
-- Each asset is fetched and its **SHA-256 is verified in the browser** against the manifest before parsing. A mismatch raises. This includes the daily and on-demand hourly NYCCAS CSVs.
-- Malformed published rows raise: a coordinate swap, a negative volume, a non-integer count, a crossing total that disagrees with its components, or an E-ZPass share that does not reproduce its numerator/denominator.
-- Selecting a month, borough, day type, or time band the release did not publish shows an explicit empty state reporting how many aggregates that month does hold, never another month's rows. A group that the source never observed is absent rather than zero-filled.
+- A manifest that is missing, malformed, or not `validated` renders a failure state and **no figures**.
+- Every module shows `Source and method` with coverage, grain, transform version, checksum, and the
+  asset's own limitations.
+- No page text claims synthetic values: the dev control surface is absent from a production build, and
+  an end-to-end test asserts it.
+- The build stamp in the masthead names the exact build the browser is running; a link from a different
+  build reports the staleness instead of failing silently.
+- `?module=`, `?borough=`, `?day=`, `?band=`, `?date=`, and `?v=` are all round-tripped, so a reviewer
+  can be sent the exact view being discussed.

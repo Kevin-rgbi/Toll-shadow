@@ -267,6 +267,34 @@ sources:
       - any public release until authoritative source and release version are confirmed
     transformations: []
 
+  - source_id: nyc_dac_context_derived_2023
+    title: Published New York City disadvantaged-communities context
+    role: derived_release_input
+    approval_status: approved_for_pipeline
+    original_path: releases/2026-09-20.4/equity_context.geojson
+    original_filename: equity_context.geojson
+    sha256: e27c3f063511107c0b0a0ada77a7e31a1d0b98f97c7b066cd00157faadeba16e
+    authoritative_url: https://data.ny.gov/Environmental-Conservation/Disadvantaged-Communities-DAC/2e6c-s6fp/about_data
+    publisher: New York State Climate Justice Working Group / NYSERDA
+    license_status: public_open_data_catalog; release terms must be retained from the live source at refresh
+    acquired_at: '2026-09-20'
+    temporal_coverage:
+      start: '2023'
+      end: '2023'
+    geographic_coverage: New York City census tracts
+    geometry:
+      crs: OGC:CRS84
+      feature_count: 958
+    grain: one archived census-tract feature
+    allowed_uses:
+      - clearly labelled archived 2023 equity context in the release pipeline
+    forbidden_claims:
+      - current DAC status after the 2025 Version 2.0 criteria update
+      - individual risk or causal exposure result
+    transformations:
+      - script: pipeline/scripts/derive-equity-context.py
+        inputs: [nyc_dac_archive_subset_2023]
+
   - source_id: nyccas_pm25_monitor_daily_2025_2026
     title: Preliminary NYCCAS PM2.5 daily monitor measurements
     role: legacy_derivative
@@ -350,6 +378,34 @@ sources:
       - short-term local or regulatory air measurement
     transformations: []
 
+  - source_id: nyccas_air_context_derived_2016
+    title: Published NYCCAS historical air context
+    role: derived_release_input
+    approval_status: approved_for_pipeline
+    original_path: releases/2026-09-20.4/air_context.json
+    original_filename: air_context.json
+    sha256: 51bd201f71dcad62a878a49c61432a6faffcac6f1a705f823c95d145813b8b97
+    authoritative_url: https://data.cityofnewyork.us/Environment/NYCCAS-Air-Pollution-Rasters/q68s-8qxv/about_data
+    publisher: New York City Community Air Survey
+    license_status: public_open_data_catalog; release terms must be retained from the live source at refresh
+    acquired_at: '2026-09-20'
+    temporal_coverage:
+      start: '2016-01-01'
+      end: '2016-12-31'
+    geographic_coverage: New York City
+    geometry:
+      crs: EPSG:4326
+      grid: 78x78 pooled display cells
+    grain: one modelled value per pooled grid cell of about 600 m
+    allowed_uses:
+      - historical environmental context labelled as relative, modelled, and non-causal
+    forbidden_claims:
+      - 2025 policy effect
+      - current air-quality, regulatory, or monitor measurement claim
+    transformations:
+      - script: pipeline/scripts/derive-air-context.py
+        inputs: [nyccas_air_rasters_archive_2008_2019]
+
   - source_id: nys_asthma_archive_historical
     title: NYS asthma hospitalization and emergency-department archive
     role: contextual_source
@@ -374,6 +430,33 @@ sources:
       - post-policy health outcome
       - causal health impact
     transformations: []
+
+  - source_id: nys_asthma_context_derived_historical
+    title: Published historical asthma context
+    role: derived_release_input
+    approval_status: approved_for_pipeline
+    original_path: releases/2026-09-20.4/health_context.json
+    original_filename: health_context.json
+    sha256: 770554d942def23710a4de899f220ff221d5ff969a47a8013d815933bb022097
+    authoritative_url: not_recorded_in_archive; archive notes name NYS Department of Health Bureau of Biometrics and Health Statistics
+    publisher: New York State Department of Health Bureau of Biometrics and Health Statistics
+    license_status: unresolved
+    acquired_at: '2026-09-20'
+    temporal_coverage:
+      start: '2000-01-01'
+      end: '2019-12-31'
+    geographic_coverage: five New York City borough counties
+    geometry: null
+    grain: one rolling multi-year period per county, indicator, and total subgroup
+    allowed_uses:
+      - historical county-level health context in the release pipeline
+    forbidden_claims:
+      - neighborhood health monitoring
+      - post-policy health outcome
+      - causal health impact
+    transformations:
+      - script: pipeline/scripts/derive-health-context.py
+        inputs: [nys_asthma_archive_historical]
 
   - source_id: nyc_asthma_kepler_legacy_historical
     title: Legacy borough-centroid asthma table for Kepler

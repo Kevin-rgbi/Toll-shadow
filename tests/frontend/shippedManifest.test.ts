@@ -74,7 +74,14 @@ describe('shipped release pointer', () => {
 
       expect(result.manifest.release_id).toMatch(/^\d{4}-\d{2}-\d{2}\.\d+$/)
       expect(result.manifest.status).toBe('validated')
-      expect(result.manifest.assets.map(asset => asset.kind)).toContain('air_measurements')
+      expect(result.manifest.assets.map(asset => asset.kind)).toEqual(expect.arrayContaining([
+        'traffic_observations',
+        'facility_crossings',
+        'crz_context',
+        'historical_context',
+        'health_context',
+        'dac_context',
+      ]))
     } finally {
       globalThis.fetch = originalFetch
     }

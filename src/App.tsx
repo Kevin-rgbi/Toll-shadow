@@ -1,31 +1,29 @@
-import { Suspense, lazy, useEffect, useMemo, useRef, useState, useCallback } from 'react'
+import { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react'
 import { MethodologyModal } from './components/UI/MethodologyModal'
 import { NarrativeOverlay } from './components/Story/NarrativeOverlay'
-import { ConfidencePanel } from './components/Detail/ConfidencePanel'
 import { ModuleUnavailable } from './components/Detail/ModuleUnavailable'
-import { HotspotDrawer } from './components/Hotspots/HotspotDrawer'
-import { HotspotDetailPanel } from './components/Detail/HotspotDetailPanel'
+import { DevConfidencePanel, DevHotspotStack } from './dev/devPanels'
 import { SourcesPanel } from './components/Detail/SourcesPanel'
 import { DataRibbon } from './components/Status/DataRibbon'
 import { useReleaseManifest } from './hooks/useReleaseManifest'
 import { useReleaseBoundary } from './hooks/useReleaseBoundary'
 import { useReleaseAsset } from './hooks/useReleaseAsset'
+import type { ReleaseAssetState } from './hooks/useReleaseAsset'
 import { getReleaseTimelineBounds } from './lib/releaseManifest'
-import { parseCrzEntries, parseTrafficObservations } from './lib/releaseData'
-import { ComparisonModule } from './features/traffic/ComparisonModule'
-import { DEFAULT_COMPARISON, compareLocations, monthlyFeatures, parseMonthlyAsset } from './features/traffic/monthlyComparison'
-import type { ComparisonSelection } from './features/traffic/monthlyComparison'
+import {
+  parseAirContext,
+  parseCrzEntries,
+  parseEquityContext,
+  parseFacilityCrossings,
+  parseHealthContext,
+  parseTrafficObservations,
+} from './lib/releaseData'
 import type { TrafficDayType, TrafficObservation } from './types/releaseData'
 import { getDevSyntheticTimelineBounds } from './lib/devSyntheticDataset'
 import { APP_MODES, useAppStore } from './state/appStore'
 import { buildSyntheticHotspotRankings, summarizeSyntheticConfidence } from './lib/analysis'
 import { getHeaderStatusLabel, getModuleUnavailableReason } from './lib/sourceMessaging'
 import { TrafficModule } from './features/traffic/TrafficModule'
-import { AirModule } from './features/air/AirModule'
-import { AirTimeline } from './features/air/AirTimeline'
-import { buildAirMapPoints } from './features/air/airData'
-import { useAirDataset } from './hooks/useAirDataset'
-import { CrzModule } from './features/crz/CrzModule'
 import {
   filterTrafficByBorough,
   filterTrafficByDayType,
@@ -38,6 +36,12 @@ import {
   monthFromIsoDate,
   toTrafficFeatureCollection,
 } from './features/traffic/trafficSummary'
+import { CrossingsModule } from './features/crossings/CrossingsModule'
+import { CrzModule } from './features/crz/CrzModule'
+import { AirContextModule } from './features/air/AirContextModule'
+import { useMeasuredAirExperience } from './features/air/measuredAirExperience'
+import { EquityContextModule } from './features/equity/EquityContextModule'
+import { crossingsDateBounds } from './features/crossings/crossingsSummary'
 import { buildViewStateQuery, readViewStateFromLocation } from './lib/viewState'
 import { BUILD_ID, isStaleBuild, readExpectedBuildIdFromLocation } from './lib/buildInfo'
 import {
@@ -85,32 +89,23 @@ function App() {
   const tickPlayback = useAppStore((state) => state.tickPlayback)
   const toggleCompareMode = useAppStore((state) => state.toggleCompareMode)
   const setCompareRenderMode = useAppStore((state) => state.setCompareRenderMode)
-  const airGranularity = useAppStore((state) => state.airGranularity)
-  const airTimestamp = useAppStore((state) => state.airTimestamp)
-  const airSteps = useAppStore((state) => state.airSteps)
-  const airIsPlaying = useAppStore((state) => state.airIsPlaying)
-  const airPlaybackRate = useAppStore((state) => state.airPlaybackRate)
-  const airLoop = useAppStore((state) => state.airLoop)
-  const airScrubbing = useAppStore((state) => state.airScrubbing)
-  const setAirGranularity = useAppStore((state) => state.setAirGranularity)
-  const setAirTimeline = useAppStore((state) => state.setAirTimeline)
-  const setAirTimestamp = useAppStore((state) => state.setAirTimestamp)
-  const toggleAirPlayback = useAppStore((state) => state.toggleAirPlayback)
-  const setAirPlaybackRate = useAppStore((state) => state.setAirPlaybackRate)
-  const tickAirPlayback = useAppStore((state) => state.tickAirPlayback)
-  const toggleAirLoop = useAppStore((state) => state.toggleAirLoop)
-  const setAirScrubbing = useAppStore((state) => state.setAirScrubbing)
 
   const releaseState = useReleaseManifest()
   const { release, isDevSynthetic, devSynthetic, status, reason } = releaseState
   const boundaryState = useReleaseBoundary(release)
-  const monthlyAssetEnabled = mode === 'TRAFFIC' || mode === 'CROSSINGS' || mode === 'HOTSPOTS'
-  const trafficState = useReleaseAsset(release, 'traffic_observations', parseTrafficObservations, monthlyAssetEnabled)
-  const crossingsState = useReleaseAsset(release, 'facility_crossings', parseMonthlyAsset, monthlyAssetEnabled)
-  const monthlyCrzState = useReleaseAsset(release, 'crz_context', parseMonthlyAsset, monthlyAssetEnabled)
+  const trafficState = useReleaseAsset(release, 'traffic_observations', parseTrafficObservations, mode === 'TRAFFIC')
+  const crossingsState = useReleaseAsset(release, 'facility_crossings', parseFacilityCrossings, mode === 'CROSSINGS')
   const crzState = useReleaseAsset(release, 'crz_context', parseCrzEntries, mode === 'CRZ')
-  const airState = useAirDataset(mode === 'AIR', airGranularity, release, status, reason)
-  const airMapDataset = airState.status === 'error' ? null : airState.dataset
+  const hasAirMeasurements = release?.assets.some((asset) => asset.kind === 'air_measurements') ?? false
+  const measuredAir = useMeasuredAirExperience({
+    enabled: mode === 'AIR' && hasAirMeasurements,
+    release,
+    releaseStatus: status,
+    releaseReason: reason,
+  })
+  const airState = useReleaseAsset(release, 'historical_context', parseAirContext, mode === 'AIR' && !hasAirMeasurements)
+  const healthState = useReleaseAsset(release, 'health_context', parseHealthContext, mode === 'AIR' && !hasAirMeasurements)
+  const equityState = useReleaseAsset(release, 'dac_context', parseEquityContext, mode === 'EQUITY')
   // A shared link seeds the filters once, at mount. Later edits go through the store and the URL
   // writer below; the URL is never re-read, so user interaction cannot be overwritten by history.
   const [initialView] = useState(readViewStateFromLocation)
@@ -120,31 +115,11 @@ function App() {
   const [trafficBorough, setTrafficBorough] = useState<string | null>(initialView.borough)
   const [trafficDayType, setTrafficDayType] = useState<TrafficDayType | null>(initialView.dayType)
   const [trafficTimeBand, setTrafficTimeBand] = useState<string | null>(initialView.timeBand)
-  const [comparisonSelection, setComparisonSelection] = useState<ComparisonSelection>(initialView.comparisonSelection ?? DEFAULT_COMPARISON)
-  const [selectedLocationId, setSelectedLocationId] = useState<string | null>(null)
-  const [airBorough, setAirBorough] = useState<string | null>(null)
-  const [airSiteFilter, setAirSiteFilter] = useState('all')
-  const [airSelectedSiteId, setAirSelectedSiteId] = useState<string | null>(null)
-  const [airBoundaryVisible, setAirBoundaryVisible] = useState(false)
-  const [airComparisonOpen, setAirComparisonOpen] = useState(false)
-  const [airIncludePartial, setAirIncludePartial] = useState(false)
-  const handleReleaseSelect = useCallback((id: string | null) => {
-    if (id === null) {
-      if (mode === 'AIR') setAirSelectedSiteId(null)
-      else setSelectedLocationId(null)
-      return
-    }
-    if (mode === 'AIR') setAirSelectedSiteId(id)
-    else setSelectedLocationId(id)
-  }, [mode])
-  const monthlyMode = mode === 'TRAFFIC' || mode === 'CROSSINGS' || mode === 'HOTSPOTS'
-  const locations = useMemo(() => compareLocations([
-    ...(monthlyCrzState.status === 'ready' ? monthlyCrzState.data.rows : []),
-    ...(crossingsState.status === 'ready' ? crossingsState.data.rows : []),
-  ], comparisonSelection), [monthlyCrzState, crossingsState, comparisonSelection])
-  const visibleLocations = useMemo(() => mode === 'CROSSINGS' ? locations.filter(item => item.layer === 'mta') : locations, [locations, mode])
-  const focusedLocation = visibleLocations.find(item => item.id === selectedLocationId) ?? null
-  const releaseFocus = useMemo(() => focusedLocation ? { id: focusedLocation.id, coordinates: focusedLocation.coordinates } : null, [focusedLocation])
+  const [crossingsRangeOverride, setCrossingsRangeOverride] = useState<{ start: string, end: string } | null>(
+    initialView.crossingsStart && initialView.crossingsEnd
+      ? { start: initialView.crossingsStart, end: initialView.crossingsEnd }
+      : null,
+  )
   const appliedBoundsRef = useRef<string | null>(null)
 
   const timeline = useMemo(() => {
@@ -208,43 +183,6 @@ function App() {
       window.cancelAnimationFrame(frameId)
     }
   }, [isPlaying, tickPlayback])
-
-  useEffect(() => {
-    if (airState.granularity !== airGranularity) return
-    setAirTimeline(airMapDataset, airGranularity)
-  }, [airGranularity, airMapDataset, airState.granularity, setAirTimeline])
-
-  useEffect(() => {
-    if (!airIsPlaying) return
-
-    let previousTime = performance.now()
-    let frameId = 0
-    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    let reducedMotionAccumulator = 0
-
-    const step = (now: number) => {
-      const elapsedSeconds = (now - previousTime) / 1000
-      previousTime = now
-
-      if (reduceMotion) {
-        reducedMotionAccumulator += elapsedSeconds
-        if (reducedMotionAccumulator >= 0.35) {
-          tickAirPlayback(reducedMotionAccumulator)
-          reducedMotionAccumulator = 0
-        }
-      } else {
-        tickAirPlayback(elapsedSeconds)
-      }
-
-      frameId = window.requestAnimationFrame(step)
-    }
-
-    frameId = window.requestAnimationFrame(step)
-
-    return () => {
-      window.cancelAnimationFrame(frameId)
-    }
-  }, [airIsPlaying, tickAirPlayback])
 
   const minDateTimestamp = isoToTimestamp(minDateIso)
   const maxDateTimestamp = isoToTimestamp(maxDateIso)
@@ -317,36 +255,35 @@ function App() {
     [trafficBorough, trafficDayType, trafficForMonth],
   )
 
+  /**
+   * The option lists a control offers, including the value it is currently set to.
+   *
+   * Cross-filtering can rule out the selected value: a borough carried on a shared link may not be
+   * published for the month the link opens on. When it is ruled out the control falls back to its
+   * "all" option and reads as if nothing were filtered, while the filter is still applied and the
+   * figures below it are still narrowed. Carrying the applied value keeps the control honest about
+   * the state it is in.
+   */
+  const withAppliedValue = <T extends string>(options: T[], applied: T | null): T[] => {
+    if (!applied || options.includes(applied)) return options
+    return [...options, applied].sort((left, right) => left.localeCompare(right))
+  }
+
+  const trafficBoroughSelectOptions = withAppliedValue(trafficBoroughOptions, trafficBorough)
+  const trafficDayTypeSelectOptions = withAppliedValue(trafficDayTypeOptions, trafficDayType)
+  const trafficTimeBandSelectOptions = withAppliedValue(trafficTimeBandOptions, trafficTimeBand)
+
   const trafficFeatures = useMemo(
     () => (trafficSelected.length > 0 ? toTrafficFeatureCollection(trafficSelected) : null),
     [trafficSelected],
   )
 
-  const combinedFeatures = useMemo(() => {
-    const points = monthlyFeatures(visibleLocations, selectedLocationId)
-    if (comparisonSelection.layers.includes('dot') && trafficFeatures) points.features.unshift(...trafficFeatures.features)
-    return points
-  }, [visibleLocations, selectedLocationId, comparisonSelection.layers, trafficFeatures])
-
-  const airSelectedStation = airMapDataset?.daily.stations.find((station) => station.id === airSelectedSiteId) ?? null
-  const airReleaseFocus = airSelectedStation ? { id: airSelectedStation.id, coordinates: airSelectedStation.coordinates } : null
-  const airDisplayTimestamp = useMemo(() => {
-    if (airSteps.length > 0) return airTimestamp
-    if (!airMapDataset) return 0
-    if (airGranularity === 'daily') {
-      const timestamp = Date.parse(`${airMapDataset.daily.minDate}T00:00:00Z`)
-      return Number.isFinite(timestamp) ? timestamp : 0
-    }
-    return airMapDataset.hourly?.minTimestamp ?? 0
-  }, [airGranularity, airMapDataset, airSteps, airTimestamp])
-  const airFeatures = useMemo(
-    () => buildAirMapPoints(airMapDataset, airGranularity, airDisplayTimestamp, {
-      borough: airBorough,
-      siteFilter: airSiteFilter,
-      selectedSiteId: airSelectedSiteId,
-    }),
-    [airBorough, airGranularity, airSelectedSiteId, airSiteFilter, airMapDataset, airDisplayTimestamp],
+  const crossingsData = crossingsState.status === 'ready' ? crossingsState.data : null
+  const crossingsBounds = useMemo(
+    () => (crossingsData ? crossingsDateBounds(crossingsData) : null),
+    [crossingsData],
   )
+  const crossingsRange = crossingsRangeOverride ?? crossingsBounds
 
   // Keep the address bar in step with the selected view so the current state is shareable.
   useEffect(() => {
@@ -360,16 +297,16 @@ function App() {
       borough: trafficBorough,
       dayType: trafficDayType,
       timeBand: trafficTimeBand,
-      crossingsStart: null,
-      crossingsEnd: null,
-      comparisonSelection,
+      crossingsStart: crossingsRange?.start ?? null,
+      crossingsEnd: crossingsRange?.end ?? null,
       build: BUILD_ID,
       map: mapPreference,
     })
 
     window.history.replaceState(null, '', `${window.location.pathname}${query}`)
   }, [
-    comparisonSelection,
+    crossingsRange?.end,
+    crossingsRange?.start,
     currentDateIso,
     mapPreference,
     mode,
@@ -396,33 +333,29 @@ function App() {
 
   const unavailableReason = getModuleUnavailableReason(releaseState, mode)
 
+  /**
+   * An asset state seen through the release it belongs to.
+   *
+   * With no usable release, every asset path is null and the state reads `unavailable`, which a
+   * module would report as "this release does not publish that asset". That names the wrong cause:
+   * there is no release to publish anything. Only a release that actually loaded can be described
+   * as not publishing an asset, so the failure is reported as the release failure it is.
+   */
+  const moduleAssetState = <T,>(assetState: ReleaseAssetState<T>): ReleaseAssetState<T> =>
+    release === null && assetState.status === 'unavailable'
+      ? { status: 'error', reason: unavailableReason }
+      : assetState
+  const measuredAirMode = mode === 'AIR' && hasAirMeasurements
+
   const renderModule = () => {
     if (mode === 'SOURCES') {
       return <SourcesPanel state={releaseState} />
     }
 
-    if (mode === 'CRZ') {
-      return <CrzModule state={crzState} release={release} />
-    }
-
-    if (mode === 'HOTSPOTS' && isDevSynthetic && syntheticHotspots) {
+    if (mode === 'TRAFFIC') {
       return (
-        <section className="hotspot-stack" aria-label="Synthetic development hotspot panels">
-          <HotspotDrawer
-            hotspots={syntheticHotspots}
-            selectedId={activeHotspotId}
-            onSelect={setSelectedHotspotId}
-          />
-          <HotspotDetailPanel hotspot={selectedHotspot} />
-        </section>
-      )
-    }
-
-    if (mode === 'TRAFFIC' || mode === 'CROSSINGS' || mode === 'HOTSPOTS') {
-      return <>
-        <ComparisonModule mode={mode} selection={comparisonSelection} onChange={setComparisonSelection} locations={locations} selectedId={selectedLocationId} onSelect={setSelectedLocationId} crz={monthlyCrzState} mta={crossingsState} release={release} />
-        {comparisonSelection.layers.includes('dot') && <TrafficModule
-          state={trafficState}
+        <TrafficModule
+          state={moduleAssetState(trafficState)}
           release={release}
           month={trafficMonth}
           monthOptions={trafficMonths}
@@ -437,36 +370,42 @@ function App() {
           onDayTypeChange={setTrafficDayType}
           timeBand={trafficTimeBand}
           onTimeBandChange={setTrafficTimeBand}
-          boroughOptions={trafficBoroughOptions}
-          dayTypeOptions={trafficDayTypeOptions}
-          timeBandOptions={trafficTimeBandOptions}
+          boroughOptions={trafficBoroughSelectOptions}
+          dayTypeOptions={trafficDayTypeSelectOptions}
+          timeBandOptions={trafficTimeBandSelectOptions}
           monthTotal={trafficForMonth.length}
           observations={trafficSelected}
-        />}
-      </>
+        />
+      )
+    }
+
+    if (mode === 'CROSSINGS') {
+      return (
+        <CrossingsModule
+          state={moduleAssetState(crossingsState)}
+          release={release}
+          start={crossingsRange?.start ?? ''}
+          end={crossingsRange?.end ?? ''}
+          onRangeChange={(start, end) => setCrossingsRangeOverride({ start, end })}
+        />
+      )
     }
 
     if (mode === 'AIR') {
-      return (
-        <AirModule
-          state={airState}
-          granularity={airGranularity}
-          onGranularityChange={setAirGranularity}
-          timestamp={airDisplayTimestamp}
-          selectedSiteId={airSelectedSiteId}
-          onSelectSite={setAirSelectedSiteId}
-          borough={airBorough}
-          onBoroughChange={setAirBorough}
-          siteFilter={airSiteFilter}
-          onSiteFilterChange={setAirSiteFilter}
-          boundaryVisible={airBoundaryVisible}
-          onBoundaryChange={setAirBoundaryVisible}
-          comparisonOpen={airComparisonOpen}
-          onComparisonChange={setAirComparisonOpen}
-          includePartial={airIncludePartial}
-          onIncludePartialChange={setAirIncludePartial}
-        />
-      )
+      if (hasAirMeasurements) return measuredAir.module
+      return <AirContextModule
+            airState={moduleAssetState(airState)}
+            healthState={moduleAssetState(healthState)}
+            release={release}
+          />
+    }
+
+    if (mode === 'EQUITY') {
+      return <EquityContextModule state={moduleAssetState(equityState)} release={release} />
+    }
+
+    if (mode === 'CRZ') {
+      return <CrzModule state={moduleAssetState(crzState)} release={release} />
     }
 
     if (mode === 'STORY') {
@@ -487,7 +426,20 @@ function App() {
     }
 
     if (mode === 'CONFIDENCE') {
-      return <ConfidencePanel summary={confidenceSummary} />
+      if (!DevConfidencePanel) return null
+      return <DevConfidencePanel summary={confidenceSummary} />
+    }
+
+    if (mode === 'HOTSPOTS') {
+      if (!DevHotspotStack) return null
+      return (
+        <DevHotspotStack
+          hotspots={syntheticHotspots}
+          selectedId={activeHotspotId}
+          selectedHotspot={selectedHotspot}
+          onSelect={setSelectedHotspotId}
+        />
+      )
     }
 
     return <ModuleUnavailable moduleName={MODULE_TITLES[mode] ?? mode} reason={unavailableReason} />
@@ -563,7 +515,7 @@ function App() {
         )}
       </nav>
 
-      <DataRibbon state={releaseState} syntheticHotspots={mode === 'AIR' ? null : syntheticHotspots} latestCoverage={monthlyCrzState.status === 'ready' && crossingsState.status === 'ready' ? `CRZ ${monthlyCrzState.data.latest.month}: ${monthlyCrzState.data.latest.coverage_days.join('/')} days (${monthlyCrzState.data.latest.complete ? 'complete' : 'partial'}); MTA ${crossingsState.data.latest.month}: ${crossingsState.data.latest.coverage_days.join('/')} days (${crossingsState.data.latest.complete ? 'complete' : 'partial'})` : undefined} />
+      <DataRibbon state={releaseState} syntheticHotspots={syntheticHotspots} />
 
       {isDevSynthetic && compareMode === 'on' && mode !== 'SOURCES' && mode !== 'AIR' && (
         <section className="compare-mode-switch" aria-label="Synthetic development render mode">
@@ -610,10 +562,10 @@ function App() {
             )}
           >
             <MapShell
-              boundary={mode === 'AIR' ? (airBoundaryVisible ? boundaryState.boundary : null) : (comparisonSelection.layers.includes('boundary') ? boundaryState.boundary : null)}
-              releaseTraffic={mode === 'AIR' ? airFeatures : combinedFeatures}
-              releaseFocus={monthlyMode ? releaseFocus : airReleaseFocus}
-              onReleaseSelect={handleReleaseSelect}
+              boundary={measuredAirMode ? (measuredAir.boundaryVisible ? boundaryState.boundary : null) : boundaryState.boundary}
+              releaseTraffic={measuredAirMode ? measuredAir.features : trafficFeatures}
+              releaseFocus={measuredAirMode ? measuredAir.releaseFocus : null}
+              onReleaseSelect={measuredAirMode ? measuredAir.onReleaseSelect : undefined}
               mapPreference={mapPreference}
               syntheticDataset={devSynthetic}
               currentDateIso={currentDateIso}
@@ -627,7 +579,7 @@ function App() {
           </Suspense>
           <div className="map-vignette" aria-hidden="true" />
 
-          {canRenderTimeline && !monthlyMode && mode !== 'STORY' && mode !== 'SOURCES' && mode !== 'AIR' && (
+          {canRenderTimeline && !measuredAirMode && mode !== 'STORY' && mode !== 'SOURCES' && (
             <footer className="timeline-shell">
               <button
                 className="play-button"
@@ -660,32 +612,7 @@ function App() {
               <p className="date-label" aria-live="polite">{formatDateLong(currentDateIso)}</p>
             </footer>
           )}
-          {mode === 'AIR' && (
-            <AirTimeline
-              granularity={airGranularity}
-              steps={airSteps}
-              timestamp={airDisplayTimestamp}
-              isPlaying={airIsPlaying}
-              playbackRate={airPlaybackRate}
-              loop={airLoop}
-              scrubbing={airScrubbing}
-              onPlay={toggleAirPlayback}
-              onRestart={() => setAirTimestamp(airSteps[0] ?? airDisplayTimestamp)}
-              onPrevious={() => {
-                const currentIndex = airSteps.indexOf(airDisplayTimestamp)
-                setAirTimestamp(airSteps[Math.max(0, currentIndex - 1)] ?? airDisplayTimestamp)
-              }}
-              onNext={() => {
-                const currentIndex = airSteps.indexOf(airDisplayTimestamp)
-                setAirTimestamp(airSteps[Math.min(airSteps.length - 1, currentIndex + 1)] ?? airDisplayTimestamp)
-              }}
-              onRateChange={setAirPlaybackRate}
-              onLoopChange={toggleAirLoop}
-              onScrub={setAirTimestamp}
-              onScrubStart={() => setAirScrubbing(true)}
-              onScrubEnd={() => setAirScrubbing(false)}
-            />
-          )}
+          {measuredAirMode && measuredAir.timeline}
         </div>
 
         <div className={railExpanded ? 'data-rail is-expanded' : 'data-rail'}>
