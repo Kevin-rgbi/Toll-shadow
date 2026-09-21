@@ -18,6 +18,7 @@ export const RELEASE_ASSET_LABELS: Record<ReleaseAssetKind, string> = {
   crz_context: 'CRZ entry context',
   dac_context: 'disadvantaged-community context',
   historical_context: 'historical air and health context',
+  air_measurements: 'Preliminary NYCCAS PM2.5 monitor measurements',
 }
 
 /** Asset kind that backs each evidence module, or null when the module needs an approved method first. */
@@ -25,7 +26,7 @@ export const MODULE_ASSET_KIND: Record<AppMode, ReleaseAssetKind | null> = {
   STORY: null,
   TRAFFIC: 'traffic_observations',
   CROSSINGS: 'facility_crossings',
-  AIR: 'historical_context',
+  AIR: 'air_measurements',
   EQUITY: 'dac_context',
   CONFIDENCE: null,
   HOTSPOTS: null,

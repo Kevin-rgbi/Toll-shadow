@@ -1,8 +1,8 @@
 # Toll Shadow — Submission Evidence Package
 
-**Release under review:** `2026-09-16.2`
+**Release under review:** `2026-09-18.1`
 **Application:** React + TypeScript + MapLibre SPA, static-first, hosted on Firebase Hosting
-**Deployment status:** not deployed. A preview channel is gated on owner approval; production promotion requires a separate approval.
+**Deployment status:** prior production release remains `2026-09-16.2`; the `2026-09-18.1` AIR release is a locally built candidate and has not been deployed.
 
 This package exists so a reviewer can understand, run, inspect, and verify the product without undocumented context. It is written to be checkable, not persuasive: every number below is produced by a command whose output is quoted in `RELEASE_EVIDENCE.md`.
 
@@ -10,7 +10,7 @@ This package exists so a reviewer can understand, run, inspect, and verify the p
 
 Toll Shadow is an evidence explorer for New York City traffic-related observations. Release 1 publishes **descriptive** aggregates and their limits.
 
-It does **not** claim that congestion pricing caused any observed difference. It publishes no counterfactual or "expected" value, no current air-quality measurement, and no post-2025 health outcome.
+It does **not** claim that congestion pricing caused any observed difference. It publishes no counterfactual or "expected" value, no regulatory AQI claim, and no post-2025 health outcome. Preliminary NYCCAS values are observed monitor concentrations with explicit gaps and limitations.
 
 The claim boundary is enforced in code, not only in copy:
 

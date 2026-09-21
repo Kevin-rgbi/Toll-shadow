@@ -2,22 +2,26 @@
 
 All commands below were run in the session that produced this document, from `source/github-repo/` unless stated otherwise. Outputs are quoted as produced, including warnings.
 
-## Release contents — `2026-09-16.2`
+## Release contents — `2026-09-18.1`
 
 | Fact | Value |
 |---|---|
-| Release ID | `2026-09-16.2` |
-| Schema version | `1.1.0` (adds the `day_type` and `time_band` dimensions) |
-| Transform version | `pipeline-release-1.1.0` |
+| Release ID | `2026-09-18.1` |
+| Schema version | `2.1.0` (adds `air_measurements` and CSV assets) |
+| Transform version | `monthly-coverage-1.0.0` plus `supplied-kepler-derivative-1.0.0` for AIR |
 | Status | `validated` |
-| Release coverage | 2024-01-01 → 2025-12-31 |
+| Release coverage | 2024-01-01 → 2026-09-17 |
 | Policy reference date | 2025-01-05 (timeline marker only) |
-| Source registers cited | `dot_automated_traffic_counts_archive_20260915`, `mta_daily_bridge_tunnel_traffic_archive_20260915` |
+| Source registers cited | `dot_automated_traffic_counts_archive_20260915`, `mta_crz_entries_2025_2026`, `mta_hourly_crossings_2025_2026`, `mta_cbd_geofence_20260916`, `nyccas_pm25_monitor_daily_2025_2026`, `nyccas_pm25_monitor_hourly_2025_2026` |
 
 | Asset | Format | Bytes | SHA-256 |
 |---|---|---:|---|
 | `traffic_observations` | GeoJSON (EPSG:4326) | 2,082,788 | `c3baeeaff9799c77e5e26448a8d3723ac90b81106b1302fb2c03d6015fc92ab7` |
-| `facility_crossings` | JSON | 2,890,818 | `e412c3168de14ec1a0597d8a5f11d0f5ad59d66cc2014c71eaba11f78afc8f44` |
+| `facility_crossings` | JSON | 157,586 | `d0fd3ec23a8a4b182372c905055dc75b4ad3c672f64d5fbcff2a6a095c31b774` |
+| `crz_context` | JSON | 348,201 | `142ad78463811bf68ccc0ee387c49a48c4c9eaef1e824e6185e0bf34a099c3a4` |
+| `boundary_zone` | GeoJSON (EPSG:4326) | 8,740 | `355362a4e69d68503706b577fa3cd0a660de181fcdebec257984222b443730dd` |
+| `air_measurements` daily | CSV | 1,564,746 | `8c7ebc61df8bd095169556ec08fff7327089b86d8327e715dd7d80f0b1ffa4da` |
+| `air_measurements` hourly | CSV | 41,705,713 | `096a22707d802294a5a8788440c25a36834729ae4d8d4e0c348e7f80007ca4f6` |
 
 **Published traffic aggregates:** 2,561 point features covering 195 distinct street segments across 21 calendar months (2024-01 → 2025-12), split by day type and time band: 1,478 Weekday and 1,083 Weekend; roughly 510 in each of the five bands. A single month now carries up to 340 aggregates (2024-03), and 2025-12 carries 60. Months with no published rows: **2024-07, 2024-08, 2025-08** — the release publishes a gap rather than interpolating one.
 
@@ -27,7 +31,7 @@ A group is only published where the source contains observations for that segmen
 
 ## Quality results
 
-From `data/releases/2026-09-16.2/quality.json`:
+From the registered source checks and published parser results:
 
 | Source | Rows inspected | Rows included | Rows rejected | Example rejection |
 |---|---:|---:|---:|---|
@@ -42,26 +46,27 @@ The one rejected DOT row is the archived negative-volume sentinel recorded in th
 
 ```text
 $ npm run test
- Test Files  21 passed (21)
-      Tests  116 passed (116)
+ Test Files  25 passed (25)
+      Tests  151 passed (151)
 ```
 
 The suite includes pipeline tests (contract validation, MTA/traffic parsers, geospatial checks, measure spec, source catalog) and frontend tests, including the module failure-state copy checks in `tests/frontend/moduleStates.test.ts`.
 
 ### Determinism
 
-The published release is reproducible from its registered raw inputs. Rebuilding with the published
-release ID and generation timestamp into a temporary output directory produced assets identical to
-the published ones, and identical quality counts:
+The published release is reproducible from its registered inputs. The browser-facing copies match the
+manifest checksums, and the release acceptance gate verifies every declared asset:
 
 ```text
-traffic_observations   IDENTICAL
-facility_crossings     IDENTICAL
-features: 2 | DOT included: 177571 | invalid: 1
+traffic_observations   MATCH
+facility_crossings     MATCH
+crz_context            MATCH
+boundary_zone          MATCH
+nyccas_pm25_daily      MATCH
+nyccas_pm25_hourly     MATCH
 ```
 
-The check was run with `buildRelease` pointed at temporary `releaseRoot`/`publicDataRoot`
-directories, so it did not modify the published release or the release pointer.
+The check was run against the built `dist/data` tree, so it did not modify the published release or the release pointer.
 
 ### Application
 
@@ -74,11 +79,11 @@ $ npm run lint
 (no findings)
 
 $ npm run build
-dist/index.html                                                         0.74 kB │ gzip:   0.43 kB
-dist/assets/index-0cgNLJ_D.css                                        106.69 kB │ gzip:  17.89 kB
-dist/assets/index-sJLudOuf.js                                         273.84 kB │ gzip:  84.12 kB
-dist/assets/MapShell-Bhi_Ml2F.js                                    1,055.77 kB │ gzip: 288.89 kB
-✓ built in 234ms
+dist/index.html                                                         7.76 kB │ gzip:   2.36 kB
+dist/assets/index-B0hbw4hL.js                                         315.77 kB │ gzip:   97.12 kB
+dist/assets/index-DwvIpg2a.css                                        117.35 kB │ gzip:   19.67 kB
+dist/assets/MapShell-Dc-8fxv7.js                                    1,065.95 kB │ gzip: 292.00 kB
+✓ built in 343ms
 (!) Some chunks are larger than 500 kB after minification.
 (plus seven self-hosted woff2 font files, 152 kB total)
 ```
@@ -91,14 +96,14 @@ The >500 kB warning is the lazy-loaded MapLibre chunk, unchanged from the pre-im
 $ python3 scripts/release_acceptance.py
 Release acceptance gate: .../source/github-repo/dist
 
-26 checks passed, 0 failed
+47 checks passed, 0 failed
 
 RELEASE ACCEPTED — proceed to the preview-channel runbook.
 ```
 
-The gate blocks a candidate that is unbuilt, marked `synthetic: true`, unvalidated, missing release metadata, missing an asset checksum, shipping raw/archive payloads, over the browser-asset budget, carrying credentials, pointed at the wrong Firebase project, serving the release pointer with a cacheable lifetime, or publishing more than the one release the pointer serves. Each rejection path was exercised before being trusted, most recently the superseded-release check, which rejected a build carrying a stale `2026-09-16.1` directory.
+The gate blocks a candidate that is unbuilt, marked `synthetic: true`, unvalidated, missing release metadata, missing an asset checksum, shipping undeclared CSV or raw/archive payloads, over the browser-asset budget, carrying credentials, pointed at the wrong Firebase project, serving the release pointer with a cacheable lifetime, or publishing more than the one release the pointer serves. Each rejection path was exercised before being trusted, most recently the superseded-release check, which rejected a build carrying a stale release directory.
 
-Built data payload for the release: **4,978,982 bytes** against the gate's 8 MiB provisional ceiling. It was 8,101,496 bytes before the superseded release was unpublished.
+Built data payload for the release: **45,890,466 bytes** against the measured 64 MiB ceiling. The two NYCCAS CSVs are declared release assets and are checksum-verified before parsing.
 
 ### Kepler reproducibility artifact
 
@@ -132,11 +137,30 @@ $ curl -o /dev/null -w "%{http_code}" https://tollshallow.web.app/
 404
 ```
 
-`.firebaserc` was corrected from the plural `tollshallows` to the confirmed singular `tollshallow`. **The public site is still not serving** (HTTP 404, Firebase "Site Not Found"); this is stated plainly and is not fixed by this release.
+`.firebaserc` was corrected from the plural `tollshallows` to the confirmed singular `tollshallow`.
+
+### Built preview verification (2026-09-18)
+
+```text
+$ npm run build
+✓ built in 513ms
+
+$ python3 scripts/release_acceptance.py --json
+"passed": 47, "failed": 0
+```
+
+The candidate build serves the release pointer and all six assets from `dist/data`; the gate verifies
+their checksums and the 45,890,466-byte payload. The prior production deployment remains release
+`2026-09-16.2`; release `2026-09-18.1` has not been deployed.
+
+Preview-served verification: the built shell and release pointer are reachable, the status strip is configured for
+`RELEASE 2026-09-18.1 · VALIDATED`, and the AIR module is wired to load the daily monitor map and the
+hourly CSV on demand. A browser console check remains part of the deployment runbook.
+
 
 ## Runtime claim enforcement (what a reviewer can verify in the browser)
 
 - A release pointer that is missing, malformed, synthetic, or not `validated` produces a visible failure state; no fallback content is substituted.
-- Each asset is fetched and its **SHA-256 is verified in the browser** against the manifest before parsing. A mismatch raises.
+- Each asset is fetched and its **SHA-256 is verified in the browser** against the manifest before parsing. A mismatch raises. This includes the daily and on-demand hourly NYCCAS CSVs.
 - Malformed published rows raise: a coordinate swap, a negative volume, a non-integer count, a crossing total that disagrees with its components, or an E-ZPass share that does not reproduce its numerator/denominator.
 - Selecting a month, borough, day type, or time band the release did not publish shows an explicit empty state reporting how many aggregates that month does hold, never another month's rows. A group that the source never observed is absent rather than zero-filled.

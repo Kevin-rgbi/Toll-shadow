@@ -6,7 +6,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { buildRelease } from '../src/release.mjs';
 
 const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-const workspaceRoot = path.resolve(repositoryRoot, '../..');
+const workspaceRoot = repositoryRoot;
 const fixture = (name) => path.join(path.dirname(fileURLToPath(import.meta.url)), 'fixtures', name);
 const temporaryDirectories = [];
 

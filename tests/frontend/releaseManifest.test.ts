@@ -113,6 +113,80 @@ describe('parseReleaseManifest', () => {
     expect(() => parseReleaseManifest(empty)).toThrow(/MANIFEST_MALFORMED/)
   })
 
+  it('accepts a checksum-declared CSV measurement asset', () => {
+    const manifest = validManifest()
+    manifest.assets.push({
+      kind: 'air_measurements',
+      path: '/data/releases/2026-09-18.1/nyccas_pm25_daily.csv',
+      format: 'csv',
+      sha256: sha,
+      coverage: { start: '2025-01-01', end: '2026-09-17' },
+      grain: 'daily site-level PM2.5 mean',
+      source_ids: ['nyccas_pm25_monitor_daily_2025_2026'],
+      transform_version: 'supplied-kepler-derivative-1.0.0',
+      status: 'validated',
+      limitations: ['Observed concentrations; not a causal estimate of congestion-pricing effects.'],
+    })
+
+    expect(parseReleaseManifest(manifest).assets.at(-1)?.format).toBe('csv')
+    expect(getReleaseAssets(parseReleaseManifest(manifest), 'air_measurements')).toHaveLength(1)
+  })
+
+  it('accepts a checksum-declared CSV measurement asset', () => {
+    const manifest = validManifest()
+    manifest.assets.push({
+      kind: 'air_measurements',
+      path: '/data/releases/2026-09-18.1/nyccas_pm25_daily.csv',
+      format: 'csv',
+      sha256: sha,
+      coverage: { start: '2025-01-01', end: '2026-09-17' },
+      grain: 'daily site-level PM2.5 mean',
+      source_ids: ['nyccas_pm25_monitor_daily_2025_2026'],
+      transform_version: 'supplied-kepler-derivative-1.0.0',
+      status: 'validated',
+      limitations: ['Observed concentrations; not a causal estimate of congestion-pricing effects.'],
+    })
+
+    expect(parseReleaseManifest(manifest).assets.at(-1)?.format).toBe('csv')
+    expect(getReleaseAssets(parseReleaseManifest(manifest), 'air_measurements')).toHaveLength(1)
+  })
+
+  it('rejects a CSV path whose extension does not match its declared format', () => {
+    const manifest = validManifest()
+    manifest.assets.push({
+      kind: 'air_measurements',
+      path: '/data/releases/2026-09-18.1/nyccas_pm25_daily.json',
+      format: 'csv',
+      sha256: sha,
+      coverage: { start: '2025-01-01', end: '2026-09-17' },
+      grain: 'daily site-level PM2.5 mean',
+      source_ids: ['nyccas_pm25_monitor_daily_2025_2026'],
+      transform_version: 'supplied-kepler-derivative-1.0.0',
+      status: 'validated',
+      limitations: ['Observed concentrations; not a causal estimate of congestion-pricing effects.'],
+    })
+
+    expect(() => parseReleaseManifest(manifest)).toThrow(/extension/)
+  })
+
+  it('rejects a CSV asset outside air measurements', () => {
+    const manifest = validManifest()
+    manifest.assets.push({
+      kind: 'traffic_observations',
+      path: '/data/releases/2026-09-18.1/traffic.csv',
+      format: 'csv',
+      sha256: sha,
+      coverage: { start: '2025-01-01', end: '2026-09-17' },
+      grain: 'traffic rows',
+      source_ids: ['nyc-open-data-7ym2-wayt'],
+      transform_version: 'pipeline@0.1.0',
+      status: 'validated',
+      limitations: ['Observed counts only.'],
+    })
+
+    expect(() => parseReleaseManifest(manifest)).toThrow(/air_measurements/)
+  })
+
   it('rejects a bad checksum', () => {
     const badSha = validManifest()
     badSha.assets[0].sha256 = 'not-a-sha256'

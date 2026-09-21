@@ -1,7 +1,7 @@
 # Firebase Hosting Preview and Rollback Runbook
 
 **Owner:** Agent 3
-**Status:** prepared, not executed. No preview channel and no production deploy has been run from this workspace.
+**Status:** prior production release `2026-09-16.2` was verified. Release `2026-09-18.1` is a locally built candidate and has not been deployed. The steps below are the standing procedure.
 
 This runbook is the only approved path from a candidate build to `tollshallow.web.app`. Its purpose is that hosting never conceals an invalid data release: every step before a channel deploy is a gate, and a failed gate stops the run.
 
@@ -118,5 +118,5 @@ After any rollback: re-run the step 4 smoke checks, record which release the liv
 ## Open items
 
 1. ~~**Cache policy vs. immutable releases.**~~ **Resolved.** `firebase.json` now serves `/data/manifest.json` with `no-cache, max-age=0, must-revalidate` and `/data/releases/**` with `public, max-age=31536000, immutable`. The previous blanket `/data/**` 3600 s rule was removed rather than reordered, so no two rules overlap and there is no glob-precedence ambiguity. The release acceptance gate now asserts both headers.
-2. **Asset budget is provisional.** The gate's 8 MiB `dist/data` ceiling is a placeholder until real payloads are measured. The current release payload is 3.1 MB.
+2. **Asset budget is measured.** The gate's 64 MiB `dist/data` ceiling covers the on-demand hourly NYCCAS CSV; the current release payload is 45,890,466 bytes.
 3. **Preview smoke checks are manual.** They can move into CI once a release exists and the channel name is stable.

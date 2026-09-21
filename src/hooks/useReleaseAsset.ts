@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { getReleaseAssets, ReleaseManifestError } from '../lib/releaseManifest'
+import { verifySha256 } from '../lib/checksum'
 import type { ReleaseAssetKind, ReleaseManifest } from '../lib/releaseManifest'
 
 /**
@@ -21,34 +22,6 @@ export type ReleaseAssetState<T> =
   | { status: 'error', reason: string }
 
 type Parser<T> = (input: unknown, assetLabel: string) => T
-
-const toHex = (buffer: ArrayBuffer): string => {
-  return [...new Uint8Array(buffer)].map((byte) => byte.toString(16).padStart(2, '0')).join('')
-}
-
-/**
- * Verify fetched bytes against the manifest's declared checksum.
- *
- * A mismatch means the browser received different bytes than the release manifest describes, which
- * is exactly the class of defect a checksum exists to catch. `crypto.subtle` is undefined outside
- * a secure context, and in that case verification is refused rather than skipped.
- */
-const verifySha256 = async (buffer: ArrayBuffer, expected: string, assetLabel: string): Promise<void> => {
-  if (!globalThis.crypto?.subtle) {
-    throw new ReleaseManifestError(
-      'ASSET_MALFORMED',
-      `${assetLabel}: cannot verify the declared checksum outside a secure context`,
-    )
-  }
-
-  const actual = toHex(await globalThis.crypto.subtle.digest('SHA-256', buffer))
-  if (actual !== expected) {
-    throw new ReleaseManifestError(
-      'ASSET_MALFORMED',
-      `${assetLabel}: checksum mismatch (manifest ${expected}, received ${actual})`,
-    )
-  }
-}
 
 export function useReleaseAsset<T>(
   release: ReleaseManifest | null,

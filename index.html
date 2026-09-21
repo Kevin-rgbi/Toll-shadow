@@ -2,17 +2,155 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#fcfcfb" />
+
+    <title>Toll Shadow: New York City traffic observations and their limits</title>
     <meta
       name="description"
-      content="Toll Shadow is a public explorer for New York City traffic observations around the Congestion Relief Zone: what was observed, over which window, and where the data stops."
+      content="A public explorer for New York City traffic observations around the Congestion Relief Zone: what was observed, over which window, from which source, and where the data stops."
     />
-    <title>Toll Shadow</title>
+    <link rel="canonical" href="https://tollshallow.web.app/" />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+
+    <!-- Social cards. The image is a plain title card; nothing in it is data. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Toll Shadow" />
+    <meta property="og:title" content="Toll Shadow: New York City traffic observations and their limits" />
+    <meta
+      property="og:description"
+      content="Observed measurements, their windows, and their limits. Two descriptive measures published from New York City and MTA open data, with sources and limitations attached."
+    />
+    <meta property="og:url" content="https://tollshallow.web.app/" />
+    <meta property="og:image" content="https://tollshallow.web.app/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Toll Shadow title card" />
+    <meta property="og:locale" content="en_US" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Toll Shadow: New York City traffic observations and their limits" />
+    <meta
+      name="twitter:description"
+      content="Observed measurements, their windows, and their limits. Published from New York City and MTA open data with sources and limitations attached."
+    />
+    <meta name="twitter:image" content="https://tollshallow.web.app/og.png" />
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+
+    <!--
+      Structured data. It describes the release that is actually published, including the two assets
+      and the window they cover. It carries no estimate and no causal claim.
+    -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "@id": "https://tollshallow.web.app/#website",
+            "url": "https://tollshallow.web.app/",
+            "name": "Toll Shadow",
+            "inLanguage": "en",
+            "description": "A public explorer for New York City traffic observations around the Congestion Relief Zone."
+          },
+          {
+            "@type": "Dataset",
+            "@id": "https://tollshallow.web.app/#dataset",
+            "name": "Toll Shadow Release 2026-09-18.1",
+            "description": "Descriptive aggregates of sampled NYC DOT traffic and MTA crossings plus preliminary observed NYCCAS PM2.5 monitor measurements, covering 2024-01-01 through 2026-09-17. No causal or counterfactual estimate is published.",
+            "url": "https://tollshallow.web.app/",
+            "isAccessibleForFree": true,
+            "creator": { "@type": "Organization", "name": "The Toll Shadow project" },
+            "temporalCoverage": "2024-01-01/2026-09-17",
+            "spatialCoverage": {
+              "@type": "Place",
+              "name": "New York City",
+              "geo": { "@type": "GeoShape", "box": "40.45 -74.35 40.98 -73.55" }
+            },
+            "variableMeasured": [
+              "Mean observed 15-minute traffic volume, by segment and period",
+              "E-ZPass share of daily vehicles, by toll plaza and direction",
+              "Preliminary observed daily and hourly NYCCAS PM2.5 monitor concentration"
+            ],
+            "isBasedOn": [
+              "https://data.cityofnewyork.us/Transportation/Automated-Traffic-Volume-Counts/7ym2-wayt/about_data",
+              "https://data.ny.gov/Transportation/Daily-Traffic-on-MTA-Bridges-Tunnels/fcbp-umit/about_data",
+              "https://data.cityofnewyork.us/Environment/NYCCAS-Air-Pollution-Rasters/q68s-8qxv/about_data"
+            ],
+            "distribution": [
+              {
+                "@type": "DataDownload",
+                "name": "traffic_observations",
+                "encodingFormat": "application/geo+json",
+                "contentUrl": "https://tollshallow.web.app/data/releases/2026-09-18.1/traffic_observations.geojson"
+              },
+              {
+                "@type": "DataDownload",
+                "name": "facility_crossings",
+                "encodingFormat": "application/json",
+                "contentUrl": "https://tollshallow.web.app/data/releases/2026-09-18.1/facility_crossings.json"
+              },
+              {
+                "@type": "DataDownload",
+                "name": "nyccas_pm25_daily",
+                "encodingFormat": "text/csv",
+                "contentUrl": "https://tollshallow.web.app/data/releases/2026-09-18.1/nyccas_pm25_daily.csv"
+              },
+              {
+                "@type": "DataDownload",
+                "name": "nyccas_pm25_hourly",
+                "encodingFormat": "text/csv",
+                "contentUrl": "https://tollshallow.web.app/data/releases/2026-09-18.1/nyccas_pm25_hourly.csv"
+              }
+            ]
+          }
+        ]
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
+    <noscript>
+      <div
+        style="max-width:64ch;margin:0 auto;padding:48px 20px;font-family:system-ui,sans-serif;line-height:1.6;color:#14161a;background:#fcfcfb"
+      >
+        <h1 style="font-size:2rem;line-height:1.05;margin:0 0 12px">Toll Shadow</h1>
+        <p style="margin:0 0 16px">
+          This explorer needs JavaScript for its map and filters. The published data does not: it is
+          plain static files you can fetch and read directly.
+        </p>
+        <ul style="margin:0 0 16px;padding-left:20px">
+          <li>
+            <a href="/data/manifest.json">Release manifest</a>: release ID, coverage window, asset
+            checksums, sources, and limitations.
+          </li>
+          <li>
+            <a href="/data/releases/2026-09-18.1/traffic_observations.geojson">Traffic observations</a>:
+            2,561 aggregates over 195 street segments and 21 months.
+          </li>
+          <li>
+            <a href="/data/releases/2026-09-18.1/facility_crossings.json">MTA facility crossings</a>:
+            8,352 daily rows across 10 plazas.
+          </li>
+          <li>
+            <a href="/data/releases/2026-09-18.1/nyccas_pm25_daily.csv">NYCCAS daily PM2.5 monitor measurements</a>:
+            9,375 site-day rows across 15 monitors.
+          </li>
+          <li>
+            <a href="/data/releases/2026-09-18.1/nyccas_pm25_hourly.csv">NYCCAS hourly PM2.5 monitor measurements</a>:
+            196,861 present site-hour rows; missing hours remain missing.
+          </li>
+          <li>
+            <a href="https://github.com/Kevin-rgbi/Toll-shadow">Source code and methodology</a>.
+          </li>
+        </ul>
+        <p style="margin:0;color:#5b6068">
+          Descriptive measurements and preliminary observed monitor concentrations only. No causal, counterfactual, regulatory AQI, or health claim is published.
+        </p>
+      </div>
+    </noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

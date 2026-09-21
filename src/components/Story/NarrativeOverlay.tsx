@@ -26,7 +26,7 @@ const narrativeChapter = (progressPercent: number): { title: string, copy: strin
 
   return {
     title: 'Close on the limits: what this release cannot answer.',
-    copy: 'Historical air and health context is context only, CRZ coordinates are approximate points, and no causal policy effect is claimed.',
+    copy: 'Historical air and health context is context only; the preliminary NYCCAS monitor values are observed concentrations, not causal estimates. CRZ coordinates are approximate points, and no causal policy effect is claimed.',
   }
 }
 

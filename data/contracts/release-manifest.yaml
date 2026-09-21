@@ -11,7 +11,8 @@ required_fields:
   - coverage
   - limitations
   - assets
-allowed_asset_kinds: [boundary_zone, traffic_observations, facility_crossings, crz_context, dac_context, historical_context]
+allowed_asset_kinds: [boundary_zone, traffic_observations, facility_crossings, crz_context, dac_context, historical_context, air_measurements]
+allowed_asset_formats: [json, geojson, csv]
 asset_required_fields:
   - kind
   - path
@@ -30,6 +31,8 @@ manifest_optional_fields:
   - policy_reference_date
 rules:
   - asset paths must be relative, URL-safe, and cannot reference raw or demo data
+  - asset path extensions must match the declared format
+  - CSV assets are limited to air_measurements and must be checksum-declared
   - spatial browser assets must declare EPSG:4326
   - each asset kind is source-specific and may not silently merge unrelated measures
   - policy_reference_date is release metadata, never a frontend constant

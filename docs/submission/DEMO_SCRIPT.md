@@ -11,7 +11,7 @@ npm run preview      # serves the built release bundle
 
 ## 1. The product states its boundary before showing data
 
-Open `/`. The landing story view names the release window (`NYC · 2024-01-01 → 2025-12-31`) and the status strip reads `RELEASE 2026-09-16.2 · VALIDATED`. The summary ribbon reports the release ID, coverage window, published asset count, and source-register count — release facts, not modelled metrics.
+Open `/`. The landing story view names the release window (`NYC · 2024-01-01 → 2026-09-17`) and the status strip reads `RELEASE 2026-09-18.1 · VALIDATED`. The summary ribbon reports the release ID, coverage window, published asset count, and source-register count — release facts, not modelled metrics.
 
 Open **METHODS** for the claim guardrail and the release limitations.
 
@@ -49,11 +49,19 @@ Open **CROSSINGS**. This module reads `facility_crossings`, not the traffic asse
 
 Share either URL: both restore module, timeline date, and filters on load.
 
-## 4. Sources — the whole release in one place
+## 4. AIR — observed monitor concentrations, not a causal estimate
+
+Open **AIR**. The module labels the data `Preliminary NYCCAS PM2.5 monitor measurements` and states
+`Observed concentrations; not a causal estimate of congestion-pricing effects.` The daily map loads
+from the release manifest, preserves missing and insufficient-coverage monitors, and supports daily
+playback. Switch to **Hourly** to fetch the larger CSV on demand; missing hours remain missing and no
+prior reading is carried forward.
+
+## 5. Sources — the whole release in one place
 
 Open **SOURCES**. The panel lists the release ID, contract version, coverage, transform version, the source registers cited, every published asset with its grain/coverage/format/CRS/checksum, each asset's limitations, and the release-level limitations.
 
-## 5. Failure behaviour (the part that matters most)
+## 6. Failure behaviour (the part that matters most)
 
 With the built preview running, confirm the honest failure paths:
 
@@ -63,24 +71,21 @@ With the built preview running, confirm the honest failure paths:
 # "NO VALIDATED RELEASE PUBLISHED" and renders no module content.
 ```
 
-A tampered asset is also refused: change one byte in `dist/data/releases/2026-09-16.2/traffic_observations.geojson` and reload the TRAFFIC module. The browser-side checksum verification fails and the module reports the mismatch instead of drawing a subset of the data.
+A tampered asset is also refused: change one byte in `dist/data/releases/2026-09-18.1/nyccas_pm25_daily.csv` and reload the AIR module. The browser-side checksum verification fails and the module reports the mismatch instead of drawing a subset of the data.
 
 Restore both files (or rebuild) afterwards.
 
-## 6. Reproducing the release
+## 7. Reproducing the release
 
 ```bash
 cd source/github-repo
-python3 scripts/release_acceptance.py        # 26 checks, 0 failed
+python3 scripts/release_acceptance.py        # 47 checks, 0 failed
 ```
 
-The release itself is rebuilt from registered raw inputs by the pipeline builder, which requires an
-explicit release ID and generation timestamp:
+The release itself is rebuilt from registered inputs by the monthly release builder:
 
 ```bash
-node pipeline/scripts/build-release.mjs \
-  --release-id 2026-09-16.2 \
-  --generated-at 2026-09-16T02:19:51.000Z
+node pipeline/scripts/build-monthly-release.mjs
 ```
 
 This rewrites `public/data/manifest.json` and `data/releases/<id>/`. Running it with the published

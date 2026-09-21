@@ -2,19 +2,20 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import * as maplibregl from 'maplibre-gl'
 import type { FeatureCollection } from 'geojson'
 import { RasterMap } from './RasterMap'
-import { hasWebGL2Support } from '../../lib/mapPreference'
+import { MAPLIBRE_WORKER_URL } from '../../lib/buildInfo'
+import { resolveRenderer } from '../../lib/mapPreference'
 import type { MapPreference } from '../../lib/mapPreference'
 import { getInterpolatedEffectsForDate } from '../../lib/devSyntheticDataset'
 import type { DevSyntheticDataset } from '../../lib/devSyntheticDataset'
 import {
-  MAP_FALLBACK_MESSAGE,
+  GPU_RENDER_WATCHDOG_MS,
+  MAP_CONTEXT_LOST_MESSAGE,
+  MAP_NO_TILES_MESSAGE,
   MAP_START_FAILURE_PREFIX,
-  SOFTWARE_MAP_OPT_IN_MESSAGE,
   NYC_BASEMAP_STYLE,
   NYC_BOUNDS,
   NYC_CENTER,
   NYC_REFERENCE_LABELS,
-  focusOffsetForMode,
 } from './mapConfig'
 import {
   blendColor,
@@ -27,6 +28,7 @@ import {
   timelineStrength,
   toRgba,
 } from './mapOverlay'
+import { AIR_UNITS } from '../../features/air/airData'
 import type { EffectiveRenderMode, HitTarget } from './mapOverlay'
 import type { CompareMode, CompareRenderMode, AppMode } from '../../state/appStore'
 
@@ -38,6 +40,22 @@ interface OverlayState {
   focusedHotspotKey: string | null
 }
 
+interface ReleasePointHit {
+  id: string
+  name: string
+  borough: string
+  period: string
+  pm25: number | null
+  coverage: string
+  coverageStatus: string
+  color: string
+  fill: string
+  stroke: string
+  radius: number
+  selected: boolean
+  aboveScale: boolean
+}
+
 interface MapShellProps {
   /** Published boundary geometry (EPSG:4326) from the validated release manifest, when available. */
   boundary: FeatureCollection | null
@@ -46,6 +64,8 @@ interface MapShellProps {
    * Coordinates come from the validated asset; the map never synthesizes a location.
    */
   releaseTraffic: FeatureCollection | null
+  releaseFocus?: { id: string, coordinates: [number, number] } | null
+  onReleaseSelect?: (id: string | null) => void
   /** `software` forces the WebGL-free map, `gpu` forces the attempt, null decides automatically. */
   mapPreference: MapPreference | null
   /** Synthetic prototype effects. Non-null only when the development demo flag is enabled. */
@@ -54,25 +74,44 @@ interface MapShellProps {
   activeMode: AppMode
   compareMode: CompareMode
   compareRenderMode: CompareRenderMode
-  focusedHotspotId: string | null
-  focusedHotspotKind: 'traffic' | 'monitor' | null
   dataError: boolean
 }
 
 const RELEASE_BOUNDARY_SOURCE = 'release-boundary'
 const RELEASE_TRAFFIC_SOURCE = 'release-traffic'
 
+const releasePointHitFromFeature = (feature: { properties?: Record<string, unknown> }): ReleasePointHit | null => {
+  const properties = feature.properties
+  if (!properties || typeof properties.id !== 'string') return null
+  const pm25 = typeof properties.pm25 === 'number' ? properties.pm25 : null
+  return {
+    id: properties.id,
+    name: typeof properties.name === 'string' ? properties.name : properties.id,
+    borough: typeof properties.borough === 'string' ? properties.borough : 'Borough unavailable',
+    period: typeof properties.period === 'string' ? properties.period : 'Period unavailable',
+    pm25,
+    coverage: typeof properties.coverage === 'string' ? properties.coverage : 'Coverage unavailable',
+    coverageStatus: typeof properties.coverageStatus === 'string' ? properties.coverageStatus : 'unknown',
+    color: typeof properties.color === 'string' ? properties.color : '#85898f',
+    fill: typeof properties.fill === 'string' ? properties.fill : '#fcfcfb',
+    stroke: typeof properties.stroke === 'string' ? properties.stroke : '#85898f',
+    radius: typeof properties.radius === 'number' ? properties.radius : 4,
+    selected: properties.selected === true,
+    aboveScale: properties.aboveScale === true,
+  }
+}
+
 export function MapShell({
   boundary,
   releaseTraffic,
+  releaseFocus,
+  onReleaseSelect,
   mapPreference,
   syntheticDataset,
   currentDateIso,
   activeMode,
   compareMode,
   compareRenderMode,
-  focusedHotspotId,
-  focusedHotspotKind,
   dataError,
 }: MapShellProps) {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -87,13 +126,15 @@ export function MapShell({
     focusedHotspotKey: null,
   })
   const [mapReady, setMapReady] = useState(false)
-  const [mapFallbackMessage, setMapFallbackMessage] = useState<string | null>(() => {
-    if (mapPreference === 'software') return SOFTWARE_MAP_OPT_IN_MESSAGE
-    if (mapPreference === 'gpu') return null
-    return hasWebGL2Support() ? null : MAP_FALLBACK_MESSAGE
-  })
+  // How many published points MapLibre reports as actually rendered, written straight into the map
+  // caption. "Is the data on screen?" becomes a number rather than an impression, on any machine.
+  const pointsReadoutRef = useRef<HTMLSpanElement | null>(null)
+  const [rendererDecision] = useState(() => resolveRenderer(mapPreference))
+  const [mapFallbackMessage, setMapFallbackMessage] = useState<string | null>(rendererDecision.reason)
   const [hoveredTarget, setHoveredTarget] = useState<HitTarget | null>(null)
   const [selectedTarget, setSelectedTarget] = useState<HitTarget | null>(null)
+  const [hoveredReleasePoint, setHoveredReleasePoint] = useState<ReleasePointHit | null>(null)
+  const [selectedReleasePoint, setSelectedReleasePoint] = useState<ReleasePointHit | null>(null)
   const hoveredKeyRef = useRef<string | null>(null)
   const selectedKeyRef = useRef<string | null>(null)
   const renderModeTransitionRef = useRef<{ from: EffectiveRenderMode, to: EffectiveRenderMode, progress: number }>({
@@ -118,23 +159,13 @@ export function MapShell({
   }, [])
 
   const triggerFocusIndicator = useCallback((lngLat: [number, number]) => {
-    const indicator = focusIndicatorRef.current
-    if (!indicator) return
-
     positionFocusIndicator(lngLat)
-    indicator.classList.remove('is-active')
-    // Force reflow so repeated selections can replay the animation.
-    void indicator.offsetWidth
-    indicator.classList.add('is-active')
-
-    if (focusIndicatorTimeoutRef.current !== null) {
-      window.clearTimeout(focusIndicatorTimeoutRef.current)
-    }
-
-    focusIndicatorTimeoutRef.current = window.setTimeout(() => {
+    const indicator = focusIndicatorRef.current
+    if (indicator) {
       indicator.classList.remove('is-active')
-      focusIndicatorTimeoutRef.current = null
-    }, 1400)
+      void indicator.offsetWidth
+      indicator.classList.add('is-active')
+    }
   }, [positionFocusIndicator])
 
   const drawOverlay = useCallback(() => {
@@ -173,7 +204,7 @@ export function MapShell({
     const modeTransition = renderModeTransitionRef.current
     const modeProgress = modeTransition.progress
     const showTraffic = state.activeMode !== 'AIR'
-    const showMonitors = state.activeMode !== 'TRAFFIC'
+    const showMonitors = state.activeMode !== 'TRAFFIC' && state.activeMode !== 'AIR'
 
     if (showTraffic) {
       for (const corridor of interpolatedEffects.traffic) {
@@ -320,6 +351,12 @@ export function MapShell({
 
     let map: maplibregl.Map
 
+    // Point MapLibre at this build's worker before the map is constructed. Without it the library
+    // resolves a fixed sibling path that can carry a cached failure across builds.
+    if (MAPLIBRE_WORKER_URL) {
+      maplibregl.setWorkerUrl(MAPLIBRE_WORKER_URL)
+    }
+
     try {
       map = new maplibregl.Map({
         container: containerRef.current,
@@ -342,6 +379,36 @@ export function MapShell({
     }
 
     mapRef.current = map
+
+    if (import.meta.env.DEV) {
+      // Development-only handle for inspecting sources, layers and paint at runtime. Guarded so it
+      // never reaches a production bundle.
+      ;(window as unknown as { __maplibre?: maplibregl.Map }).__maplibre = map
+    }
+
+    // A GPU map can accept a context and still paint nothing: the style loads, the map reports
+    // loaded, and the canvas stays blank. Nothing throws, so the only way to catch it is to check
+    // whether background tiles actually arrived.
+    const watchdog = window.setTimeout(() => {
+      if (mapRef.current !== map) return
+      if (!map.areTilesLoaded() || !map.isSourceLoaded('openstreetmap')) {
+        setMapFallbackMessage(MAP_NO_TILES_MESSAGE)
+      }
+    }, GPU_RENDER_WATCHDOG_MS)
+
+    const clearWatchdog = () => {
+      window.clearTimeout(watchdog)
+    }
+
+    map.once('idle', clearWatchdog)
+
+    const canvas = map.getCanvas()
+    const handleContextLost = (event: Event) => {
+      event.preventDefault()
+      clearWatchdog()
+      setMapFallbackMessage(MAP_CONTEXT_LOST_MESSAGE)
+    }
+    canvas.addEventListener('webglcontextlost', handleContextLost)
 
     const overlay = document.createElement('canvas')
     overlay.className = 'map-road-overlay'
@@ -375,6 +442,14 @@ export function MapShell({
     map.on('resize', redraw)
 
     const handlePointerMove = (event: maplibregl.MapMouseEvent) => {
+      if (activeMode === 'AIR' && map.getLayer('release-traffic-circles')) {
+        const feature = map.queryRenderedFeatures(event.point, { layers: ['release-traffic-circles'] }).find((candidate) => typeof candidate.properties?.id === 'string')
+        const hit = feature ? releasePointHitFromFeature(feature) : null
+        setHoveredReleasePoint(hit)
+        map.getCanvas().style.cursor = hit ? 'pointer' : ''
+        return
+      }
+
       const hit = findHitTarget(hitTargetsRef.current, { x: event.point.x, y: event.point.y }, 'strict')
       setHoveredTarget((current) => {
         if (current?.key === hit?.key) return current
@@ -385,10 +460,24 @@ export function MapShell({
 
     const handlePointerOut = () => {
       setHoveredTarget(null)
+      setHoveredReleasePoint(null)
       map.getCanvas().style.cursor = ''
     }
 
     const handleClick = (event: maplibregl.MapMouseEvent) => {
+      if (activeMode === 'AIR' && map.getLayer('release-traffic-circles')) {
+        const feature = map.queryRenderedFeatures(event.point, { layers: ['release-traffic-circles'] }).find((candidate) => typeof candidate.properties?.id === 'string')
+        const hit = feature ? releasePointHitFromFeature(feature) : null
+        if (!hit) {
+          setSelectedReleasePoint(null)
+          onReleaseSelect?.(null)
+          return
+        }
+        setSelectedReleasePoint((current) => current?.id === hit.id ? null : hit)
+        onReleaseSelect?.(hit.id)
+        return
+      }
+
       const hit = findHitTarget(hitTargetsRef.current, { x: event.point.x, y: event.point.y }, 'nearest')
       if (!hit) {
         setSelectedTarget(null)
@@ -411,7 +500,10 @@ export function MapShell({
       }
       if (focusIndicatorTimeoutRef.current !== null) {
         window.clearTimeout(focusIndicatorTimeoutRef.current)
+        focusIndicatorTimeoutRef.current = null
       }
+      clearWatchdog()
+      canvas.removeEventListener('webglcontextlost', handleContextLost)
       map.off('move', redraw)
       map.off('zoom', redraw)
       map.off('rotate', redraw)
@@ -425,7 +517,43 @@ export function MapShell({
       mapRef.current = null
       map.remove()
     }
-  }, [drawOverlay, mapFallbackMessage])
+  }, [activeMode, drawOverlay, mapFallbackMessage, onReleaseSelect])
+
+  /**
+   * Keep the map caption's point count honest. This runs independently of the data effect: that one
+   * returns early when it only needs to push new data into an existing source, which would otherwise
+   * drop the listeners and freeze the readout on a stale number.
+   */
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !mapReady) return
+
+    const countRendered = () => {
+      const readout = pointsReadoutRef.current
+      if (!readout) return
+      if (!map.getLayer('release-traffic-circles')) {
+        readout.textContent = activeMode === 'AIR' ? 'air layer not added' : 'traffic layer not added'
+        return
+      }
+      const drawn = map.queryRenderedFeatures({ layers: ['release-traffic-circles'] }).length
+      const loaded = map.querySourceFeatures('release-traffic').length
+      const styleState = map.isStyleLoaded() ? 'style ok' : 'style pending'
+      const sourceState = map.isSourceLoaded('release-traffic') ? 'source ok' : 'source pending'
+      readout.textContent = `${styleState}, ${sourceState} · ${drawn} of ${loaded} points in view`
+    }
+
+    map.on('sourcedata', countRendered)
+    map.on('idle', countRendered)
+    const firstFrame = window.requestAnimationFrame(countRendered)
+    const settles = [1200, 3500, 7000].map((delay) => window.setTimeout(countRendered, delay))
+
+    return () => {
+      map.off('sourcedata', countRendered)
+      map.off('idle', countRendered)
+      window.cancelAnimationFrame(firstFrame)
+      for (const timer of settles) window.clearTimeout(timer)
+    }
+  }, [activeMode, mapReady])
 
   useEffect(() => {
     const targetMode = getTargetRenderMode(compareMode, compareRenderMode)
@@ -468,63 +596,52 @@ export function MapShell({
   }, [compareMode, compareRenderMode, drawOverlay])
 
   useEffect(() => {
-    const focusedHotspotKey = focusedHotspotId && focusedHotspotKind
-      ? `${focusedHotspotKind}:${focusedHotspotId}`
-      : null
+    const map = mapRef.current
+    if (!map || !mapReady || !onReleaseSelect || activeMode === 'AIR') return
+    const select = (event: maplibregl.MapMouseEvent) => {
+      if (!map.getLayer('release-traffic-circles')) return
+      const hit = map.queryRenderedFeatures(event.point, { layers: ['release-traffic-circles'] }).find(feature => typeof feature.properties?.id === 'string')
+      if (hit) onReleaseSelect(String(hit.properties.id))
+    }
+    map.on('click', select)
+    return () => { map.off('click', select) }
+  }, [activeMode, mapReady, onReleaseSelect])
 
+  useEffect(() => {
+    const indicator = focusIndicatorRef.current
+    if (!indicator) return
+    if (!releaseFocus) {
+      lastCenteredHotspotKeyRef.current = null
+      indicator.classList.remove('is-active')
+      return
+    }
+    const { id, coordinates } = releaseFocus
+    const map = mapRef.current
+    if (!map || !mapReady) return
+    if (lastCenteredHotspotKeyRef.current === id) return
+    lastCenteredHotspotKeyRef.current = id
+    focusTargetRef.current = coordinates
+    triggerFocusIndicator(coordinates)
+    map.easeTo({ center: coordinates, zoom: Math.max(map.getZoom(), 13), duration: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 780 })
+  }, [activeMode, mapReady, releaseFocus, triggerFocusIndicator])
+
+  useEffect(() => {
+    if (!releaseFocus) {
+      focusIndicatorRef.current?.classList.remove('is-active')
+      focusTargetRef.current = null
+    }
+  }, [releaseFocus])
+
+  useEffect(() => {
     overlayStateRef.current = {
       syntheticDataset,
       currentDateIso,
       activeMode,
       compareMode,
-      focusedHotspotKey,
+      focusedHotspotKey: null,
     }
     drawOverlay()
-  }, [activeMode, compareMode, currentDateIso, drawOverlay, focusedHotspotId, focusedHotspotKind, syntheticDataset])
-
-  useEffect(() => {
-    const map = mapRef.current
-    if (!map || !mapReady || !syntheticDataset || !focusedHotspotId || !focusedHotspotKind) {
-      lastCenteredHotspotKeyRef.current = null
-      focusTargetRef.current = null
-      focusIndicatorRef.current?.classList.remove('is-active')
-      return
-    }
-
-    const hotspotKey = `${focusedHotspotKind}:${focusedHotspotId}`
-    if (lastCenteredHotspotKeyRef.current === hotspotKey) return
-
-    let center: [number, number] | null = null
-
-    if (focusedHotspotKind === 'traffic') {
-      const corridor = syntheticDataset.effects.traffic.find((item) => item.locationId === focusedHotspotId)
-      if (corridor && corridor.coordinates.length > 0) {
-        center = corridor.coordinates[Math.floor(corridor.coordinates.length / 2)]
-      }
-    }
-
-    if (focusedHotspotKind === 'monitor') {
-      const monitor = syntheticDataset.effects.monitors.find((item) => item.monitorId === focusedHotspotId)
-      if (monitor) {
-        center = monitor.coordinates
-      }
-    }
-
-    if (!center) return
-
-    focusTargetRef.current = center
-    triggerFocusIndicator(center)
-
-    const focusOffset = focusOffsetForMode(activeMode)
-
-    map.easeTo({
-      center,
-      offset: focusOffset,
-      duration: 780,
-      essential: true,
-    })
-    lastCenteredHotspotKeyRef.current = hotspotKey
-  }, [activeMode, focusedHotspotId, focusedHotspotKind, mapReady, syntheticDataset, triggerFocusIndicator])
+  }, [activeMode, compareMode, currentDateIso, drawOverlay, syntheticDataset])
 
   useEffect(() => {
     hoveredKeyRef.current = hoveredTarget?.key ?? null
@@ -565,7 +682,13 @@ export function MapShell({
     const map = mapRef.current
     if (!map || !mapReady) return
 
-    if (!boundary) return
+    if (!boundary) {
+      for (const id of ['release-boundary-line', 'release-boundary-fill']) {
+        if (map.getLayer(id)) map.removeLayer(id)
+      }
+      if (map.getSource(RELEASE_BOUNDARY_SOURCE)) map.removeSource(RELEASE_BOUNDARY_SOURCE)
+      return
+    }
 
     if (map.getSource(RELEASE_BOUNDARY_SOURCE)) {
       const source = map.getSource(RELEASE_BOUNDARY_SOURCE) as maplibregl.GeoJSONSource
@@ -608,6 +731,7 @@ export function MapShell({
     }
 
     if (!releaseTraffic) {
+      if (pointsReadoutRef.current) pointsReadoutRef.current.textContent = 'no published points in view'
       removeLayer('release-traffic-circles')
       if (map.getSource(RELEASE_TRAFFIC_SOURCE)) map.removeSource(RELEASE_TRAFFIC_SOURCE)
       return
@@ -625,23 +749,14 @@ export function MapShell({
       type: 'circle',
       source: RELEASE_TRAFFIC_SOURCE,
       paint: {
-        'circle-radius': [
-          'interpolate', ['linear'], ['get', 'meanVolume'],
-          0, 3,
-          50, 5,
-          150, 9,
-        ] as never,
-        'circle-color': [
-          'interpolate', ['linear'], ['get', 'meanVolume'],
-          0, 'rgba(31, 75, 216, 0.30)',
-          50, 'rgba(31, 75, 216, 0.68)',
-          150, '#0f2a86',
-        ] as never,
-        'circle-opacity': 0.85,
-        'circle-stroke-color': 'rgba(252, 252, 251, 0.9)',
-        'circle-stroke-width': 0.8,
+        'circle-radius': ['coalesce', ['get', 'radius'], 4] as never,
+        'circle-color': ['coalesce', ['get', 'color'], '#85898f'] as never,
+        'circle-opacity': 0.9,
+        'circle-stroke-color': ['coalesce', ['get', 'stroke'], 'rgba(252, 252, 251, 0.9)'] as never,
+        'circle-stroke-width': ['case', ['get', 'selected'], 2, ['get', 'missing'], 1.2, 0.8] as never,
       },
     })
+
   }, [mapReady, releaseTraffic])
 
   return (
@@ -650,6 +765,8 @@ export function MapShell({
         <RasterMap
           boundary={boundary}
           traffic={releaseTraffic}
+          focus={releaseFocus}
+          onSelect={onReleaseSelect}
           notice={mapFallbackMessage}
         />
       ) : (
@@ -660,13 +777,31 @@ export function MapShell({
           aria-label="Interactive map of New York City"
         />
       )}
+      {!mapFallbackMessage && (
+        <p className="map-renderer-note">
+          {'GPU map · '}
+          <span ref={pointsReadoutRef}>checking what is on screen…</span>
+          {rendererDecision.renderer ? ` · ${rendererDecision.renderer}` : ''}
+        </p>
+      )}
       <div className="map-focus-indicator" ref={focusIndicatorRef} aria-hidden="true" />
       {dataError && (
         <div className="data-error" role="alert">
           The published data release could not be loaded. Only the base map is shown.
         </div>
       )}
-      {selectedTarget && !mapFallbackMessage && (
+      {(hoveredReleasePoint ?? selectedReleasePoint) && !mapFallbackMessage && (
+        <aside className="map-selection-card" aria-live="polite">
+          <p className="map-selection-kicker">PM2.5 · {(hoveredReleasePoint ?? selectedReleasePoint)?.coverageStatus === 'qualifying' ? 'QUALIFYING' : 'GAP VISIBLE'}</p>
+          <h3>{(hoveredReleasePoint ?? selectedReleasePoint)?.name}</h3>
+          <p>
+            {(hoveredReleasePoint ?? selectedReleasePoint)?.borough} · {(hoveredReleasePoint ?? selectedReleasePoint)?.period}<br />
+            {(hoveredReleasePoint ?? selectedReleasePoint)?.pm25 === null ? 'No data' : `${(hoveredReleasePoint ?? selectedReleasePoint)?.pm25?.toFixed(2)} ${AIR_UNITS}${(hoveredReleasePoint ?? selectedReleasePoint)?.aboveScale ? ' · above scale' : ''}`} · {(hoveredReleasePoint ?? selectedReleasePoint)?.coverage}
+          </p>
+          <p className="sources-note">Preliminary sensor data; gaps are not zero.</p>
+        </aside>
+      )}
+      {selectedTarget && activeMode !== 'AIR' && !mapFallbackMessage && (
         <aside
           className={[
             'map-selection-card',

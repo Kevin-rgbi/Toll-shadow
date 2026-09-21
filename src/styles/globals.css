@@ -99,6 +99,11 @@ select {
   color: inherit;
 }
 
+button {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
@@ -127,8 +132,22 @@ select {
   /* minmax(0, 1fr) keeps wide children (scrolling tab strips, mono metric tables) from
      expanding the page and creating horizontal overflow on small screens. */
   grid-template-columns: minmax(0, 1fr);
+  /* A definite height, not just a minimum: with only min-height the 1fr workspace row grows to the
+     data rail's content height, which stretches the map column far past the viewport and draws the
+     map centre off-screen. The rail scrolls inside the row instead. */
+  height: 100svh;
   min-height: 100svh;
   background: var(--paper);
+}
+
+/* SOURCES is a document, not a map view: it scrolls with the page. */
+.mode-sources {
+  height: auto;
+  min-height: 100svh;
+}
+
+.mode-sources .data-rail {
+  overflow: visible;
 }
 
 /* --------------------------------------------------------------- masthead */
@@ -512,6 +531,9 @@ select {
 .raster-map {
   position: relative;
   overflow: hidden;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
   background: var(--paper-sunk);
   cursor: grab;
   touch-action: none;
@@ -534,14 +556,30 @@ select {
   will-change: transform;
 }
 
+.raster-map-layer {
+  position: absolute;
+  inset: 0;
+}
+
+.raster-map.is-dragging .raster-map-layer,
+.raster-map.is-dragging .raster-map-tiles {
+  will-change: transform;
+}
+
+/* One filter pass over the whole tile sheet. Filtering each image separately costs a composite per
+   tile, which is what made panning heavy on a phone. */
+.raster-map-tiles {
+  position: absolute;
+  inset: 0;
+  filter: saturate(0.06) contrast(0.94) brightness(1.05);
+}
+
 .raster-map-tile {
   position: absolute;
   width: 256px;
   height: 256px;
   pointer-events: none;
   user-select: none;
-  /* Match the editorial ground: tiles read as texture, the published points carry the colour. */
-  filter: saturate(0.06) contrast(0.94) brightness(1.05);
 }
 
 .raster-map-overlay {
@@ -627,6 +665,22 @@ select {
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--ink);
+}
+
+/* Which renderer is on screen. Small, bottom-left, next to the attribution. */
+.map-renderer-note {
+  position: absolute;
+  left: 8px;
+  bottom: 6px;
+  z-index: 3;
+  max-width: 60%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  color: var(--muted);
+  pointer-events: none;
 }
 
 .map-fallback-panel,
@@ -1186,6 +1240,356 @@ select {
   border-bottom: 1px solid var(--hairline);
 }
 
+.air-module {
+  padding-top: 18px;
+}
+
+.air-current-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, .8fr);
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid var(--hairline);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.air-current-row > div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.air-current-row strong {
+  font-family: var(--font-mono);
+  font-size: var(--step-micro);
+  font-weight: 500;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.air-chart-kicker {
+  font-family: var(--font-mono);
+  font-size: var(--step-micro);
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.air-chart {
+  position: relative;
+  margin-top: 18px;
+  padding: 10px 0 0;
+  border-top: 1px solid var(--hairline);
+}
+
+.air-chart-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: start;
+}
+
+.air-chart-head h4 {
+  margin-top: 3px;
+  font-family: var(--font-mono);
+  font-size: var(--step-small);
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.air-chart-head .sources-note {
+  max-width: 18ch;
+  text-align: right;
+}
+
+.air-chart svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-top: 8px;
+  overflow: visible;
+}
+
+.air-chart-grid {
+  stroke: var(--hairline);
+  stroke-width: 1;
+}
+
+.air-chart-label {
+  fill: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 9px;
+}
+
+.air-chart-line {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.6;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.air-chart-point {
+  fill: var(--accent);
+  stroke: var(--paper);
+  stroke-width: 1;
+}
+
+.air-chart-point-above {
+  fill: #7f0000;
+}
+
+.air-chart-cursor {
+  stroke: var(--ink);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+
+.air-chart-tooltip {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  max-width: 100%;
+  padding: 5px 7px;
+  border: 1px solid var(--hairline-strong);
+  background: var(--paper);
+  font-family: var(--font-mono);
+  font-size: var(--step-micro);
+  line-height: 1.4;
+  color: var(--ink);
+}
+
+.air-legend {
+  display: grid;
+  gap: 4px;
+  margin-top: 10px;
+  font-family: var(--font-mono);
+  font-size: var(--step-micro);
+  line-height: 1.4;
+  color: var(--muted);
+}
+
+.air-legend-missing {
+  color: var(--ink-soft);
+}
+
+.air-view-toggles {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--hairline);
+  font-size: var(--step-small);
+  color: var(--ink-soft);
+}
+
+.air-view-toggles button {
+  padding: 7px 10px;
+  border: 1px solid var(--hairline-strong);
+  border-radius: 0;
+  background: transparent;
+  font-family: var(--font-mono);
+  font-size: var(--step-micro);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.air-view-toggles button.is-active {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-quiet);
+}
+
+.air-view-toggles label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.air-view-toggles input {
+  accent-color: var(--accent);
+}
+
+.air-comparison {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--rule);
+}
+
+.air-comparison-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: start;
+}
+
+.air-comparison-head h4 {
+  margin-top: 3px;
+}
+
+.air-partial-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: var(--step-micro);
+  color: var(--muted);
+}
+
+.air-partial-control input {
+  accent-color: var(--accent);
+}
+
+.air-comparison-table {
+  display: grid;
+  margin-top: 14px;
+  border-top: 1px solid var(--hairline-strong);
+  font-family: var(--font-mono);
+  font-size: var(--step-micro);
+}
+
+.air-comparison-table [role="row"] {
+  display: grid;
+  grid-template-columns: 1fr 1.1fr 1.1fr .8fr 1fr;
+  gap: 8px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.air-comparison-table [role="row"]:first-child {
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.air-monitor-detail {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--hairline);
+}
+
+.air-timeline-shell {
+  position: absolute;
+  inset: auto 0 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  padding: 10px var(--gutter) 12px;
+  border-top: 1px solid var(--rule);
+  background: var(--paper);
+  z-index: 4;
+}
+
+.air-playback-controls {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.air-playback-controls button,
+.air-play-button {
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--hairline-strong);
+  border-radius: 0;
+  background: transparent;
+  font-family: var(--font-mono);
+  font-size: var(--step-small);
+  line-height: 1;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.air-playback-controls button:hover:not(:disabled),
+.air-play-button:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.air-play-button {
+  width: 34px;
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.air-playback-controls button:disabled {
+  color: var(--muted-quiet);
+  cursor: not-allowed;
+}
+
+.air-rate-control,
+.air-loop-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-mono);
+  font-size: var(--step-micro);
+  color: var(--muted);
+}
+
+.air-rate-control select {
+  width: 54px;
+  padding: 4px 2px;
+  border: 1px solid var(--hairline-strong);
+  border-radius: 0;
+  background: var(--paper);
+  font: inherit;
+}
+
+.air-loop-control input {
+  accent-color: var(--accent);
+}
+
+.air-timeline-track input[type="range"] {
+  width: 100%;
+  height: 2px;
+  margin: 0;
+  appearance: none;
+  background: var(--hairline-strong);
+  cursor: pointer;
+}
+
+.air-timeline-track input[type="range"]::-webkit-slider-thumb {
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  border: 0;
+  border-radius: 0;
+  background: var(--accent);
+}
+
+.air-timeline-track input[type="range"]::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border: 0;
+  border-radius: 0;
+  background: var(--accent);
+}
+
+.air-timeline-period {
+  font-family: var(--font-mono);
+  font-size: var(--step-micro);
+  line-height: 1.3;
+  color: var(--ink-soft);
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.raster-map-selection-card {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
+  pointer-events: none;
+}
+
 /* ----------------------------------------------------------- methodology */
 
 .modal-backdrop {
@@ -1288,6 +1692,40 @@ select {
 
 /* ------------------------------------------------------------ responsive */
 
+/* The sheet handle only exists where the rail becomes a bottom sheet. */
+.rail-handle {
+  display: none;
+}
+
+/* Coarse pointers get real touch targets: 44px is the smallest comfortable tap area. */
+@media (pointer: coarse) {
+  .raster-map-controls button {
+    width: 44px;
+    height: 44px;
+    font-size: 1rem;
+  }
+
+  .play-button {
+    width: 44px;
+    height: 44px;
+  }
+
+  .mode-tab {
+    padding: 15px 0 13px;
+  }
+
+  .masthead button,
+  .mobile-methods-button,
+  .story-actions button {
+    padding: 11px 14px;
+  }
+
+  .module-filter-row select,
+  .module-filter-row input[type="date"] {
+    padding: 11px 10px;
+  }
+}
+
 @media (max-width: 1100px) {
   .data-ribbon {
     grid-auto-flow: row;
@@ -1302,6 +1740,104 @@ select {
 @media (max-width: 900px) {
   :root {
     --rail-width: 100%;
+    --sheet-peek: 54px;
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  /* A map app on a phone: the shell fills the viewport and the rail floats over the map as a
+     sheet, so the map stays visible while the figures are readable. The page itself does not
+     scroll; the sheet does. */
+  .app-shell {
+    height: 100svh;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .masthead {
+    padding-top: calc(14px + env(safe-area-inset-top, 0px));
+  }
+
+  .data-rail {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 6;
+    max-height: 82svh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    border-top: 1px solid var(--rule);
+    padding-bottom: calc(var(--safe-bottom) + 10px);
+    transform: translateY(calc(100% - var(--sheet-peek)));
+    transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .data-rail.is-expanded {
+    transform: translateY(0);
+  }
+
+  .rail-handle {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    display: grid;
+    justify-items: center;
+    gap: 5px;
+    width: 100%;
+    padding: 7px 0 6px;
+    border: 0;
+    background: var(--paper-rail);
+    cursor: pointer;
+  }
+
+  .rail-handle-bar {
+    width: 42px;
+    height: 4px;
+    background: var(--hairline-strong);
+  }
+
+  .rail-handle-label {
+    font-family: var(--font-mono);
+    font-size: var(--step-micro);
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* Phones skip the tile colour treatment: the ground colour already reads as paper, and the
+     filter is the most expensive thing on the layer while panning. */
+  .raster-map-tiles {
+    filter: none;
+  }
+
+  /* The timeline sits directly above the collapsed sheet so scrubbing stays reachable. */
+  .timeline-shell {
+    bottom: var(--sheet-peek);
+    padding-bottom: 10px;
+  }
+
+  .air-timeline-shell {
+    bottom: var(--sheet-peek);
+    padding-bottom: 10px;
+  }
+
+  /* SOURCES is a document: it takes the whole viewport and scrolls normally, with no sheet. */
+  .mode-sources {
+    height: auto;
+    min-height: 100svh;
+    overflow: visible;
+  }
+
+  .mode-sources .data-rail {
+    position: static;
+    transform: none;
+    max-height: none;
+    overflow: visible;
+    border-top: 0;
+  }
+
+  .mode-sources .rail-handle {
+    display: none;
   }
 
   .masthead {
@@ -1346,6 +1882,40 @@ select {
 }
 
 @media (max-width: 620px) {
+  .air-current-row {
+    grid-template-columns: 1fr;
+  }
+
+  .air-chart-head {
+    display: grid;
+  }
+
+  .air-chart-head .sources-note {
+    max-width: none;
+    text-align: left;
+  }
+
+  .air-comparison-table {
+    overflow-x: auto;
+  }
+
+  .air-comparison-table [role="row"] {
+    min-width: 430px;
+  }
+
+  .air-timeline-shell {
+    grid-template-columns: auto minmax(0, 1fr);
+    row-gap: 8px;
+  }
+
+  .air-timeline-period {
+    grid-column: 1 / -1;
+    text-align: left;
+  }
+
+  .air-playback-controls {
+    flex-wrap: wrap;
+  }
   /* On a phone the figures strip becomes one scrollable row, so it costs one line of height
      instead of six and the map stays near the top of the page. */
   .data-ribbon {
@@ -1387,7 +1957,142 @@ select {
   }
 }
 
-/* -------------------------------------------------------- reduced motion */
+.monthly-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  margin: 18px 0;
+  padding: 12px 0;
+  border: 0;
+  border-top: 1px solid var(--hairline);
+}
+
+.monthly-options legend,
+.monthly-search span {
+  font-size: var(--step-small);
+  font-weight: 600;
+}
+
+.monthly-options label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--step-small);
+}
+
+.monthly-options input {
+  accent-color: var(--accent);
+}
+
+.monthly-search {
+  display: grid;
+  gap: 8px;
+  margin: 18px 0;
+}
+
+.monthly-search input,
+.monthly-search select {
+  width: 100%;
+  min-width: 0;
+  padding: 10px;
+  background: var(--paper);
+  color: var(--ink);
+  border: 1px solid var(--hairline-strong);
+}
+
+.monthly-metrics > div,
+.monthly-details,
+.monthly-module section {
+  padding-block: 14px;
+  border-top: 1px solid var(--hairline);
+}
+
+.monthly-metrics h4 {
+  margin: 0;
+}
+
+.monthly-legend {
+  display: grid;
+  gap: 8px;
+  font-size: var(--step-small);
+}
+
+.monthly-legend i {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin-right: 8px;
+}
+
+.monthly-ranking {
+  padding-left: 22px;
+}
+
+.monthly-ranking button {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 6px;
+  text-align: left;
+  border: 0;
+  border-bottom: 1px solid var(--hairline);
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.monthly-ranking button[aria-pressed="true"] {
+  background: var(--accent-quiet);
+  outline: 1px solid var(--accent);
+}
+
+.monthly-ranking strong,
+.monthly-trend-value {
+  font-family: var(--font-mono);
+  font-size: var(--step-micro);
+}
+
+.monthly-trend-row {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.monthly-trend-value {
+  display: grid;
+  grid-template-columns: 34px minmax(30px, 1fr) auto;
+  align-items: center;
+  gap: 6px;
+}
+
+.monthly-trend-value meter {
+  width: 100%;
+}
+
+.monthly-trend-value meter::-webkit-meter-optimum-value {
+  background: var(--muted-quiet);
+}
+
+.monthly-trend-value .comparison-meter::-webkit-meter-optimum-value {
+  background: var(--accent);
+}
+
+.monthly-details details {
+  padding-block: 10px;
+  border-top: 1px solid var(--hairline);
+  font-size: var(--step-small);
+}
+
+.monthly-details summary {
+  cursor: pointer;
+}
+
+.monthly-details dd {
+  margin: 4px 0 12px;
+  overflow-wrap: anywhere;
+}
 
 @media (prefers-reduced-motion: reduce) {
   *,

@@ -3,7 +3,7 @@
 
 Hosting must never conceal an invalid data release. This gate runs *before* any
 `firebase hosting:channel:deploy` or `firebase deploy` and refuses a candidate
-build that is missing, synthetic, untraceable, oversized, or pointed at the
+build that is missing, synthetic, untraceable, oversized, undeclared CSV, or pointed at the
 wrong Firebase project.
 
 It is a blocking gate, not a report: any failed check exits non-zero, and the
@@ -12,7 +12,7 @@ deployment runbook requires a green run before a preview channel is created.
 Usage (from the repository root, after `npm run build`):
     python3 scripts/release_acceptance.py
     python3 scripts/release_acceptance.py --json
-    python3 scripts/release_acceptance.py --dist dist --budget-bytes 8388608
+    python3 scripts/release_acceptance.py --dist dist --budget-bytes 67108864
 
 Exit codes: 0 = release accepted, 1 = release rejected, 2 = gate could not run.
 
@@ -35,15 +35,12 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 EXPECTED_PROJECT = "tollshallow"
 EXPECTED_PROJECT_NUMBER = "1094344081770"
 
-# Provisional browser-asset budget for dist/data. docs/ARCHITECTURE.md and
-# docs/DATA_STRATEGY.md require a budget but do not fix a number; A7 measures
-# real payloads. Until that measurement lands this gate uses 8 MiB for the
-# whole data directory as a conservative ceiling, and it is expected to be
-# tightened after A7 profiling.
-DEFAULT_BUDGET_BYTES = 8 * 1024 * 1024
+# Browser-asset budget for dist/data. The measured release includes the on-demand hourly
+# NYCCAS CSV, so the gate uses a 64 MiB ceiling and still reports the exact payload.
+DEFAULT_BUDGET_BYTES = 64 * 1024 * 1024
 
-# Raw/archive payloads that must never ship to the browser.
-RAW_PAYLOAD_SUFFIXES = (".csv", ".tif", ".adf", ".zip", ".pdf", ".xls", ".xlsx")
+# Browser releases may include validated CSV measurements, but raw/archive payloads must never ship.
+RAW_PAYLOAD_SUFFIXES = (".tif", ".adf", ".zip", ".pdf", ".xls", ".xlsx")
 
 REQUIRED_MANIFEST_FIELDS = (
     "release_id",
@@ -202,6 +199,39 @@ def gate(repo_root: Path, dist: Path, budget_bytes: int, dist_overridden: bool =
             f"Cache-Control={root_cache!r} for /",
         )
 
+        # A catch-all rewrite turns every missing file into a 200 with the SPA shell, which hides
+        # broken asset paths from both reviewers and crawlers. Only "/" should rewrite.
+        rewrites = hosting.get("rewrites", [])
+        result.check(
+            "no catch-all rewrite, so a missing file returns 404",
+            not any(rule.get("source") in ("**", "**/*") for rule in rewrites),
+            f"rewrites={[rule.get('source') for rule in rewrites]}",
+        )
+
+        # Security headers on every response.
+        security = cache_controls.get("**", {})
+        required_headers = (
+            "content-security-policy",
+            "x-content-type-options",
+            "referrer-policy",
+            "x-frame-options",
+            "permissions-policy",
+        )
+        missing_headers = [name for name in required_headers if name not in security]
+        result.check(
+            "security headers are declared for all responses",
+            not missing_headers,
+            f"missing={missing_headers}",
+        )
+
+        policy = security.get("content-security-policy", "")
+        weak = [token for token in ("unsafe-eval", "unsafe-inline'", "'unsafe-inline") if token in policy and "script-src" in policy.split("style-src")[0]]
+        result.check(
+            "content security policy does not relax script execution",
+            "unsafe-eval" not in policy and "unsafe-inline" not in policy.split("style-src")[0],
+            f"script-src region contains unsafe directives: {weak}",
+        )
+
         release_cache = cache_controls.get("/data/releases/**", {}).get("cache-control", "")
         result.check(
             "release assets are cached immutably by release path",
@@ -300,6 +330,49 @@ def gate(repo_root: Path, dist: Path, budget_bytes: int, dist_overridden: bool =
                 "every published asset must carry a checksum (DATA_STRATEGY)",
             )
 
+    data_root = dist / "data"
+    declared_csv_paths = {
+        (entry.get("path") or entry.get("url") or "").split("?", 1)[0].lstrip("/")
+        for entry in asset_entries
+        if str(entry.get("path") or entry.get("url") or "").lower().endswith(".csv")
+    }
+    csv_files = [
+        p for p in data_root.rglob("*")
+        if p.is_file() and p.suffix.lower() == ".csv"
+    ] if data_root.is_dir() else []
+    undeclared_csv = [
+        str(path.relative_to(dist)) for path in csv_files
+        if str(path.relative_to(dist)) not in declared_csv_paths
+    ]
+    result.check(
+        "every published CSV is declared by the release manifest",
+        not undeclared_csv,
+        f"undeclared={undeclared_csv[:10]}",
+    )
+
+    non_air_csv = [
+        str(entry.get("path") or entry.get("url") or "")
+        for entry in asset_entries
+        if str(entry.get("format") or "").lower() == "csv"
+        and entry.get("kind") != "air_measurements"
+    ]
+    result.check(
+        "CSV assets are limited to declared air measurements",
+        not non_air_csv,
+        f"non_air_csv={non_air_csv[:10]}",
+    )
+    raw_asset_paths = [
+        str(entry.get("path") or entry.get("url") or "")
+        for entry in asset_entries
+        if "/raw/" in str(entry.get("path") or entry.get("url") or "").lower()
+        or "/demo/" in str(entry.get("path") or entry.get("url") or "").lower()
+    ]
+    result.check(
+        "manifest asset paths do not reference raw or demo locations",
+        not raw_asset_paths,
+        f"raw_or_demo={raw_asset_paths[:10]}",
+    )
+
     # --- 5b. Exactly one published release --------------------------------
     # Superseded release directories must not keep shipping: they double the deployed payload and
     # no pointer serves them. Canonical copies live under data/releases/ outside the build.
@@ -315,8 +388,59 @@ def gate(repo_root: Path, dist: Path, budget_bytes: int, dist_overridden: bool =
     else:
         result.check("a published release directory exists", False, str(releases_root))
 
+    # --- 5c. Files a public site is expected to serve ---------------------
+    required_site_files = (
+        "robots.txt",
+        "sitemap.xml",
+        "404.html",
+        "site.webmanifest",
+        "security.txt",
+        "og.png",
+        "apple-touch-icon.png",
+        "favicon.svg",
+    )
+    missing_site = [name for name in required_site_files if not (dist / name).is_file()]
+    result.check(
+        "site files are present in the build",
+        not missing_site,
+        f"missing={missing_site}",
+    )
+
+    robots = (dist / "robots.txt")
+    if robots.is_file():
+        body = robots.read_text()
+        result.check(
+            "robots.txt points at the sitemap",
+            "Sitemap:" in body and "/sitemap.xml" in body,
+            f"robots.txt={body.strip()[:120]!r}",
+        )
+
+    index = (dist / "index.html").read_text()
+    for marker, label in (
+        ('rel="canonical"', "canonical link"),
+        ('property="og:image"', "open graph image"),
+        ('application/ld+json', "structured data"),
+        ("<noscript>", "no-JavaScript fallback"),
+    ):
+        result.check(f"index.html declares the {label}", marker in index, f"marker {marker!r} not found")
+
+    # --- 5d. Map library runtime files ------------------------------------
+    # MapLibre resolves its worker and that worker's shared module as siblings of the bundle chunk,
+    # at runtime. If either is missing the worker dies silently, the map never loads its style, and
+    # the page shows a grey map with no data and no error. Nothing else in the build catches that.
+    maplibre_runtime = ("maplibre-gl-worker.mjs", "maplibre-gl-shared.mjs")
+    stamped_dirs = sorted((dist / "assets" / "maplibre").glob("*")) if (dist / "assets" / "maplibre").is_dir() else []
+    complete_dirs = [
+        directory for directory in stamped_dirs
+        if all((directory / name).is_file() for name in maplibre_runtime)
+    ]
+    result.check(
+        "MapLibre's worker and its shared module are emitted under a build-stamped path",
+        len(complete_dirs) == 1,
+        f"stamped dirs={[d.name for d in stamped_dirs]} complete={[d.name for d in complete_dirs]}",
+    )
+
     # --- 6. No raw/archive payloads and no secrets ------------------------
-    data_root = dist / "data"
     if data_root.is_dir():
         offenders = [
             str(p.relative_to(dist))

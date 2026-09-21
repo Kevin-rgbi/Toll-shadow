@@ -8,6 +8,8 @@
  * published data, and it never introduces data the release did not publish.
  */
 
+import { readComparison, writeComparison } from '../features/traffic/monthlyComparison'
+import type { ComparisonSelection } from '../features/traffic/monthlyComparison'
 import { APP_MODES } from '../state/appStore'
 import type { AppMode } from '../state/appStore'
 import { TRAFFIC_DAY_TYPES, TRAFFIC_TIME_BANDS } from '../types/releaseData'
@@ -16,6 +18,7 @@ import { readMapPreference } from './mapPreference'
 import type { MapPreference } from './mapPreference'
 
 export interface ViewState {
+  comparisonSelection?: ComparisonSelection
   mode: AppMode | null
   /** Selected timeline date, `YYYY-MM-DD`. */
   date: string | null
@@ -75,6 +78,7 @@ export const readViewState = (search: string): ViewState => {
   const params = new URLSearchParams(search)
 
   return {
+    ...(params.has('baseline') || params.has('comparison') || params.has('months') || params.has('period') || params.has('layers') || params.has('search') ? { comparisonSelection: readComparison(params) } : {}),
     mode: asMode(params.get('module')),
     date: asIsoDate(params.get('date')),
     borough: asText(params.get('borough')),
@@ -109,6 +113,7 @@ export const buildViewStateQuery = (state: ViewState): string => {
   if (state.crossingsEnd) params.set('crossingsTo', state.crossingsEnd)
   if (state.build) params.set('v', state.build)
   if (state.map) params.set('map', state.map)
+  if (state.comparisonSelection) writeComparison(params, state.comparisonSelection)
 
   const query = params.toString()
   return query === '' ? '' : `?${query}`

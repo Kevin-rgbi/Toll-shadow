@@ -18,7 +18,7 @@ Raw assets are never edited. Every non-raw output is reproducible from a named i
 | MTA crossings | Raw 2010-2025 and prepared 2024-2025 facilities | Facility/direction observed comparison. | Hourly analysis from the daily aggregate table. |
 | CRZ entries | 12 point summaries | Contextual entry-point totals with date window. | Exact detector location, payment/revenue, or route behavior proof. |
 | DAC | 2023-era 1,736 feature statewide dataset and 958 NYC subset | Equity context with dataset version. | Current DAC status unless release is refreshed/confirmed. |
-| NYCCAS | 88 ESRI GRID datasets, 2008-2019 modeled surfaces | Historical environmental context and metadata. | 2025 effect or localized regulatory measurement. |
+| NYCCAS | 88 ESRI GRID datasets, 2008-2019 modeled surfaces, plus supplied 2025-2026 daily/hourly monitor derivatives | Historical environmental context and preliminary observed monitor concentrations. | 2025 causal effect, regulatory AQI claim, or health outcome. |
 | Asthma | NYS county/borough historical records through 2019 | Historical county-level context only. | Neighborhood or post-policy health outcome. |
 
 ## Required manifests
@@ -56,14 +56,14 @@ Every browser-facing asset must declare:
   "assets": [{
     "kind": "traffic_observations",
     "path": "/data/releases/<release_id>/asset.geojson",
-    "format": "geojson",
+    "format": "geojson or csv",
     "bytes": 12345
   }]
 }
 ```
 
 `published` assets must be EPSG:4326 where they enter MapLibre. Internal source CRS is recorded, never silently assumed.
-`kind` and `format` are required routing metadata: the browser must never infer which source-specific module owns an asset. `policy_reference_date`, when present, is a release-owned timeline marker only.
+`kind` and `format` are required routing metadata: the browser must never infer which source-specific module owns an asset. CSV is allowed only for a declared, checksum-verified published asset such as the preliminary NYCCAS monitor measurements; it is never an untracked raw archive. `policy_reference_date`, when present, is a release-owned timeline marker only.
 
 ## Confirmed source facts
 
@@ -93,6 +93,6 @@ Every browser-facing asset must declare:
 ## Browser asset budget
 
 - Do not ship raw CSV, original ESRI GRID components, or full statewide geometry without measurement.
-- Publish pre-aggregated JSON/GeoJSON for the first release; simplify and split large geometry by layer.
+- Publish pre-aggregated JSON/GeoJSON for most layers. A validated CSV may ship only as a declared release asset with a manifest checksum and an explicit on-demand loading path; the current NYCCAS hourly asset is measured at 41,705,713 bytes.
 - Add PMTiles/vector tiles only after a measured published layer exceeds the agreed performance budget or MapLibre profiling shows a real bottleneck.
 - Load map data by URL and by selected module, never inline in application code.

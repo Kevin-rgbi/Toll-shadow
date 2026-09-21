@@ -6,6 +6,7 @@ import { RELEASE_ASSET_LABELS } from '../../lib/sourceMessaging'
 interface DataRibbonProps {
   state: ReleaseManifestState
   syntheticHotspots: SyntheticHotspotItem[] | null
+  latestCoverage?: string
 }
 
 const formatSigned = (value: number, digits = 1): string => {
@@ -18,7 +19,7 @@ const formatSigned = (value: number, digits = 1): string => {
  * published asset count, source count). Synthetic prototype metrics appear only while the
  * development demo flag is active, and are labelled as dev values.
  */
-export function DataRibbon({ state, syntheticHotspots }: DataRibbonProps) {
+export function DataRibbon({ state, syntheticHotspots, latestCoverage }: DataRibbonProps) {
   const { release, status, isDevSynthetic } = state
 
   const devMetrics = useMemo(() => {
@@ -77,7 +78,7 @@ export function DataRibbon({ state, syntheticHotspots }: DataRibbonProps) {
       <p>
         <span>Coverage window</span>
         <strong className="metric-value metric-neutral">
-          {release ? `${release.coverage.start} → ${release.coverage.end}` : 'Not published'}
+          {latestCoverage ?? (release ? `${release.coverage.start} → ${release.coverage.end}` : 'Not published')}
         </strong>
       </p>
       <p>

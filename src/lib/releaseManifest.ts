@@ -10,7 +10,7 @@
  * - Synthetic, demo, or raw archive material can never be accepted as a release asset.
  * - Spatial assets must declare EPSG:4326; the SPA never infers a CRS.
  * - Every asset keeps its own source IDs, coverage, grain, and limitations so that traffic,
- *   crossings, CRZ, DAC, and historical context stay separate in the UI.
+ *   crossings, CRZ, DAC, historical context, and preliminary AIR measurements stay separate in the UI.
  */
 
 export const RELEASE_ASSET_KINDS = [
@@ -20,11 +20,12 @@ export const RELEASE_ASSET_KINDS = [
   'crz_context',
   'dac_context',
   'historical_context',
+  'air_measurements',
 ] as const
 
 export type ReleaseAssetKind = (typeof RELEASE_ASSET_KINDS)[number]
 
-export type ReleaseAssetFormat = 'json' | 'geojson'
+export type ReleaseAssetFormat = 'json' | 'geojson' | 'csv'
 
 export type ReleaseErrorCode =
   | 'MANIFEST_UNREACHABLE'
@@ -94,7 +95,7 @@ export class ReleaseManifestError extends Error {
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/
 const SEMVER = /^\d+\.\d+\.\d+$/
 const SHA256 = /^[0-9a-f]{64}$/
-const ALLOWED_ASSET_EXTENSIONS = new Set(['.json', '.geojson'])
+const ALLOWED_ASSET_EXTENSIONS = new Set(['.json', '.geojson', '.csv'])
 
 // Declared as a function so TypeScript narrows `unknown` inputs after the guard call.
 function malformed(field: string, expected: string): never {
@@ -178,11 +179,15 @@ const parseAsset = (value: unknown, index: number): ReleaseAsset => {
   assertAssetPath(path, `${field}.path`)
 
   const formatValue = requireNonEmptyString(record.format, `${field}.format`)
-  const format: ReleaseAssetFormat = formatValue === 'json' || formatValue === 'geojson'
+  const format: ReleaseAssetFormat = formatValue === 'json' || formatValue === 'geojson' || formatValue === 'csv'
     ? formatValue
-    : malformed(`${field}.format`, 'must be "json" or "geojson"')
+    : malformed(`${field}.format`, 'must be "json", "geojson", or "csv"')
 
-  if (!path.endsWith(format === 'geojson' ? '.geojson' : '.json')) {
+  if (format === 'csv' && kind !== 'air_measurements') {
+    malformed(`${field}.format`, 'CSV is permitted only for the air_measurements asset kind')
+  }
+
+  if (!path.endsWith(format === 'geojson' ? '.geojson' : format === 'csv' ? '.csv' : '.json')) {
     malformed(`${field}.path`, `must end with a ".${format}" extension to match its declared format`)
   }
 

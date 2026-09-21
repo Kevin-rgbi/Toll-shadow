@@ -41,7 +41,7 @@ export function useReleaseManifest(manifestPath = '/data/manifest.json'): Releas
         const result = await loadReleaseManifest(manifestPath)
         if (cancelled) return
 
-        const devSynthetic = DEV_SYNTHETIC_ENABLED ? await loadDevSyntheticDataset() : null
+        const devSynthetic = result.status === 'empty' && DEV_SYNTHETIC_ENABLED ? await loadDevSyntheticDataset() : null
         if (cancelled) return
 
         if (result.status === 'empty') {

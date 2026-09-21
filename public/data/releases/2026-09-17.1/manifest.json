@@ -1,0 +1,126 @@
+{
+  "release_id": "2026-09-17.1",
+  "schema_version": "2.0.0",
+  "generated_at": "2026-09-17T06:47:03.808Z",
+  "status": "validated",
+  "transform_version": "monthly-coverage-1.0.0",
+  "source_ids": [
+    "mta_cbd_geofence_20260916",
+    "mta_crz_entries_2025_2026",
+    "mta_hourly_crossings_2025_2026",
+    "dot_automated_traffic_counts_archive_20260915"
+  ],
+  "coverage": {
+    "start": "2024-01-01",
+    "end": "2026-09-01"
+  },
+  "limitations": [
+    "These are observational patterns, not evidence that congestion pricing caused changes or displaced traffic.",
+    "DOT counts are sampled historical observations, not continuous citywide traffic measurements.",
+    "No causal air-quality claims are supported by this release.",
+    "The baseline is 2025 after launch, not a pre-policy counterfactual. The default comparison matches February–August 2025 and 2026, excluding January.",
+    "September 2026 is partial: CRZ has 5 observed days per row and MTA crossings has 1; August is the latest complete comparison month. Monthly assets do not identify all underlying observation dates."
+  ],
+  "assets": [
+    {
+      "kind": "boundary_zone",
+      "path": "/data/releases/2026-09-17.1/boundary_zone.geojson",
+      "format": "geojson",
+      "sha256": "355362a4e69d68503706b577fa3cd0a660de181fcdebec257984222b443730dd",
+      "bytes": 8740,
+      "status": "validated",
+      "transform_version": "monthly-coverage-1.0.0",
+      "geometry_crs": "EPSG:4326",
+      "coverage": {
+        "start": "2024-06-01",
+        "end": "2026-09-16"
+      },
+      "grain": "seven supplied official MTA geofence polygons, not an inferred toll boundary",
+      "source_ids": [
+        "mta_cbd_geofence_20260916"
+      ],
+      "limitations": [
+        "Extracted unchanged from the official-named geofence dataset embedded in the supplied Kepler export; archive snapshot, not a claim of boundary changes over time."
+      ]
+    },
+    {
+      "kind": "crz_context",
+      "path": "/data/releases/2026-09-17.1/crz_entries.json",
+      "format": "json",
+      "sha256": "142ad78463811bf68ccc0ee387c49a48c4c9eaef1e824e6185e0bf34a099c3a4",
+      "bytes": 348201,
+      "status": "validated",
+      "transform_version": "monthly-coverage-1.0.0",
+      "geometry_crs": "EPSG:4326",
+      "coverage": {
+        "start": "2025-01-01",
+        "end": "2026-09-01"
+      },
+      "grain": "calendar month, detection group, Peak or Overnight",
+      "source_ids": [
+        "mta_crz_entries_2025_2026"
+      ],
+      "limitations": [
+        "These are observational patterns, not evidence that congestion pricing caused changes or displaced traffic.",
+        "DOT counts are sampled historical observations, not continuous citywide traffic measurements.",
+        "No causal air-quality claims are supported by this release.",
+        "The baseline is 2025 after launch, not a pre-policy counterfactual. The default comparison matches February–August 2025 and 2026, excluding January.",
+        "Latest: 2026-09, 5 observed days per row; partial month. Coverage endpoints are month labels, not exact daily observation dates.",
+        "Points are approximate locations supplied in the CSV.",
+        "Peak and Overnight totals share coverage days; daily denominators count each group-month only once."
+      ]
+    },
+    {
+      "kind": "facility_crossings",
+      "path": "/data/releases/2026-09-17.1/facility_crossings.json",
+      "format": "json",
+      "sha256": "d0fd3ec23a8a4b182372c905055dc75b4ad3c672f64d5fbcff2a6a095c31b774",
+      "bytes": 157586,
+      "status": "validated",
+      "transform_version": "monthly-coverage-1.0.0",
+      "geometry_crs": "EPSG:4326",
+      "coverage": {
+        "start": "2025-01-01",
+        "end": "2026-09-01"
+      },
+      "grain": "calendar month, named MTA facility/plaza, all directions",
+      "source_ids": [
+        "mta_hourly_crossings_2025_2026"
+      ],
+      "limitations": [
+        "These are observational patterns, not evidence that congestion pricing caused changes or displaced traffic.",
+        "DOT counts are sampled historical observations, not continuous citywide traffic measurements.",
+        "No causal air-quality claims are supported by this release.",
+        "The baseline is 2025 after launch, not a pre-policy counterfactual. The default comparison matches February–August 2025 and 2026, excluding January.",
+        "Latest: 2026-09, 1 observed days per row; partial month. Coverage endpoints are month labels, not exact daily observation dates.",
+        "Points are approximate locations supplied in the CSV.",
+        "Vehicle classes and all-direction monthly totals are available; Peak/Overnight breakdown is not supplied. RFK plazas remain separate source facilities."
+      ]
+    },
+    {
+      "kind": "traffic_observations",
+      "path": "/data/releases/2026-09-17.1/traffic_observations.geojson",
+      "format": "geojson",
+      "sha256": "c3baeeaff9799c77e5e26448a8d3723ac90b81106b1302fb2c03d6015fc92ab7",
+      "bytes": 2082788,
+      "status": "validated",
+      "transform_version": "pipeline-release-1.1.0",
+      "coverage": {
+        "start": "2024-01-01",
+        "end": "2025-12-31"
+      },
+      "grain": "one segment, borough, direction, calendar-month, day-type, and time-band aggregate of available 15-minute DOT observations",
+      "source_ids": [
+        "dot_automated_traffic_counts_archive_20260915"
+      ],
+      "limitations": [
+        "DOT counts are samples and do not represent continuous or full-year traffic measurement",
+        "aggregation is descriptive and does not estimate a congestion-pricing effect",
+        "blank street labels are retained as null metadata, not inferred",
+        "a group is only published where the source contains observations for that segment, month, day type, and time band; absent combinations are omitted rather than zero-filled"
+      ],
+      "geometry_crs": "EPSG:4326"
+    }
+  ],
+  "policy_reference_date": "2025-01-05"
+}

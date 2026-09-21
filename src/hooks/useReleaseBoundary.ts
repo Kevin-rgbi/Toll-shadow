@@ -1,68 +1,21 @@
-import { useEffect, useState } from 'react'
 import type { FeatureCollection } from 'geojson'
-import { getReleaseAssets } from '../lib/releaseManifest'
+import { useReleaseAsset } from './useReleaseAsset'
 import type { ReleaseManifest } from '../lib/releaseManifest'
 
-interface LoadedBoundary {
-  path: string
-  boundary: FeatureCollection | null
-  error: string | null
-}
-
-interface ReleaseBoundaryState {
-  boundary: FeatureCollection | null
-  isLoading: boolean
-  error: string | null
-}
-
-/**
- * Loads the release's published boundary asset (`boundary_zone`).
- *
- * The asset must already be a validated EPSG:4326 release asset; this hook performs no geometry
- * transformation and never falls back to bundled demo geometry.
- */
-export function useReleaseBoundary(release: ReleaseManifest | null): ReleaseBoundaryState {
-  const [loaded, setLoaded] = useState<LoadedBoundary | null>(null)
-  const boundaryPath = release ? getReleaseAssets(release, 'boundary_zone')[0]?.path ?? null : null
-  const isCurrent = boundaryPath !== null && loaded?.path === boundaryPath
-
-  useEffect(() => {
-    if (!boundaryPath) return
-
-    let cancelled = false
-
-    const run = async () => {
-      try {
-        const response = await fetch(boundaryPath)
-        if (!response.ok) {
-          throw new Error(`could not fetch ${boundaryPath} (HTTP ${response.status})`)
-        }
-        const collection = (await response.json()) as FeatureCollection
-        if (cancelled) return
-        if (collection?.type !== 'FeatureCollection' || !Array.isArray(collection.features)) {
-          throw new Error(`${boundaryPath} is not a GeoJSON FeatureCollection`)
-        }
-        setLoaded({ path: boundaryPath, boundary: collection, error: null })
-      } catch (error) {
-        if (cancelled) return
-        setLoaded({
-          path: boundaryPath,
-          boundary: null,
-          error: error instanceof Error ? error.message : 'Unknown boundary asset error.',
-        })
-      }
+export function parseReleaseBoundary(input: unknown): FeatureCollection {
+  const collection = input as FeatureCollection
+  if (collection?.type !== 'FeatureCollection' || !Array.isArray(collection.features) || !collection.features.length) throw new Error('Invalid official boundary collection')
+  for (const feature of collection.features) {
+    if (feature.type !== 'Feature' || !feature.geometry || !['Polygon', 'MultiPolygon'].includes(feature.geometry.type)) throw new Error('Invalid official boundary geometry')
+    const rings = feature.geometry.type === 'Polygon' ? feature.geometry.coordinates : feature.geometry.type === 'MultiPolygon' ? feature.geometry.coordinates.flat() : []
+    for (const ring of rings) {
+      if (ring.length < 4 || JSON.stringify(ring[0]) !== JSON.stringify(ring.at(-1)) || ring.some(point => point.length !== 2 || point.some(n => !Number.isFinite(n)) || point[0] < -75 || point[0] > -72 || point[1] < 40 || point[1] > 42)) throw new Error('Invalid official boundary ring')
     }
-
-    void run()
-
-    return () => {
-      cancelled = true
-    }
-  }, [boundaryPath])
-
-  return {
-    boundary: isCurrent ? loaded.boundary : null,
-    isLoading: boundaryPath !== null && !isCurrent,
-    error: isCurrent ? loaded.error : null,
   }
+  return collection
+}
+
+export function useReleaseBoundary(release: ReleaseManifest | null) {
+  const state = useReleaseAsset(release, 'boundary_zone', parseReleaseBoundary)
+  return { boundary: state.status === 'ready' ? state.data : null, isLoading: state.status === 'loading', error: state.status === 'error' ? state.reason : null }
 }

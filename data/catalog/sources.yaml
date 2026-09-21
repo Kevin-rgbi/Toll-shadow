@@ -243,6 +243,62 @@ sources:
       - any public release until authoritative source and release version are confirmed
     transformations: []
 
+  - source_id: nyccas_pm25_monitor_daily_2025_2026
+    title: Preliminary NYCCAS PM2.5 daily monitor measurements
+    role: legacy_derivative
+    approval_status: approved_for_pipeline
+    original_path: reference-legacy/NYCCAS_PM25_Daily_2025_2026_Kepler.csv
+    original_filename: NYCCAS_PM25_Daily_2025_2026_Kepler.csv
+    sha256: 8c7ebc61df8bd095169556ec08fff7327089b86d8327e715dd7d80f0b1ffa4da
+    authoritative_url: https://data.cityofnewyork.us/Environment/NYCCAS-Air-Pollution-Rasters/q68s-8qxv/about_data
+    publisher: New York City Community Air Survey
+    license_status: public_open_data_catalog; derivative terms must be retained from the supplied source
+    acquired_at: '2026-09-18'
+    temporal_coverage:
+      start: '2025-01-01'
+      end: '2026-09-17'
+    geographic_coverage: 15 NYC monitor locations
+    geometry:
+      columns: [latitude, longitude]
+      crs: EPSG:4326
+      precision: approximate supplied monitor locations
+    grain: one daily site-level PM2.5 mean
+    allowed_uses:
+      - observed daily PM2.5 map and descriptive comparison with gaps preserved
+      - release-backed visualization with checksum and provenance
+    forbidden_claims:
+      - causal estimate of congestion-pricing effects
+      - regulatory exceedance or health-outcome claim
+    transformations: []
+
+  - source_id: nyccas_pm25_monitor_hourly_2025_2026
+    title: Preliminary NYCCAS PM2.5 hourly monitor measurements
+    role: legacy_derivative
+    approval_status: approved_for_pipeline
+    original_path: reference-legacy/NYCCAS_PM25_Hourly_2025_2026_Kepler.csv
+    original_filename: NYCCAS_PM25_Hourly_2025_2026_Kepler.csv
+    sha256: 096a22707d802294a5a8788440c25a36834729ae4d8d4e0c348e7f80007ca4f6
+    authoritative_url: https://data.cityofnewyork.us/Environment/NYCCAS-Air-Pollution-Rasters/q68s-8qxv/about_data
+    publisher: New York City Community Air Survey
+    license_status: public_open_data_catalog; derivative terms must be retained from the supplied source
+    acquired_at: '2026-09-18'
+    temporal_coverage:
+      start: '2025-01-01'
+      end: '2026-09-17'
+    geographic_coverage: 15 NYC monitor locations
+    geometry:
+      columns: [latitude, longitude]
+      crs: EPSG:4326
+      precision: approximate supplied monitor locations
+    grain: one hourly site-level PM2.5 record
+    allowed_uses:
+      - observed hourly PM2.5 playback with missing hours preserved
+      - release-backed visualization with checksum and provenance
+    forbidden_claims:
+      - causal estimate of congestion-pricing effects
+      - carrying a prior reading forward across missing hours
+    transformations: []
+
   - source_id: nyccas_air_rasters_archive_2008_2019
     title: NYCCAS air-pollution raster archive
     role: contextual_source

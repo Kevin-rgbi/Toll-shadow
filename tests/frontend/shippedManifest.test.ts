@@ -2,7 +2,10 @@ import { createHash } from 'node:crypto'
 import { existsSync, readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { loadReleaseManifest, parseReleaseManifest } from '../../src/lib/releaseManifest'
-import { parseFacilityCrossings, parseTrafficObservations } from '../../src/lib/releaseData'
+import { parseTrafficObservations } from '../../src/lib/releaseData'
+import { parseMonthlyAsset } from '../../src/features/traffic/monthlyComparison'
+import { parseReleaseBoundary } from '../../src/hooks/useReleaseBoundary'
+import { parseAirDailyCsv, parseAirHourlyCsv } from '../../src/features/air/airData'
 
 /**
  * Guards the release pointer that actually ships, and the assets it points at.
@@ -25,8 +28,9 @@ const sha256Of = (url: URL): string => {
 }
 
 const assetParserFor = (kind: string) => {
+  if (kind === 'boundary_zone') return parseReleaseBoundary
   if (kind === 'traffic_observations') return parseTrafficObservations
-  if (kind === 'facility_crossings') return parseFacilityCrossings
+  if (kind === 'facility_crossings' || kind === 'crz_context') return parseMonthlyAsset
   return null
 }
 
@@ -55,9 +59,10 @@ describe('shipped release pointer', () => {
       expect(result.status).toBe('ready')
       if (result.status !== 'ready') throw new Error('shipped pointer is not a validated release')
 
-      expect(result.manifest.release_id).toBe('2026-09-16.2')
+      expect(result.manifest.schema_version).toBe('2.1.0')
+      expect(result.manifest.release_id).toBe('2026-09-18.1')
       expect(result.manifest.status).toBe('validated')
-      expect(result.manifest.assets.length).toBeGreaterThan(0)
+      expect(result.manifest.assets.map(asset => asset.kind)).toEqual(['boundary_zone', 'crz_context', 'facility_crossings', 'traffic_observations', 'air_measurements', 'air_measurements'])
     } finally {
       globalThis.fetch = originalFetch
     }
@@ -72,6 +77,8 @@ describe('shipped release pointer', () => {
       expect(existsSync(file), `published asset is missing from public/: ${asset.path}`).toBe(true)
       expect(sha256Of(file), `checksum mismatch for ${asset.path}`).toBe(asset.sha256)
 
+      if (asset.format === 'csv') continue
+
       const payload: unknown = JSON.parse(readFileSync(file, 'utf8'))
       const parse = assetParserFor(asset.kind)
 
@@ -80,5 +87,19 @@ describe('shipped release pointer', () => {
         expect(() => parse(payload, asset.path)).not.toThrow()
       }
     }
+  })
+
+  it('parses the published AIR CSV assets without filling gaps', () => {
+    const dailyText = readFileSync(publicFilePath('/data/releases/2026-09-18.1/nyccas_pm25_daily.csv'), 'utf8')
+    const daily = parseAirDailyCsv(dailyText, '/data/releases/2026-09-18.1/nyccas_pm25_daily.csv')
+    expect(daily.stations).toHaveLength(15)
+    expect(daily.dates).toHaveLength(625)
+    expect(daily.row.total).toBe(9375)
+
+    const hourlyText = readFileSync(publicFilePath('/data/releases/2026-09-18.1/nyccas_pm25_hourly.csv'), 'utf8')
+    const hourly = parseAirHourlyCsv(hourlyText, daily.stations, '/data/releases/2026-09-18.1/nyccas_pm25_hourly.csv')
+    expect(hourly.stations).toHaveLength(15)
+    expect(hourly.row.present).toBe(196861)
+    expect(hourly.row.missing).toBeGreaterThan(0)
   })
 })

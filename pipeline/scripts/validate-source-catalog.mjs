@@ -1,5 +1,5 @@
 import { createReadStream } from 'node:fs';
-import { access, stat } from 'node:fs/promises';
+import { stat } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -7,8 +7,7 @@ import { parse } from 'yaml';
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const repositoryRoot = path.resolve(scriptDirectory, '../..');
-const workspaceRoot = path.resolve(repositoryRoot, '../..');
-const dataRoot = path.join(workspaceRoot, 'data');
+const dataRoot = path.join(repositoryRoot, 'data');
 const catalogPath = path.join(dataRoot, 'catalog', 'sources.yaml');
 const SHA256 = /^[a-f0-9]{64}$/;
 const APPROVAL_STATUSES = new Set([
@@ -34,7 +33,7 @@ function requiredText(entry, field) {
   }
 }
 
-export async function validateSourceCatalog({ catalogFile = catalogPath, root = dataRoot } = {}) {
+export async function validateSourceCatalog({ catalogFile = catalogPath, root = dataRoot, requireInputs = false } = {}) {
   const text = await BunOrNodeReadFile(catalogFile);
   const catalog = parse(text);
   if (!catalog || catalog.schema_version !== '1.0.0' || !Array.isArray(catalog.sources)) {
@@ -54,8 +53,13 @@ export async function validateSourceCatalog({ catalogFile = catalogPath, root = 
     }
     const inputPath = path.resolve(root, entry.original_path);
     if (!inputPath.startsWith(`${path.resolve(root)}${path.sep}`)) fail(`${entry.source_id}: original_path escapes data root`);
-    await access(inputPath);
-    const details = await stat(inputPath);
+    let details;
+    try {
+      details = await stat(inputPath);
+    } catch (error) {
+      if (requireInputs) fail(`${entry.source_id}: input does not exist at ${inputPath}`);
+      continue;
+    }
     if (details.isDirectory()) {
       if (entry.approval_status === 'approved_for_pipeline') fail(`${entry.source_id}: directory source needs a file inventory before approval`);
       continue;

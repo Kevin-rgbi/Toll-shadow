@@ -31,3 +31,12 @@ export const readExpectedBuildIdFromLocation = (): string | null => {
   if (typeof window === 'undefined') return null
   return readExpectedBuildId(window.location.search)
 }
+
+declare const __MAPLIBRE_WORKER_URL__: string
+
+/**
+ * Where this build's MapLibre worker lives. Empty in development, where the library resolves its
+ * worker from node_modules. Production builds place it under a build-stamped path so a client that
+ * cached a failing request for an older build cannot break a newer one.
+ */
+export const MAPLIBRE_WORKER_URL = typeof __MAPLIBRE_WORKER_URL__ === 'string' ? __MAPLIBRE_WORKER_URL__ : ''

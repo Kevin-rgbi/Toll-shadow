@@ -40,6 +40,15 @@ export const worldToLngLat = (x: number, y: number, zoom: number): { lng: number
   return { lng, lat }
 }
 
+/**
+ * Tile servers only serve integer zoom levels. A pinch produces a fractional zoom, so the tile level
+ * is floored and tiles are drawn scaled by the remainder.
+ */
+export const tileLevelFor = (zoom: number): number => Math.floor(zoom)
+
+/** How much larger than base tile size tiles must be drawn at a fractional zoom. */
+export const tileScaleFactorFor = (zoom: number): number => 2 ** (zoom - Math.floor(zoom))
+
 export interface TileCoordinate {
   z: number
   x: number

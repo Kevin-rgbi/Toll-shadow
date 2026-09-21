@@ -53,6 +53,85 @@ Implement plan steps A8 and A9 support work now: create repeatable Kepler export
 | 2026-09-15 22:15 UTC | A8/A9 support | completed | Kepler validator passes 34/34 and fails on tampering; release acceptance gate accepts a valid fixture and rejects synthetic/unvalidated/unchecksummed/raw/credentialed builds; `.firebaserc` corrected to `tollshallow`; preview/rollback runbook written. No deploy performed. Blocked on A1 validated release + A2 fresh build before a preview channel. |
 | 2026-09-15 23:05 UTC | Takeover: A5–A9 gap closure | completed (deploy still gated) | Agent 3 took over the remaining project work after the Agent 1 (Codex) session ended. Frontend now renders both published assets in production (TRAFFIC, new CROSSINGS module, native map layer), URL state added, hosting cache policy fixed, submission package written. 94 tests / 19 files pass, build clean, gate 24/24 green against the real release. Nothing deployed; preview deploy needs owner approval. |
 
+### Phase Site completeness: robots, sitemap, headers, SEO, 404 — 2026-09-16 12:05 UTC
+
+Owner request: finish the site itself, not just the app.
+
+**Research.** Firebase's hosting configuration reference for the `headers` and `rewrites` shape;
+search engines returned noise for the CSP and security-header queries, so the header set was derived
+and then **validated empirically**: the policy was injected into the built page as a meta tag, the app
+was exercised, and the browser's own violation reports were read and resolved. That found one real
+gap (a font subset the build inlines as `data:`) instead of shipping a guessed allowlist.
+
+**Added:**
+
+- `public/robots.txt`, `public/sitemap.xml` (one URL; query-string views are deliberately not listed),
+  `public/404.html`, `public/site.webmanifest`, `public/security.txt`, `public/og.png` (1200x630, built
+  from a title card using the bundled brand fonts), `public/apple-touch-icon.png`, `public/icon-512.png`.
+- `index.html`: canonical URL, Open Graph and Twitter cards, `WebSite` + `Dataset` structured data
+  describing the release, its window, both distributions and the sources it is based on, plus a
+  `<noscript>` block linking the manifest and both assets directly.
+- `firebase.json`: security headers on every response (CSP, nosniff, referrer policy, frame denial,
+  COOP, a deny-by-default Permissions-Policy), and cache rules for fonts, images, and text files.
+
+**Two real defects fixed while doing it:**
+
+1. **There was no 404.** The catch-all `**` rewrite meant any unmatched path, including a missing data
+   asset, returned HTTP 200 with the SPA shell. That is how a superseded release path looked like it
+   still existed earlier in this work. Rewrites are now limited to `/` and `/index.html`, so missing
+   files 404 properly and `404.html` carries the status.
+2. **`/.well-known/security.txt` would never have deployed.** Firebase's default ignore list excludes
+   dotfile paths. The file moved to `/security.txt` with the reason recorded in it.
+
+**Gate:** extended from 26 to 35 checks. It now refuses a build missing any expected site file,
+a `robots.txt` without a Sitemap line, an `index.html` without canonical/OG/JSON-LD/noscript, a
+catch-all rewrite, a missing security header, or a CSP that relaxes script execution.
+
+**Verified:** `npm run test` 22 files / 130 tests; `node scripts/...` gate 35 checks, 0 failed; CSP
+violations 0 across the software map, the GPU map, SOURCES, and CROSSINGS.
+
+---
+
+### Phase Mobile optimisation — 2026-09-16 11:45 UTC
+
+Owner request: research mobile practice, then optimise for phones.
+
+**Research.** The search engines returned dictionary and phone-carrier noise for these queries, so the
+primary sources were read directly instead of via search results: MDN's pinch-zoom gesture guide
+(pointer cache, distance ratio, `touch-action` requirement) and MDN's `env()` reference for safe-area
+insets. MapLibre's own touch surface was not needed because the software map is the path most phones
+will take.
+
+**Changed:**
+
+- **Real touch gestures on the software map.** Pinch-to-zoom with two pointers, anchored so the place
+  under the fingers stays under the fingers; drag unchanged; inertia after a flick with exponential
+  decay, skipped under `prefers-reduced-motion`. Gesture maths extracted to
+  `src/components/Map/mapGestures.ts` and covered by 11 tests, including the anchoring invariant.
+- **A bug the pinch test exposed:** a pinch produces fractional zoom, and tile URLs were being built
+  from it, so the map requested paths like `/11.85/x/y.png`, which a tile server cannot serve. Tiles
+  are now requested at `floor(zoom)` and drawn at `2^(zoom - floor(zoom))` times their size, which is
+  what every slippy map does. `tileLevelFor` / `tileScaleFactorFor` are exported and tested.
+- **Bottom sheet on phones.** The data rail is now a fixed sheet over the map with a handle, a
+  collapsed peek of 54px and an expanded height of 82svh, so the map stays visible while the figures
+  are readable. The timeline sits directly above the collapsed sheet so scrubbing stays reachable.
+  SOURCES mode opts out: it is a document, so it takes the viewport and scrolls normally.
+- **Safe areas.** `viewport-fit=cover` plus `env(safe-area-inset-*)` on the masthead and the sheet, so
+  notched phones do not clip content and the home indicator does not sit over the sheet's last row.
+- **Touch targets and tap behaviour.** On coarse pointers the map controls and the play button become
+  44px, tabs and buttons get taller padding, and filter controls get taller inputs. Buttons use
+  `touch-action: manipulation` to drop the double-tap delay, and the map surface suppresses the
+  long-press callout and text selection.
+
+**Verified on a 390x844 viewport (software map):** no horizontal overflow; map 388px tall; rail fixed
+and translated to its peek with the handle reading "Show the figures"; toggling expands to
+`translateY(0)` with `aria-expanded` flipping correctly; timeline `bottom: 54px`; a simulated
+two-finger pinch applied `scale(1.8)` around the finger midpoint, then committed to integer tile level
+11 with 460.8px tiles and re-rendered the 60 points; drag still works after the rewrite; SOURCES mode
+renders statically and scrolls. `npm run test` 22 files / 130 tests passed; build clean.
+
+---
+
 ### Phase Map interaction fixes — 2026-09-16 04:40 UTC
 
 Owner feedback: the map "keeps getting stuck" while dragging, there should be a recentre control, and

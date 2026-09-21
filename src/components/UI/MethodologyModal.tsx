@@ -59,7 +59,7 @@ export function MethodologyModal({ state, onClose }: MethodologyModalProps) {
         <h3>What the product does not claim</h3>
         <ul>
           <li>It does not publish an expected or counterfactual traffic baseline.</li>
-          <li>It does not treat historical air or health context as a current local outcome.</li>
+          <li>It does not treat historical air or health context as a current local outcome; preliminary NYCCAS monitor values are labeled observed concentrations and are not causal estimates.</li>
           <li>It does not use approximate CRZ entry coordinates as detector geometry.</li>
           <li>Where no approved measurement exists, the module states that it is not available.</li>
         </ul>

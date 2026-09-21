@@ -1,6 +1,17 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { FeatureCollection, Geometry, Position } from 'geojson'
+import { AIR_UNITS } from '../../features/air/airData'
 import { NYC_BOUNDS, NYC_CENTER } from './mapConfig'
+import {
+  type ScreenPoint,
+  type View,
+  centreAfterDrag,
+  INERTIA_FRICTION,
+  INERTIA_MIN_SPEED,
+  isInertiaWorthStarting,
+  pinchResult,
+  sampleVelocity,
+} from './mapGestures'
 import {
   MAX_ZOOM,
   MIN_ZOOM,
@@ -8,6 +19,8 @@ import {
   clampCenter,
   clampZoom,
   lngLatToWorld,
+  tileLevelFor,
+  tileScaleFactorFor,
   projectToScreen,
   tileRangeFor,
   worldToLngLat,
@@ -16,6 +29,8 @@ import {
 interface RasterMapProps {
   boundary: FeatureCollection | null
   traffic: FeatureCollection | null
+  focus?: { id: string, coordinates: [number, number] } | null
+  onSelect?: (id: string | null) => void
   /** Shown when the interactive GPU map could not start, explaining what this is instead. */
   notice?: string | null
 }
@@ -29,6 +44,10 @@ const INITIAL_ZOOM = 11
  * is translated, so the extra ring is what keeps the edges from going blank mid-drag.
  */
 const PAD_TILES = 2
+
+/** Phones get one ring of padding instead of two: fewer images to decode and composite while panning. */
+const PAD_TILES_SMALL = 1
+const SMALL_VIEWPORT_PX = 900
 
 const radiusForVolume = (value: unknown): number => {
   const volume = typeof value === 'number' && Number.isFinite(value) ? value : 0
@@ -48,24 +67,28 @@ const opacityForVolume = (value: unknown): number => {
  * with a single transform, and the new centre is committed once on pointer-up. Re-rendering several
  * hundred publication points on every pointer move is what made the earlier version stick.
  */
-export function RasterMap({ boundary, traffic, notice }: RasterMapProps) {
+export function RasterMap({ boundary, traffic, notice, focus, onSelect }: RasterMapProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const layerRef = useRef<HTMLDivElement>(null)
+  const pointsCanvasRef = useRef<HTMLCanvasElement | null>(null)
   const [viewport, setViewport] = useState({ width: 0, height: 0 })
   const [center, setCenter] = useState<{ lng: number, lat: number }>({
     lng: NYC_CENTER[0],
     lat: NYC_CENTER[1],
   })
   const [zoom, setZoom] = useState(INITIAL_ZOOM)
-  const [isDragging, setIsDragging] = useState(false)
-
-  const dragRef = useRef<{
-    pointerId: number
-    startX: number
-    startY: number
-    lastX: number
-    lastY: number
-  } | null>(null)
+  const [isGesturing, setGesturing] = useState(false)
+  const focusId = focus?.id
+  const focusLng = focus?.coordinates[0]
+  const focusLat = focus?.coordinates[1]
+  useEffect(() => {
+    if (!focusId || focusLng === undefined || focusLat === undefined) return
+    const frame = window.requestAnimationFrame(() => {
+      setCenter(clampCenter(focusLng, focusLat, NYC_BOUNDS))
+      setZoom(13)
+    })
+    return () => window.cancelAnimationFrame(frame)
+  }, [focusId, focusLng, focusLat])
 
   useEffect(() => {
     const element = containerRef.current
@@ -86,10 +109,28 @@ export function RasterMap({ boundary, traffic, notice }: RasterMapProps) {
     setCenter(clampCenter(lng, lat, NYC_BOUNDS))
   }, [])
 
+  const gestureRef = useRef<{
+    pointers: Map<number, ScreenPoint>
+    startMid: ScreenPoint
+    startDistance: number
+    startView: View
+    lastSample: { x: number, y: number, t: number }
+    velocity: ScreenPoint
+    scale: number
+    currentMid: ScreenPoint
+    offset: ScreenPoint
+    mode: 'drag' | 'pinch'
+  } | null>(null)
+  const inertiaRef = useRef<number | null>(null)
+
   const resetView = useCallback(() => {
-    if (layerRef.current) layerRef.current.style.transform = ''
-    dragRef.current = null
-    setIsDragging(false)
+    const layer = layerRef.current
+    if (layer) {
+      layer.style.transform = ''
+      layer.style.transformOrigin = ''
+    }
+    gestureRef.current = null
+    setGesturing(false)
     setCenter({ lng: NYC_CENTER[0], lat: NYC_CENTER[1] })
     setZoom(INITIAL_ZOOM)
   }, [])
@@ -153,62 +194,189 @@ export function RasterMap({ boundary, traffic, notice }: RasterMapProps) {
     }
   }, [zoomBy])
 
+
+  const containerRect = () => {
+    const rect = containerRef.current?.getBoundingClientRect()
+    return rect ?? { left: 0, top: 0, width: 0, height: 0 }
+  }
+
+  /** Move the tile layer with one transform. No state change, so no re-render while a finger moves. */
+  const previewTransform = (offset: ScreenPoint, scale: number, origin: ScreenPoint) => {
+    const layer = layerRef.current
+    if (!layer) return
+    layer.style.transformOrigin = `${origin.x}px ${origin.y}px`
+    layer.style.transform = `translate3d(${offset.x}px, ${offset.y}px, 0) scale(${scale})`
+  }
+
+  const clearPreview = () => {
+    const layer = layerRef.current
+    if (!layer) return
+    layer.style.transform = ''
+    layer.style.transformOrigin = ''
+  }
+
+  const stopInertia = () => {
+    if (inertiaRef.current !== null) {
+      window.cancelAnimationFrame(inertiaRef.current)
+      inertiaRef.current = null
+    }
+  }
+
+  const midpoint = (points: ScreenPoint[]): ScreenPoint => ({
+    x: (points[0].x + points[1].x) / 2,
+    y: (points[0].y + points[1].y) / 2,
+  })
+
+  const distance = (points: ScreenPoint[]): number => Math.hypot(points[0].x - points[1].x, points[0].y - points[1].y)
+
   const onPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
     if (event.button !== 0) return
-    dragRef.current = {
-      pointerId: event.pointerId,
-      startX: event.clientX,
-      startY: event.clientY,
-      lastX: event.clientX,
-      lastY: event.clientY,
+    stopInertia()
+
+    const rect = containerRect()
+    const point: ScreenPoint = { x: event.clientX - rect.left, y: event.clientY - rect.top }
+    const existing = gestureRef.current
+    const pointers = existing?.pointers ?? new Map<number, ScreenPoint>()
+    pointers.set(event.pointerId, point)
+
+    const view: View = { lng: center.lng, lat: center.lat, zoom }
+    const list = [...pointers.values()]
+
+    gestureRef.current = {
+      pointers,
+      mode: pointers.size >= 2 ? 'pinch' : 'drag',
+      startMid: pointers.size >= 2 ? midpoint(list) : point,
+      startDistance: pointers.size >= 2 ? Math.max(1, distance(list)) : 1,
+      startView: view,
+      lastSample: { x: point.x, y: point.y, t: event.timeStamp },
+      velocity: { x: 0, y: 0 },
+      scale: 1,
+      currentMid: point,
+      offset: { x: 0, y: 0 },
     }
-    setIsDragging(true)
+
+    setGesturing(true)
+    clearPreview()
   }
 
   /**
-   * Drag listeners live on the window, not the element, so a fast drag that leaves the map still
-   * tracks and still commits. This also avoids pointer capture, which throws for pointers the
-   * browser no longer considers active.
+   * Gesture listeners live on the window so a fast drag that leaves the map keeps tracking and still
+   * commits. Pointer capture is deliberately not used: it throws for pointers the browser no longer
+   * considers active, and it is unnecessary when the listeners are global.
    */
   useEffect(() => {
-    if (!isDragging) return
+    if (!isGesturing) return
 
     const onMove = (event: PointerEvent) => {
-      const drag = dragRef.current
-      if (!drag) return
-      drag.lastX = event.clientX
-      drag.lastY = event.clientY
-      // Move the layer directly. No state change, no re-render.
-      const dx = event.clientX - drag.startX
-      const dy = event.clientY - drag.startY
-      if (layerRef.current) layerRef.current.style.transform = `translate3d(${dx}px, ${dy}px, 0)`
+      const gesture = gestureRef.current
+      if (!gesture || !gesture.pointers.has(event.pointerId)) return
+
+      const rect = containerRect()
+      gesture.pointers.set(event.pointerId, { x: event.clientX - rect.left, y: event.clientY - rect.top })
+      const list = [...gesture.pointers.values()]
+
+      if (list.length >= 2) {
+        // A second finger arrived: restart the gesture as a pinch from here.
+        if (gesture.mode !== 'pinch') {
+          gesture.mode = 'pinch'
+          gesture.startMid = midpoint(list)
+          gesture.startDistance = Math.max(1, distance(list))
+          gesture.startView = { lng: center.lng, lat: center.lat, zoom }
+          gesture.offset = { x: 0, y: 0 }
+          gesture.scale = 1
+        }
+        const mid = midpoint(list)
+        gesture.scale = distance(list) / gesture.startDistance
+        gesture.currentMid = mid
+        gesture.offset = { x: mid.x - gesture.startMid.x, y: mid.y - gesture.startMid.y }
+        previewTransform(gesture.offset, gesture.scale, gesture.startMid)
+      } else {
+        const point = list[0]
+        gesture.offset = { x: point.x - gesture.startMid.x, y: point.y - gesture.startMid.y }
+        previewTransform(gesture.offset, 1, gesture.startMid)
+      }
+
+      const samplePoint = gesture.mode === 'pinch' ? gesture.currentMid : list[0]
+      gesture.velocity = sampleVelocity(gesture.lastSample, { ...samplePoint, t: event.timeStamp })
+      gesture.lastSample = { ...samplePoint, t: event.timeStamp }
     }
 
-    const onUp = () => {
-      const drag = dragRef.current
-      dragRef.current = null
-      setIsDragging(false)
-      if (layerRef.current) layerRef.current.style.transform = ''
-      if (!drag) return
+    const finish = () => {
+      const gesture = gestureRef.current
+      gestureRef.current = null
+      setGesturing(false)
+      clearPreview()
+      if (!gesture) return
 
-      const dx = drag.lastX - drag.startX
-      const dy = drag.lastY - drag.startY
-      if (dx === 0 && dy === 0) return
+      if (gesture.mode === 'pinch') {
+        const result = pinchResult({
+          view: gesture.startView,
+          viewport: { width: viewport.width, height: viewport.height },
+          startMid: gesture.startMid,
+          currentMid: gesture.currentMid,
+          scale: gesture.scale,
+        })
+        applyCenter(result.lng, result.lat)
+        setZoom(result.zoom)
+        return
+      }
 
-      const world = lngLatToWorld(center.lng, center.lat, zoom)
-      const next = worldToLngLat(world.x - dx, world.y - dy, zoom)
-      applyCenter(next.lng, next.lat)
+      if (!isInertiaWorthStarting(gesture.velocity)) {
+        if (gesture.offset.x !== 0 || gesture.offset.y !== 0) {
+          const next = centreAfterDrag(gesture.startView, gesture.offset.x, gesture.offset.y)
+          applyCenter(next.lng, next.lat)
+        }
+        return
+      }
+
+      // Let the map coast to a stop instead of halting dead, unless the reader asked for less motion.
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      if (reduceMotion) {
+        const next = centreAfterDrag(gesture.startView, gesture.offset.x, gesture.offset.y)
+        applyCenter(next.lng, next.lat)
+        return
+      }
+
+      const startView = gesture.startView
+      let offsetX = gesture.offset.x
+      let offsetY = gesture.offset.y
+      const velocity = { ...gesture.velocity }
+      let previous = performance.now()
+
+      const step = (now: number) => {
+        const dt = now - previous
+        previous = now
+        const frames = dt / 16.7
+        velocity.x *= INERTIA_FRICTION ** frames
+        velocity.y *= INERTIA_FRICTION ** frames
+        offsetX += velocity.x * dt
+        offsetY += velocity.y * dt
+        previewTransform({ x: offsetX, y: offsetY }, 1, { x: 0, y: 0 })
+
+        if (Math.hypot(velocity.x, velocity.y) < INERTIA_MIN_SPEED) {
+          inertiaRef.current = null
+          clearPreview()
+          const next = centreAfterDrag(startView, offsetX, offsetY)
+          applyCenter(next.lng, next.lat)
+          return
+        }
+        inertiaRef.current = window.requestAnimationFrame(step)
+      }
+
+      inertiaRef.current = window.requestAnimationFrame(step)
     }
 
     window.addEventListener('pointermove', onMove)
-    window.addEventListener('pointerup', onUp)
-    window.addEventListener('pointercancel', onUp)
+    window.addEventListener('pointerup', finish)
+    window.addEventListener('pointercancel', finish)
     return () => {
       window.removeEventListener('pointermove', onMove)
-      window.removeEventListener('pointerup', onUp)
-      window.removeEventListener('pointercancel', onUp)
+      window.removeEventListener('pointerup', finish)
+      window.removeEventListener('pointercancel', finish)
     }
-  }, [applyCenter, center.lat, center.lng, isDragging, zoom])
+  }, [applyCenter, center.lat, center.lng, isGesturing, viewport.height, viewport.width, zoom])
+
+  useEffect(() => stopInertia, [])
 
   const onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     const pan = (dx: number, dy: number) => {
@@ -232,25 +400,35 @@ export function RasterMap({ boundary, traffic, notice }: RasterMapProps) {
     }
   }
 
+  /**
+   * Tiles exist at integer zoom levels only. A pinch produces a fractional zoom, so the tile level is
+   * floored and the tiles are drawn at 2^(zoom - level) times their base size, which is how every
+   * slippy map handles it. Requesting a fractional tile path would 404 against the tile server.
+   */
+  const tileZoom = tileLevelFor(zoom)
+  const tileScaleFactor = tileScaleFactorFor(zoom)
+
+  const padTiles = viewport.width > 0 && viewport.width <= SMALL_VIEWPORT_PX ? PAD_TILES_SMALL : PAD_TILES
+
   const tileGrid = useMemo(() => {
     if (viewport.width === 0 || viewport.height === 0) return null
     return tileRangeFor(
       center.lng,
       center.lat,
-      zoom,
-      viewport.width + PAD_TILES * TILE_SIZE * 2,
-      viewport.height + PAD_TILES * TILE_SIZE * 2,
+      tileZoom,
+      viewport.width + padTiles * TILE_SIZE * 2,
+      viewport.height + padTiles * TILE_SIZE * 2,
     )
-  }, [center.lat, center.lng, viewport.height, viewport.width, zoom])
+  }, [center.lat, center.lng, padTiles, tileZoom, viewport.height, viewport.width])
 
   const tileElements = useMemo(() => {
     if (!tileGrid) return []
-    const tiles: Array<{ key: string, src: string, left: number, top: number }> = []
+    const tiles: Array<{ key: string, src: string, left: number, top: number, size: number }> = []
 
     for (let x = tileGrid.minX; x <= tileGrid.maxX; x += 1) {
       for (let y = tileGrid.minY; y <= tileGrid.maxY; y += 1) {
         const wrappedX = ((x % tileGrid.scale) + tileGrid.scale) % tileGrid.scale
-        const tileNorthWest = worldToLngLat(x * TILE_SIZE, y * TILE_SIZE, zoom)
+        const tileNorthWest = worldToLngLat(x * TILE_SIZE, y * TILE_SIZE, tileZoom)
         const position = projectToScreen(
           tileNorthWest.lng,
           tileNorthWest.lat,
@@ -261,16 +439,17 @@ export function RasterMap({ boundary, traffic, notice }: RasterMapProps) {
           viewport.height,
         )
         tiles.push({
-          key: `${zoom}/${x}/${y}`,
-          src: TILE_URL.replace('{z}', String(zoom)).replace('{x}', String(wrappedX)).replace('{y}', String(y)),
+          key: `${tileZoom}/${x}/${y}`,
+          src: TILE_URL.replace('{z}', String(tileZoom)).replace('{x}', String(wrappedX)).replace('{y}', String(y)),
           left: position.x,
           top: position.y,
+          size: TILE_SIZE * tileScaleFactor,
         })
       }
     }
 
     return tiles
-  }, [center.lat, center.lng, tileGrid, viewport.height, viewport.width, zoom])
+  }, [center.lat, center.lng, tileGrid, tileScaleFactor, tileZoom, viewport.height, viewport.width, zoom])
 
   const overlayPath = useMemo(() => {
     if (!boundary) return ''
@@ -292,11 +471,77 @@ export function RasterMap({ boundary, traffic, notice }: RasterMapProps) {
       return [{
         x: screen.x,
         y: screen.y,
-        r: radiusForVolume(feature.properties?.meanVolume),
+        r: typeof feature.properties?.radius === 'number' ? feature.properties.radius : radiusForVolume(feature.properties?.meanVolume),
         opacity: opacityForVolume(feature.properties?.meanVolume),
+        color: typeof feature.properties?.color === 'string' ? feature.properties.color : '#85898f',
+        fill: typeof feature.properties?.fill === 'string' ? feature.properties.fill : '#fcfcfb',
+        stroke: typeof feature.properties?.stroke === 'string' ? feature.properties.stroke : '#85898f',
+        id: typeof feature.properties?.id === 'string' ? feature.properties.id : null,
+        name: typeof feature.properties?.name === 'string' ? feature.properties.name : null,
+        borough: typeof feature.properties?.borough === 'string' ? feature.properties.borough : null,
+        period: typeof feature.properties?.period === 'string' ? feature.properties.period : null,
+        pm25: typeof feature.properties?.pm25 === 'number' ? feature.properties.pm25 : null,
+        coverage: typeof feature.properties?.coverage === 'string' ? feature.properties.coverage : null,
+        coverageStatus: typeof feature.properties?.coverageStatus === 'string' ? feature.properties.coverageStatus : null,
+        aboveScale: feature.properties?.aboveScale === true,
+        selected: feature.properties?.selected === true,
       }]
     })
   }, [center.lat, center.lng, traffic, viewport.height, viewport.width, zoom])
+
+  const [hoveredPoint, setHoveredPoint] = useState<(typeof pointElements)[number] | null>(null)
+  const [selectedPoint, setSelectedPoint] = useState<(typeof pointElements)[number] | null>(null)
+
+  /**
+   * Points are drawn to one canvas rather than as SVG nodes. At the busiest published month that is
+   * 340 circles in a single raster instead of 340 DOM elements to lay out and rasterise, which is the
+   * difference between smooth and stuttering on a phone. The canvas sits inside the gesture layer, so
+   * it still translates and scales with the tiles for free.
+   */
+  useEffect(() => {
+    const canvas = pointsCanvasRef.current
+    if (!canvas) return
+
+    const dpr = Math.min(window.devicePixelRatio || 1, 2)
+    const width = Math.max(1, Math.round(viewport.width * dpr))
+    const height = Math.max(1, Math.round(viewport.height * dpr))
+    if (canvas.width !== width) canvas.width = width
+    if (canvas.height !== height) canvas.height = height
+    canvas.style.width = `${viewport.width}px`
+    canvas.style.height = `${viewport.height}px`
+
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+    ctx.clearRect(0, 0, viewport.width, viewport.height)
+
+    if (overlayPath) {
+      const boundary = new Path2D(overlayPath)
+      ctx.fillStyle = 'rgba(31, 75, 216, 0.05)'
+      ctx.strokeStyle = 'rgba(31, 75, 216, 0.55)'
+      ctx.lineWidth = 1.2
+      ctx.setLineDash([4, 3])
+      ctx.fill(boundary)
+      ctx.stroke(boundary)
+      ctx.setLineDash([])
+    }
+
+    for (const point of pointElements) {
+      if (point.x < -20 || point.y < -20 || point.x > viewport.width + 20 || point.y > viewport.height + 20) {
+        continue
+      }
+      ctx.beginPath()
+      ctx.arc(point.x, point.y, point.r, 0, Math.PI * 2)
+      ctx.fillStyle = point.fill || point.color
+      ctx.globalAlpha = point.opacity
+      ctx.fill()
+      ctx.globalAlpha = 1
+      ctx.strokeStyle = point.selected ? '#14161a' : point.stroke
+      ctx.lineWidth = point.selected ? 2 : (point.coverageStatus && point.coverageStatus !== 'qualifying' ? 1.2 : 0.8)
+      ctx.stroke()
+    }
+  }, [overlayPath, pointElements, viewport.height, viewport.width])
 
   const pointCount = pointElements.length
   const isAtHome = zoom === INITIAL_ZOOM
@@ -307,41 +552,59 @@ export function RasterMap({ boundary, traffic, notice }: RasterMapProps) {
     <div className="raster-map-wrap">
       <div
         ref={containerRef}
-        className={isDragging ? 'raster-map is-dragging' : 'raster-map'}
+        className={isGesturing ? 'raster-map is-dragging' : 'raster-map'}
         role="region"
-        aria-label={`Map of New York City drawn from raster tiles. ${pointCount} published traffic points in the current selection. Drag or use the arrow keys to pan, the buttons to zoom, Home to recentre.`}
+        aria-label={`Map of New York City drawn from raster tiles. ${pointCount} published points in the current selection. Drag or use the arrow keys to pan, the buttons to zoom, Home to recentre.`}
         tabIndex={0}
         onPointerDown={onPointerDown}
+        onMouseMove={(event) => {
+          const rect = containerRect()
+          const hit = [...pointElements].reverse().find((point) => point.id && Math.hypot(point.x - (event.clientX - rect.left), point.y - (event.clientY - rect.top)) <= point.r + 6)
+          setHoveredPoint(hit ?? null)
+          event.currentTarget.style.cursor = hit ? 'pointer' : 'grab'
+        }}
+        onMouseLeave={(event) => {
+          setHoveredPoint(null)
+          event.currentTarget.style.cursor = 'grab'
+        }}
+        onClick={(event) => {
+          const rect = containerRect()
+          const hit = [...pointElements].reverse().find((point) => point.id && Math.hypot(point.x - (event.clientX - rect.left), point.y - (event.clientY - rect.top)) <= point.r + 6)
+          setSelectedPoint((current) => current?.id === hit?.id ? null : (hit ?? null))
+          onSelect?.(hit?.id ?? null)
+        }}
         onKeyDown={onKeyDown}
       >
         <div className="raster-map-layer" ref={layerRef}>
-          {tileElements.map((tile) => (
-            <img
-              key={tile.key}
-              className="raster-map-tile"
-              src={tile.src}
-              alt=""
-              aria-hidden="true"
-              decoding="async"
-              draggable={false}
-              style={{ left: `${tile.left}px`, top: `${tile.top}px` }}
-            />
-          ))}
-
-          <svg className="raster-map-overlay" width={viewport.width} height={viewport.height} aria-hidden="true">
-            {overlayPath && <path className="raster-map-boundary" d={overlayPath} />}
-            {pointElements.map((point, index) => (
-              <circle
-                key={`point-${index}`}
-                className="raster-map-point"
-                cx={point.x}
-                cy={point.y}
-                r={point.r}
-                fillOpacity={point.opacity}
+          <div className="raster-map-tiles">
+            {tileElements.map((tile) => (
+              <img
+                key={tile.key}
+                className="raster-map-tile"
+                src={tile.src}
+                alt=""
+                aria-hidden="true"
+                decoding="async"
+                draggable={false}
+                style={{ left: `${tile.left}px`, top: `${tile.top}px`, width: `${tile.size}px`, height: `${tile.size}px` }}
               />
             ))}
-          </svg>
+          </div>
+
+          <canvas className="raster-map-overlay" ref={pointsCanvasRef} aria-hidden="true" />
         </div>
+
+        {(hoveredPoint ?? selectedPoint) && (
+          <div className="map-selection-card raster-map-selection-card" aria-live="polite">
+            <p className="map-selection-kicker">PM2.5 · {(hoveredPoint ?? selectedPoint)?.coverageStatus === 'qualifying' ? 'QUALIFYING' : 'GAP VISIBLE'}</p>
+            <h3>{(hoveredPoint ?? selectedPoint)?.name ?? 'Monitor'}</h3>
+            <p>
+              {(hoveredPoint ?? selectedPoint)?.borough ?? 'Borough unavailable'} · {(hoveredPoint ?? selectedPoint)?.period ?? 'Period unavailable'}<br />
+              {(hoveredPoint ?? selectedPoint)?.pm25 === null ? 'No data' : `${(hoveredPoint ?? selectedPoint)?.pm25?.toFixed(2)} ${AIR_UNITS}${(hoveredPoint ?? selectedPoint)?.aboveScale ? ' · above scale' : ''}`} · {(hoveredPoint ?? selectedPoint)?.coverage ?? 'Coverage unavailable'}
+            </p>
+            <p className="sources-note">Preliminary sensor data; gaps are not zero.</p>
+          </div>
+        )}
 
         <div className="raster-map-controls">
           <button

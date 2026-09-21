@@ -2,15 +2,17 @@
 
 Stated plainly, ordered by how much they affect a reviewer's ability to trust or use the product.
 
-## 1. The product is not deployed
+## 1. Built candidate, not yet deployed
 
-`tollshallow.web.app` returns HTTP 404 (Firebase "Site Not Found") as of this release. No preview channel and no production deploy have been run. A preview deploy is gated on owner approval, and production promotion needs a separate approval; see `docs/deployment/HOSTING_PREVIEW_ROLLBACK_RUNBOOK.md`.
+The local built candidate serves release `2026-09-18.1` in the repository build and passes the release acceptance gate. The prior production deployment remains release `2026-09-16.2`; this candidate has not been deployed.
+
+What is still missing around that: nobody outside this workstream has reviewed the candidate result, there is no uptime or error monitoring, and rollback is a manual `firebase hosting:rollback` (see `docs/deployment/HOSTING_PREVIEW_ROLLBACK_RUNBOOK.md`).
 
 The Firebase target itself is corrected and verified: the account owns exactly one project, `tollshallow` (number `1094344081770`), and the repository `.firebaserc` now names it instead of the inaccessible plural `tollshallows`.
 
-## 2. Four evidence modules have no published asset
+## 2. Three evidence modules have no published asset
 
-`AIR`, `EQUITY`, `CONFIDENCE`, and `HOTSPOTS` render an explicit "Not available for this claim" state. Their underlying material — historical NYCCAS surfaces, 2023 DAC layers, historical asthma records, and any hotspot ranking — is excluded from Release 1 because the release would otherwise imply a current or causal claim the data cannot support. The reason is shown in the UI, not hidden.
+`EQUITY`, `CONFIDENCE`, and `HOTSPOTS` render an explicit "Not available for this claim" state. Their underlying material — 2023 DAC layers, historical asthma records, and any hotspot ranking — is excluded from Release 1. `AIR` now publishes preliminary observed NYCCAS PM2.5 monitor measurements at daily and hourly resolution, with missing values preserved and a non-causal label.
 
 ## 3. Facility names are not published
 
@@ -22,7 +24,7 @@ The published traffic asset contains 2,561 aggregates over 195 segments, derived
 
 ## 5. Performance: the MapLibre chunk is large
 
-`npm run build` emits a >500 kB warning for the lazy-loaded MapLibre chunk (1,050 kB raw / 287 kB gzip). This is unchanged from the pre-implementation baseline. The data payload is small (3.1 MB total, within the gate budget), so the remaining work is code-splitting and asset chunking, not data reduction. No tiling decision has been made; `docs/ARCHITECTURE.md` requires a measured justification before adding PMTiles.
+`npm run build` emits a >500 kB warning for the lazy-loaded MapLibre chunk (1,050 kB raw / 287 kB gzip). This is unchanged from the pre-implementation baseline. The data payload is 45,890,466 bytes, within the measured 64 MiB gate budget; the remaining work is code-splitting and asset chunking, not data reduction. No tiling decision has been made; `docs/ARCHITECTURE.md` requires a measured justification before adding PMTiles.
 
 ## 6. Accessibility and E2E coverage are incomplete
 
@@ -42,7 +44,7 @@ Keyboard navigation, visible focus, `aria-live` status regions, and reduced-moti
 
 ## 10. The deployment gate has provisional thresholds
 
-The gate's 8 MiB budget for `dist/data` is a placeholder until real payload measurement. The gate is also manual — there is no CI workflow that runs it on push.
+The gate's measured 64 MiB budget for `dist/data` covers the on-demand hourly NYCCAS CSV. The gate is also manual — there is no CI workflow that runs it on push.
 
 ## 11. No commits were made
 
