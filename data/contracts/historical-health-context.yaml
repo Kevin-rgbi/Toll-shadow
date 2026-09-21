@@ -1,0 +1,35 @@
+schema_version: 1.0.0
+contract_id: nys-asthma-historical-context
+title: Archived New York State asthma rates, by county (borough)
+source_ids:
+  - nys_asthma_context_derived_historical
+input:
+  format: archived extract (converted by pipeline/scripts/derive-health-context.py)
+  grain: one rolling multi-year period per county and indicator
+output:
+  format: json
+  grain: one rolling multi-year period per county and indicator
+  fields:
+    indicator: non-empty string
+    county: non-empty string
+    borough: non-empty string
+    period: YYYY-YYYY
+    age_adjusted_rate_per_10000: nullable non-negative number (a rate, not a count)
+    annual_age_adjusted_rate_per_10000: nullable non-negative number
+    events: nullable non-negative integer (a count)
+    daily_mean_events: nullable non-negative number (a mean, not a count)
+quality:
+  reject_on:
+    - a period that is not a year range
+    - a negative rate
+    - a fractional event count
+    - an empty record set
+claims:
+  allowed:
+    - historical county-level context
+    - rates published exactly as the source supplied them
+  prohibited:
+    - a 2025 or post-policy health outcome
+    - a neighbourhood-level outcome
+    - any causal attribution to congestion pricing
+    - a current rate presented as a current condition

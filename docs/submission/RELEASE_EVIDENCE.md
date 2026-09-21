@@ -3,11 +3,11 @@
 Every figure below was produced on **2026-09-20** in the session that published this release, by the
 command named next to it. Nothing here is carried forward from an earlier revision of this document.
 
-## Release contents — `2026-09-20.4`
+## Release contents — `2026-09-20.5`
 
 | Fact | Value |
 |---|---|
-| Release ID | `2026-09-20.4` |
+| Release ID | `2026-09-20.5` |
 | Schema version | `1.4.0` |
 | Transform version | `pipeline-release-1.4.0` |
 | Status | `validated` |
@@ -26,15 +26,15 @@ command named next to it. Nothing here is carried forward from an earlier revisi
 | `health_context` | `health_context.json` | JSON | 28,287 | `770554d942def23710a4de899f220ff221d5ff969a47a8013d815933bb022097` |
 | `dac_context` | `equity_context.geojson` | GeoJSON | 481,251 | `e27c3f063511107c0b0a0ada77a7e31a1d0b98f97c7b066cd00157faadeba16e` |
 
-Published releases are immutable. `2026-09-20.4` supersedes `2026-09-20.3` to correct the release's own
-documentation — its README omitted three of the six sources from its quality summary — and it publishes
-the **same six assets with identical checksums**, which is what makes that a documentation correction
-rather than a data change. `2026-09-20.3` went out of service with this deploy; its canonical copy stays
-under `data/releases/`.
+Published releases are immutable. `2026-09-20.5` supersedes `2026-09-20.4` to publish each asset's
+authoritative source URL, which the PRD requires every module to expose and which no earlier release
+carried. It publishes the **same six assets with identical checksums** (verified: 6/6), which is what
+makes it a metadata correction rather than a data change. Superseded releases go out of service with
+the deploy; their canonical copies stay under `data/releases/`.
 
 ## Quality results
 
-From `data/releases/2026-09-20.4/quality.json`:
+From `data/releases/2026-09-20.5/quality.json`:
 
 | Source | Rows inspected | Rows included | Rows rejected | Example rejection |
 |---|---:|---:|---:|---|
@@ -51,7 +51,7 @@ From `data/releases/2026-09-20.4/quality.json`:
 
 ```
 $ npx vitest run pipeline/tests
-Test Files  6 passed (6)      Tests  17 passed (17)
+Test Files  8 passed (8)      Tests  38 passed (38)
 $ node pipeline/scripts/validate-source-catalog.mjs     # 15 sources, all checksums match
 ```
 
@@ -74,7 +74,7 @@ directory (`EEXIST`) — both observed while setting the check up.
 ```
 $ npx tsc -b                # clean
 $ npm run lint              # clean
-$ npm run test              # Test Files 26 passed (26)      Tests 166 passed (166)
+$ npm run test              # Test Files 28 passed (28)      Tests 199 passed (199)
 $ npm run test:e2e          # 59 passed, 3 skipped (desktop and phone viewports)
 $ npm run build             # main 288 kB raw / 87 kB gzip; map chunk 1,035 kB raw / 279 kB gzip
 ```
@@ -91,7 +91,7 @@ a module reported "this release does not publish that asset" when the manifest i
 
 ```
 $ python3 scripts/release_acceptance.py
-47 checks passed, 0 failed
+58 checks passed, 0 failed
 RELEASE ACCEPTED — proceed to the preview-channel runbook.
 ```
 
@@ -115,17 +115,31 @@ than passing or failing a check it cannot run.
 
 ### Firebase target
 
-Verified live: `https://tollshallow.web.app` serves release `2026-09-20.4`, `status: validated`, six
-assets:
+Verified live after the deploy, on 2026-09-20:
 
 ```
-$ curl -s https://tollshallow.web.app/data/manifest.json       release 2026-09-20.4, validated, 6 assets
-$ curl -so /dev/null -w '%{http_code}\n' .../2026-09-20.4/equity_context.geojson     200
-$ curl -so /dev/null -w '%{http_code}\n' .../2026-09-20.4/health_context.json        200
-$ curl -so /dev/null -w '%{http_code}\n' .../2026-09-20.4/air_context.json           200
-$ curl -so /dev/null -w '%{http_code}\n' .../2026-09-20.4/crz_entry_summary.json     200
-$ curl -so /dev/null -w '%{http_code}\n' .../2026-09-20.3/equity_context.geojson     404   # superseded
+$ curl -s https://tollshallow.web.app/data/manifest.json       release 2026-09-20.5, validated, 6 assets
+$ curl -so /dev/null -w '%{http_code}\n' .../2026-09-20.5/equity_context.geojson     200
+$ curl -so /dev/null -w '%{http_code}\n' .../2026-09-20.5/health_context.json        200
+$ curl -so /dev/null -w '%{http_code}\n' .../2026-09-20.5/air_context.json           200
+$ curl -so /dev/null -w '%{http_code}\n' .../2026-09-20.5/crz_entry_summary.json     200
+$ curl -so /dev/null -w '%{http_code}\n' .../2026-09-20.4/equity_context.geojson     404   # superseded
 ```
+
+Every asset in the live manifest carries one `source_urls` entry, and every module renders it. Read
+live from the deployed build:
+
+| Module | Source link rendered |
+|---|---|
+| TRAFFIC | `data.cityofnewyork.us/Transportation/Automated-Traffic-Volume-…` |
+| CROSSINGS | `data.ny.gov/Transportation/Daily-Traffic-on-MTA-Bridges-Tunnels/…` |
+| CRZ | `data.ny.gov/Transportation/MTA-Congestion-Relief-Zone-Vehicle-Entries-…` |
+| AIR | `data.cityofnewyork.us/Environment/NYCCAS-Air-Pollution-Rasters/…` |
+| EQUITY | `data.ny.gov/Environmental-Conservation/Disadvantaged-Communities/…` |
+
+The shell describes the release it serves: `index.html` contains no reference to a superseded release,
+and its `Dataset` structured data lists **6 distributions and 6 sources**, generated at build time from
+the manifest rather than written by hand.
 
 ### Rendered in a browser, on the deployed build
 

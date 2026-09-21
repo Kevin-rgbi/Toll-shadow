@@ -20,6 +20,7 @@ const asset: ReleaseAsset = {
   coverage: { start: '2024-01-01', end: '2025-12-31' },
   grain: 'one segment, borough, direction, and calendar-month aggregate',
   source_ids: ['dot_automated_traffic_counts_archive_20260915'],
+  source_urls: ['https://example.test/source-register'],
   transform_version: 'pipeline-release-1.0.0',
   status: 'validated',
   limitations: ['DOT counts are samples and do not represent continuous measurement'],
@@ -33,6 +34,7 @@ const crossingAsset: ReleaseAsset = {
   format: 'json',
   geometry_crs: undefined,
   source_ids: ['mta_daily_bridge_tunnel_traffic_archive_20260915'],
+  source_urls: ['https://example.test/source-register'],
   limitations: ['source is a daily aggregate view and cannot support hourly analysis'],
 }
 

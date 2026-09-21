@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { validateAirContext, validateEquityContext, validateHealthContext } from '../src/context.mjs';
+import { assetSourceUrls } from '../src/release.mjs';
 
 /**
  * Contract tests for the published context assets.
@@ -127,3 +128,24 @@ describe('validateAirContext', () => {
     expect(() => validateAirContext(air({ width: 2.5 }))).toThrow(/width and height must be integers/);
   });
 });
+
+describe('assetSourceUrls', () => {
+  const catalog = new Map([
+    ['a', { source_id: 'a', authoritative_url: 'https://example.test/a' }],
+    ['b', { source_id: 'b', authoritative_url: 'https://example.test/b' }],
+    ['no_url', { source_id: 'no_url' }],
+  ])
+
+  it('resolves every source an asset is based on', () => {
+    expect(assetSourceUrls(['a', 'b'], catalog)).toEqual(['https://example.test/a', 'https://example.test/b'])
+  })
+
+  it('refuses to publish an asset whose source has no registered URL', () => {
+    // An unlinked metric is what the PRD forbids, so this fails the build rather than shipping one.
+    expect(() => assetSourceUrls(['no_url'], catalog)).toThrow(/no authoritative_url/)
+  })
+
+  it('refuses a source that is not in the register at all', () => {
+    expect(() => assetSourceUrls(['missing'], catalog)).toThrow(/no authoritative_url/)
+  })
+})

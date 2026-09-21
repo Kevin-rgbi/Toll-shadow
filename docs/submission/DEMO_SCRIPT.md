@@ -79,8 +79,8 @@ explicit release ID and generation timestamp:
 
 ```bash
 node pipeline/scripts/build-release.mjs \
-  --release-id 2026-09-20.4 \
-  --generated-at 2026-09-21T00:46:32.000Z
+  --release-id 2026-09-20.5 \
+  --generated-at 2026-09-21T02:49:09.000Z
 ```
 
 This rewrites `public/data/manifest.json` and `data/releases/<id>/`. The builder refuses a release ID

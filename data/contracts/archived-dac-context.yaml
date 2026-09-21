@@ -1,0 +1,36 @@
+schema_version: 1.0.0
+contract_id: archived-dac-context-2023
+title: Archived 2023 disadvantaged-communities geography, census tracts
+source_ids:
+  - nyc_dac_context_derived_2023
+input:
+  format: geojson (simplified by pipeline/scripts/derive-equity-context.py)
+  grain: one archived census-tract feature
+output:
+  format: geojson
+  geometry_crs: EPSG:4326
+  grain: one archived census-tract feature
+  fields:
+    vintage: string, stating the archived year and that the 2025 revision supersedes it
+    geography_label: string
+    features: non-empty array of GeoJSON Features
+  feature_properties:
+    GEOID: non-empty string
+    County: non-empty string
+    Pop_Cnt: nullable non-negative integer
+    Vulner_Pct: nullable non-negative number (a percentile, not a count)
+quality:
+  reject_on:
+    - a geometry that is not a Polygon or MultiPolygon
+    - a ring with fewer than three positions, or a position that is not a finite [lng, lat] pair
+    - a coordinate outside the New York City envelope, which catches an axis swap
+    - a feature without an identifier or a county
+    - a key set taken from a single feature, which would drop a column the layer publishes
+claims:
+  allowed:
+    - archived equity context with its dataset version
+    - the published vulnerability percentile as supplied
+  prohibited:
+    - a current DAC designation claim
+    - any implication that DAC status causes a transport or health result
+    - an individual risk or exposure result

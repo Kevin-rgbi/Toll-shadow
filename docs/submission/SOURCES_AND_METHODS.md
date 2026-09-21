@@ -1,8 +1,13 @@
 # Sources and Methods
 
-The authoritative source register is `data/catalog/sources.yaml` and holds **15 entries**. This
-document summarizes which of them feed release `2026-09-20.3`, and what each published measure means.
-The register is the source of truth; if this document and the register disagree, the register wins.
+The authoritative source register is `data/catalog/sources.yaml` and holds **15 entries**. Each published
+asset carries its source's registered `authoritative_url` in the manifest, and every module renders it as
+a link, because the PRD requires a source URL on every displayed metric and a register identifier is not
+a link. The build refuses to publish an asset whose source has no recorded URL.
+
+This document summarizes which of the register's entries feed the published release, and what each
+published measure means. The register is the source of truth; if this document and the register
+disagree, the register wins.
 
 ## Sources used by the release
 

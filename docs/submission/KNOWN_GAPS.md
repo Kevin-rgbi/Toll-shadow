@@ -7,7 +7,7 @@ forward from an earlier revision of this document.
 
 ## 1. Deployed to production, but unreviewed
 
-`https://tollshallow.web.app` serves release `2026-09-20.4`, verified live: HTTP 200, `release_id` and
+`https://tollshallow.web.app` serves release `2026-09-20.5`, verified live: HTTP 200, `release_id` and
 `status: validated` in the manifest, six assets at their published checksums, and the modules render
 published figures. Nobody outside this workstream has reviewed the deployed result, and there is no
 uptime or error monitoring, so nothing outside a reader's browser reports that the site stopped
@@ -24,7 +24,7 @@ now records the working commands and the observed behaviour.
 
 `CONFIDENCE` and `HOTSPOTS` render under the development flag only, because a confidence composition
 and a hotspot ranking both imply an inference the published data does not support. `AIR` and `EQUITY`
-used to be in this group and no longer are: release `2026-09-20.4` publishes a modelled historical air
+used to be in this group and no longer are: release `2026-09-20.5` publishes a modelled historical air
 surface and the archived 2023 disadvantaged-communities geography, each with its vintage and a
 non-causal label.
 
@@ -88,7 +88,7 @@ it — but it means the published traffic layer is decoration rather than an int
 the synthetic-mode strings still in that card's markup are unreachable in production. Making published
 points selectable is unbuilt work, and it should come with the same claim discipline the modules have.
 
-## 8b. Development-labelled strings remain in components that ship
+## 9. Development-labelled strings remain in components that ship
 
 The prototype *modules* are out of the production bundle: `ConfidencePanel`, `HotspotDrawer` and
 `HotspotDetailPanel` no longer appear in it at all, verified by searching for copy unique to them
@@ -97,7 +97,7 @@ branches of components that legitimately ship — the release ribbon's dev summa
 eyebrow, and the selection card's synthetic-mode labels described above. They are inert text, not
 reachable UI, but they are the reason a search for "SYNTHETIC DEV" in the bundle still returns hits.
 
-## 9. The Kepler artifact rests on undocumented legacy derivatives
+## 10. The Kepler artifact rests on undocumented legacy derivatives
 
 `visualization/kepler/validate_kepler_export.py` proves the export matches its four declared inputs by
 identity, row count, schema, and value — 34 checks, where previously 18 passed and 4 failed on a path
@@ -105,14 +105,28 @@ bug that stopped the identity checks from running at all. It cannot prove those 
 approved: the prepared CSVs' policy labels, hourly estimate, and aggregation rules remain
 undocumented. Kepler is a source-side reproducibility artifact and is not part of the runtime.
 
-## 10. The deployment gate's data budget is a working figure
+## 11. The deployment gate's data budget is a working figure
 
 The gate's 8 MiB ceiling for `dist/data` is a working number, not a surveyed one; the release payload
 is 6.02 MiB, so the margin is real but small, and a release that adds another context layer will need
 the budget re-derived rather than nudged. The entry and map-chunk budgets have numbers in
 `docs/DATA_STRATEGY.md` and the gate measures both.
 
-## 11. Unit tests must render components without JSX syntax
+## 12. The initial-request budget is documented but not enforced
+
+`docs/DATA_STRATEGY.md` sets four browser budgets. Three are measured by the release gate (gzipped
+entry, gzipped map chunk, total published data). The fourth — twelve requests to first render — is a
+design target with nothing measuring it, because counting requests "to first render" reliably needs a
+browser run and a definition of first render that does not flap. It is labelled unenforced in the
+budget table rather than left to look gated.
+
+## 13. The derivation recipes still cannot be re-run on this machine
+
+Unchanged from the earlier revision: `rasterio` and `shapely` are installed in no interpreter here, so
+the published derivatives under `data/derived/` remain the only copy of that step's output. The
+recipes are recorded and reviewable; they are not executable here.
+
+## 14. Unit tests must render components without JSX syntax
 
 The unit test config (`vitest.config.ts`) is standalone rather than inherited from the application's
 Vite config, so a test file that writes JSX compiles to the classic runtime and fails with
@@ -123,23 +137,7 @@ Fixing it means setting the JSX runtime in the test config, which is test-framew
 is deliberately not something an agent should change unattended. It is recorded rather than quietly
 worked around.
 
-## 12. The derivation recipes cannot be re-run on this machine
-
-`pipeline/scripts/derive-air-context.py` needs `rasterio` and `derive-equity-context.py` needs
-`shapely`, and neither is installed in any interpreter on this machine (the workspace `venv` has
-neither). The published derived inputs under `data/derived/` are therefore the only copy of that step's
-output right now: the recipe is recorded and reviewable, but nobody can currently execute it here to
-prove the published asset is reproducible from it.
-
-This matters for a change to a recipe. When the two recipes were hardened on 2026-09-20 — a truncated
-odd-sized raster, a flat surface that normalised to NaN, and a key set taken from one feature — the
-output could not be re-derived to compare. The conclusion that the published assets are unaffected
-rests on the artifacts instead: the pooled grid is 78x78 from an even 156x156 source, so no truncation
-occurred; its published range is 0.0 to 1.0, so the flat-surface branch is not taken; and every one of
-the seven expected equity keys is present in all 958 features with no null percentile, so the key-set
-change is a no-op for this input.
-
-## 13. The work is unreviewed by a second person
+## 15. The work is unreviewed by a second person
 
 CI now runs the typecheck, lint, unit tests, accessibility gate, build, release gate, and the
 end-to-end suite on every push and pull request, and the release gate blocks a `synthetic: true`

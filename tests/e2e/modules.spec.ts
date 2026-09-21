@@ -102,6 +102,13 @@ test.describe('published modules render published values', () => {
         await expect(block).toContainText('pipeline-release-')
         await expect(block).toContainText('sha256')
         await expect(block).toContainText('Limitations of this asset')
+
+        // FR-07 requires a source URL, and the PRD metric requires a source/method link on every
+        // displayed metric. A register identifier is not a link, so assert a real href.
+        const link = block.locator('a[href^="http"]').first()
+        await expect(link, `${mode} publishes a metric with no source link`).toBeVisible()
+        expect(await link.getAttribute('href'), `${mode} source link is not an absolute http(s) URL`)
+          .toMatch(/^https?:\/\//)
       }
     }
   })
