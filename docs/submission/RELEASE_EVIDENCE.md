@@ -79,8 +79,8 @@ $ npm run test:e2e          # 59 passed, 3 skipped (desktop and phone viewports)
 $ npm run build             # main 288 kB raw / 87 kB gzip; map chunk 1,035 kB raw / 279 kB gzip
 ```
 
-The unit suite includes the accessibility gate (axe over eight surfaces, zero serious or critical
-violations, plus a negative test proving axe reports real violations) and the source-size ratchet.
+The unit suite includes the accessibility gate (axe over nine surfaces, zero serious or critical
+violations, plus a negative test that the gate is not vacuous) and the source-size ratchet.
 
 The end-to-end suite runs against the built site served by `vite preview`, not the dev server. It found
 two production defects on its first run, both fixed and recorded in the commit history: the historical
