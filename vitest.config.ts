@@ -8,6 +8,11 @@ import { configDefaults, defineConfig } from 'vitest/config'
  * own command instead.
  */
 export default defineConfig({
+  // The JSX runtime is set here so a test can render a component the way the application does.
+  // Standalone, this config does not inherit the app's Vite plugins, so JSX in a `.tsx` test compiled
+  // to the classic runtime and failed with "React is not defined" - an error that names the wrong
+  // problem and sends the reader looking at React rather than at this file.
+  esbuild: { jsx: 'automatic', jsxImportSource: 'react' },
   test: {
     exclude: [...configDefaults.exclude, 'tests/e2e/**'],
   },

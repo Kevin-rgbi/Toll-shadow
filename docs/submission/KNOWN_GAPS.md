@@ -126,18 +126,7 @@ Unchanged from the earlier revision: `rasterio` and `shapely` are installed in n
 the published derivatives under `data/derived/` remain the only copy of that step's output. The
 recipes are recorded and reviewable; they are not executable here.
 
-## 14. Unit tests must render components without JSX syntax
-
-The unit test config (`vitest.config.ts`) is standalone rather than inherited from the application's
-Vite config, so a test file that writes JSX compiles to the classic runtime and fails with
-`ReferenceError: React is not defined` — an error that names the wrong problem. Every existing test
-avoids this by rendering with `createElement`, which is the working convention here.
-
-Fixing it means setting the JSX runtime in the test config, which is test-framework configuration and
-is deliberately not something an agent should change unattended. It is recorded rather than quietly
-worked around.
-
-## 15. The work is unreviewed by a second person
+## 14. The work is unreviewed by a second person
 
 CI now runs the typecheck, lint, unit tests, accessibility gate, build, release gate, and the
 end-to-end suite on every push and pull request, and the release gate blocks a `synthetic: true`
