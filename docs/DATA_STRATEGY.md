@@ -100,7 +100,7 @@ PRD success metric unverifiable.
 |---|---:|---|
 | Entry bundle, gzipped (JS + CSS) | 130 kB | The shell must paint before the map chunk is requested. |
 | Lazy map chunk, gzipped | 330 kB | MapLibre dominates this and is loaded only when a map view opens. |
-| Total published data assets in one release | 6 MiB | Two pre-aggregated assets today; a third must justify itself against this ceiling. |
+| Total published data assets in one release | 8 MiB | Six assets ship: two observed measures, one CRZ aggregate, and three context layers (modelled air surface, historical health, archived equity geography). The ceiling was raised from 6 MiB when the context layers landed, and the per-asset cap stays at 5 MiB. |
 | Initial requests to first render | 12 | Fonts, shell, styles, manifest. |
 
 

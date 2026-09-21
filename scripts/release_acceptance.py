@@ -47,7 +47,7 @@ DEFAULT_BUDGET_BYTES = 8 * 1024 * 1024
 # budget" before this table, which left the PRD success metric unverifiable.
 ENTRY_BUDGET_GZIP_BYTES = 130 * 1024
 MAP_CHUNK_BUDGET_GZIP_BYTES = 330 * 1024
-DATA_BUDGET_BYTES = 6 * 1024 * 1024
+DATA_BUDGET_BYTES = 8 * 1024 * 1024
 
 # Raw/archive payloads that must never ship to the browser.
 RAW_PAYLOAD_SUFFIXES = (".csv", ".tif", ".adf", ".zip", ".pdf", ".xls", ".xlsx")

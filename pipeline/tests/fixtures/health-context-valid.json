@@ -1,0 +1,17 @@
+{
+  "source": "New York State Department of Health (archived extract)",
+  "geography_label": "county, which for New York City is the borough",
+  "period_label": "rolling multi-year periods ending 2019 or earlier",
+  "records": [
+    {
+      "indicator": "Hospitalizations",
+      "county": "Bronx",
+      "borough": "Bronx",
+      "period": "2017-2019",
+      "age_adjusted_rate_per_10000": 22.5,
+      "annual_age_adjusted_rate_per_10000": 7.5,
+      "events": 1200,
+      "daily_mean_events": 1.1
+    }
+  ]
+}

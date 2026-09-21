@@ -11,7 +11,14 @@ import { useReleaseManifest } from './hooks/useReleaseManifest'
 import { useReleaseBoundary } from './hooks/useReleaseBoundary'
 import { useReleaseAsset } from './hooks/useReleaseAsset'
 import { getReleaseTimelineBounds } from './lib/releaseManifest'
-import { parseCrzEntries, parseFacilityCrossings, parseTrafficObservations } from './lib/releaseData'
+import {
+  parseAirContext,
+  parseCrzEntries,
+  parseEquityContext,
+  parseFacilityCrossings,
+  parseHealthContext,
+  parseTrafficObservations,
+} from './lib/releaseData'
 import type { TrafficDayType, TrafficObservation } from './types/releaseData'
 import { getDevSyntheticTimelineBounds } from './lib/devSyntheticDataset'
 import { APP_MODES, useAppStore } from './state/appStore'
@@ -32,6 +39,8 @@ import {
 } from './features/traffic/trafficSummary'
 import { CrossingsModule } from './features/crossings/CrossingsModule'
 import { CrzModule } from './features/crz/CrzModule'
+import { AirContextModule } from './features/air/AirContextModule'
+import { EquityContextModule } from './features/equity/EquityContextModule'
 import { crossingsDateBounds } from './features/crossings/crossingsSummary'
 import { buildViewStateQuery, readViewStateFromLocation } from './lib/viewState'
 import { BUILD_ID, isStaleBuild, readExpectedBuildIdFromLocation } from './lib/buildInfo'
@@ -89,6 +98,9 @@ function App() {
   const trafficState = useReleaseAsset(release, 'traffic_observations', parseTrafficObservations, mode === 'TRAFFIC')
   const crossingsState = useReleaseAsset(release, 'facility_crossings', parseFacilityCrossings, mode === 'CROSSINGS')
   const crzState = useReleaseAsset(release, 'crz_context', parseCrzEntries, mode === 'CRZ')
+  const airState = useReleaseAsset(release, 'historical_context', parseAirContext, mode === 'AIR')
+  const healthState = useReleaseAsset(release, 'health_context', parseHealthContext, mode === 'AIR')
+  const equityState = useReleaseAsset(release, 'dac_context', parseEquityContext, mode === 'EQUITY')
   // A shared link seeds the filters once, at mount. Later edits go through the store and the URL
   // writer below; the URL is never re-read, so user interaction cannot be overwritten by history.
   const [initialView] = useState(readViewStateFromLocation)
@@ -345,6 +357,14 @@ function App() {
           onRangeChange={(start, end) => setCrossingsRangeOverride({ start, end })}
         />
       )
+    }
+
+    if (mode === 'AIR') {
+      return <AirContextModule airState={airState} healthState={healthState} release={release} />
+    }
+
+    if (mode === 'EQUITY') {
+      return <EquityContextModule state={equityState} release={release} />
     }
 
     if (mode === 'CRZ') {

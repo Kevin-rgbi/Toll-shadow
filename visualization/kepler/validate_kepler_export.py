@@ -33,9 +33,13 @@ import json
 import sys
 from pathlib import Path
 
-WORKSPACE_ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_EXPORT = WORKSPACE_ROOT / "visualization" / "kepler" / "01_Traffic.json"
-DEFAULT_BASELINE = WORKSPACE_ROOT / "visualization" / "kepler" / "kepler_baseline.json"
+# The export and the baseline live in the repository. The source CSVs the baseline declares live
+# in the workspace that holds the raw and processed data, and in this layout the repository is
+# `source/github-repo` inside that workspace, so the two roots are not the same directory.
+REPO_ROOT = Path(__file__).resolve().parents[2]
+WORKSPACE_ROOT = REPO_ROOT.parents[1]
+DEFAULT_EXPORT = REPO_ROOT / "visualization" / "kepler" / "01_Traffic.json"
+DEFAULT_BASELINE = REPO_ROOT / "visualization" / "kepler" / "kepler_baseline.json"
 DEFAULT_PROCESSED_ROOT = WORKSPACE_ROOT / "data" / "processed"
 
 
@@ -49,13 +53,42 @@ class Report:
         self.results.append({"check": name, "ok": bool(ok), "detail": detail})
         return bool(ok)
 
+    def skip(self, name: str, detail: str) -> None:
+        """Record a check that cannot run here, with the reason.
+
+        A skip is not a pass: it means the evidence is absent, not that the condition held.
+        """
+        self.results.append({"check": name, "ok": False, "skipped": True, "detail": detail})
+
     @property
     def failed(self) -> list[dict]:
-        return [r for r in self.results if not r["ok"]]
+        return [r for r in self.results if not r["ok"] and not r.get("skipped")]
+
+    @property
+    def skipped(self) -> list[dict]:
+        return [r for r in self.results if r.get("skipped")]
 
     @property
     def passed(self) -> list[dict]:
-        return [r for r in self.results if r["ok"]]
+        return [r for r in self.results if r["ok"] and not r.get("skipped")]
+
+
+def source_roots(processed_root: Path) -> list[Path]:
+    """Directories a baseline `source_path` may be relative to, most specific first."""
+    roots: list[Path] = []
+    for root in (processed_root.parent.parent, WORKSPACE_ROOT, REPO_ROOT):
+        if root not in roots:
+            roots.append(root)
+    return roots
+
+
+def resolve_source(processed_root: Path, source_path: str) -> Path | None:
+    """Find a declared source CSV, or None when no candidate root carries it."""
+    for root in source_roots(processed_root):
+        candidate = root / source_path
+        if candidate.exists():
+            return candidate
+    return None
 
 
 def sha256_file(path: Path) -> str:
@@ -169,11 +202,25 @@ def validate(export_path: Path, baseline_path: Path, processed_root: Path) -> Re
             f"ragged row indexes={ragged[:5]}",
         )
 
-        source = processed_root.parent.parent / want["source_path"]
-        if not source.exists():
-            source = WORKSPACE_ROOT / want["source_path"]
-        if not source.exists():
-            report.check(f"[{label}] declared source CSV exists", False, str(source))
+        source = resolve_source(processed_root, want["source_path"])
+        if source is None:
+            # A checkout that carries the workspace data root but not the declared file has drifted
+            # from the baseline and fails. A checkout that carries no workspace data at all (the
+            # repository is published standalone) cannot verify identity here, so the check is
+            # reported as skipped with its reason rather than passed or failed.
+            roots = source_roots(processed_root)
+            if any((root / "data").is_dir() for root in roots):
+                report.check(
+                    f"[{label}] declared source CSV exists",
+                    False,
+                    f"not found under {[str(root) for root in roots]}",
+                )
+            else:
+                report.skip(
+                    f"[{label}] declared source CSV exists",
+                    "no workspace data root in this checkout; the declared source CSV is not "
+                    "available, so source identity cannot be verified here",
+                )
             continue
 
         actual_sha = sha256_file(source)
@@ -240,6 +287,7 @@ def main() -> int:
                 {
                     "export": str(args.export),
                     "passed": len(report.passed),
+                    "skipped": len(report.skipped),
                     "failed": len(report.failed),
                     "results": report.results,
                     "claim_boundary": baseline["claim_boundary"],
@@ -256,7 +304,14 @@ def main() -> int:
         print(f"  FAIL  {result['check']}")
         if result["detail"]:
             print(f"        {result['detail']}")
-    print(f"\n{len(report.passed)} checks passed, {len(report.failed)} failed")
+    for result in report.skipped:
+        print(f"  SKIP  {result['check']}")
+        if result["detail"]:
+            print(f"        {result['detail']}")
+    summary = f"\n{len(report.passed)} checks passed, {len(report.failed)} failed"
+    if report.skipped:
+        summary += f", {len(report.skipped)} skipped"
+    print(summary)
     print()
     print("Claim boundary: " + baseline["claim_boundary"])
     return 1 if report.failed else 0

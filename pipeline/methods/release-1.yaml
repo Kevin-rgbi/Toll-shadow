@@ -1,5 +1,5 @@
 schema_version: 1.1.0
-release_id: 2026-09-20.2
+release_id: 2026-09-20.3
 policy_reference:
   date: '2025-01-05'
   source_url: https://www.mta.info/press-release/new-york-joins-world-cities-launch-of-first-nation-program-deliver-cleaner-air-less
@@ -78,7 +78,65 @@ measures:
       - descriptive only; no causal policy effect is estimated
     claim_policy: descriptive_only
 
+  - measure_id: nyccas_air_context_relative
+    asset_kind: historical_context
+    source_ids: [nyccas_air_context_derived_2016]
+    coverage:
+      start: '2016-01-01'
+      end: '2016-12-31'
+    grain: one modelled value per pooled grid cell of about 600 m
+    numerator: not applicable; a modelled surface is published as a relative field
+    denominator: not applicable
+    aggregation: 2x2 mean of the archived 300 m cells, NoData masked, min-max normalised within this surface only
+    inclusion_rules:
+      - source cell inside the archived grid and not equal to the NoData sentinel
+    exclusion_rules:
+      - cells whose whole 2x2 block is NoData, published as null rather than zero
+    limitations:
+      - a modelled historical surface, not a monitor reading
+      - the pollutant and period labels are inferred from the source filename; the archive carries no codebook
+      - absolute units are not established, so only a relative field is published
+      - no causal or health claim follows from this layer
+    claim_policy: descriptive_only
+  - measure_id: nys_asthma_historical_context
+    asset_kind: health_context
+    source_ids: [nys_asthma_context_derived_historical]
+    coverage:
+      start: '2000-01-01'
+      end: '2019-12-31'
+    grain: one rolling multi-year period per county, indicator and total subgroup
+    numerator: the source's event count for the period, where the source supplies one
+    denominator: the source's age-adjusted rate per 10,000, published as supplied
+    aggregation: filtered to the five borough counties and the Total subgroup; no rate is recomputed
+    inclusion_rules:
+      - county in the five New York City boroughs
+      - subgroup1 and subgroup2 both Total
+      - rolling multi-year period
+    exclusion_rules:
+      - single-year rows, subgroup rows, and blank rates
+    limitations:
+      - historical context ending 2019; not a post-policy outcome
+      - county (borough) geography, not a neighbourhood estimate
+      - descriptive only; no causal health claim
+    claim_policy: descriptive_only
+  - measure_id: archived_dac_context_2023
+    asset_kind: dac_context
+    source_ids: [nyc_dac_context_derived_2023]
+    coverage:
+      start: '2023-01-01'
+      end: '2023-12-31'
+    grain: one archived census-tract feature
+    numerator: not applicable; a geography layer carries no measure
+    denominator: not applicable
+    aggregation: geometry simplified with a 0.0004 degree tolerance, topology preserved, for display
+    inclusion_rules:
+      - feature present in the archived New York City disadvantaged-communities layer
+    exclusion_rules:
+      - features outside the archived layer
+    limitations:
+      - the archived 2023 criteria, not the 2025 Version 2.0 revision
+      - a geography layer, not an estimate of individual risk or exposure
+      - published after the owner release decision recorded in the work log
+    claim_policy: descriptive_only
 excluded_asset_kinds:
   cbd_boundary: Legacy derivative needs geometry/release validation.
-  dac_context: Archived 2023 layer requires an owner release decision.
-  historical_context: NYCCAS and asthma sources are historical context, not Release 1 outcomes.

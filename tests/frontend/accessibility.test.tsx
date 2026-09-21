@@ -6,6 +6,8 @@ import { describe, expect, it } from 'vitest'
 import { TrafficModule } from '../../src/features/traffic/TrafficModule'
 import { CrossingsModule } from '../../src/features/crossings/CrossingsModule'
 import { CrzModule } from '../../src/features/crz/CrzModule'
+import { AirContextModule } from '../../src/features/air/AirContextModule'
+import { EquityContextModule } from '../../src/features/equity/EquityContextModule'
 import { SourcesPanel } from '../../src/components/Detail/SourcesPanel'
 import { NarrativeOverlay } from '../../src/components/Story/NarrativeOverlay'
 import { DataRibbon } from '../../src/components/Status/DataRibbon'
@@ -149,6 +151,62 @@ const surfaces: Array<{ name: string, element: ReturnType<typeof createElement> 
           excludedRoadwayEntries: 20,
           totalEntries: 120,
         } satisfies CrzEntrySummary],
+      },
+      release,
+    }),
+  },
+  {
+    name: 'air and health context with published data',
+    element: createElement(AirContextModule, {
+      airState: {
+        status: 'ready',
+        data: {
+          pollutantLabel: 'black carbon, annual average (label inferred from the filename)',
+          periodLabel: '2016 (inferred from the filename; not verified)',
+          valuesNote: 'relative 0-1 within this surface; absolute units are not established',
+          aggregation: '2x2 mean of the 300 m source cells',
+          bounds: [-74.25, 40.5, -73.7, 40.92],
+          width: 2,
+          height: 2,
+          grid: [[0.1, null], [0.75, 1]],
+        },
+      },
+      healthState: {
+        status: 'ready',
+        data: {
+          source: 'NYS DOH (archived extract)',
+          geographyLabel: 'county, which is the borough',
+          periodLabel: 'rolling multi-year periods ending 2019 or earlier',
+          records: [{
+            indicator: 'Hospitalizations',
+            county: 'Bronx',
+            borough: 'Bronx',
+            period: '2017-2019',
+            ageAdjustedRatePer10000: 22.5,
+            events: 1200,
+            dailyMeanEvents: 1.1,
+          }],
+        },
+      },
+      release,
+    }),
+  },
+  {
+    name: 'equity context with published data',
+    element: createElement(EquityContextModule, {
+      state: {
+        status: 'ready',
+        data: {
+          vintage: '2023 disadvantaged-communities criteria (archived layer)',
+          geographyLabel: 'census tract polygons clipped to New York City',
+          features: [{
+            geoid: '36005000100',
+            county: 'Bronx',
+            population: 1200,
+            vulnerabilityPercentile: 88,
+            geometry: { type: 'Polygon', coordinates: [[[-73.9, 40.8], [-73.89, 40.8], [-73.89, 40.81], [-73.9, 40.8]]] },
+          }],
+        },
       },
       release,
     }),
