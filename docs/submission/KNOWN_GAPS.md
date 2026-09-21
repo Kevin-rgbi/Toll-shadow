@@ -7,7 +7,7 @@ forward from an earlier revision of this document.
 
 ## 1. Deployed to production, but unreviewed
 
-`https://tollshallow.web.app` serves release `2026-09-20.3`, verified live: HTTP 200, `release_id` and
+`https://tollshallow.web.app` serves release `2026-09-20.4`, verified live: HTTP 200, `release_id` and
 `status: validated` in the manifest, six assets at their published checksums, and the modules render
 published figures. Nobody outside this workstream has reviewed the deployed result, and there is no
 uptime or error monitoring, so nothing outside a reader's browser reports that the site stopped
@@ -24,7 +24,7 @@ now records the working commands and the observed behaviour.
 
 `CONFIDENCE` and `HOTSPOTS` render under the development flag only, because a confidence composition
 and a hotspot ranking both imply an inference the published data does not support. `AIR` and `EQUITY`
-used to be in this group and no longer are: release `2026-09-20.3` publishes a modelled historical air
+used to be in this group and no longer are: release `2026-09-20.4` publishes a modelled historical air
 surface and the archived 2023 disadvantaged-communities geography, each with its vintage and a
 non-causal label.
 
@@ -100,7 +100,18 @@ is 6.02 MiB, so the margin is real but small, and a release that adds another co
 the budget re-derived rather than nudged. The entry and map-chunk budgets have numbers in
 `docs/DATA_STRATEGY.md` and the gate measures both.
 
-## 11. The work is unreviewed by a second person
+## 11. Unit tests must render components without JSX syntax
+
+The unit test config (`vitest.config.ts`) is standalone rather than inherited from the application's
+Vite config, so a test file that writes JSX compiles to the classic runtime and fails with
+`ReferenceError: React is not defined` — an error that names the wrong problem. Every existing test
+avoids this by rendering with `createElement`, which is the working convention here.
+
+Fixing it means setting the JSX runtime in the test config, which is test-framework configuration and
+is deliberately not something an agent should change unattended. It is recorded rather than quietly
+worked around.
+
+## 12. The work is unreviewed by a second person
 
 CI now runs the typecheck, lint, unit tests, accessibility gate, build, release gate, and the
 end-to-end suite on every push and pull request, and the release gate blocks a `synthetic: true`
