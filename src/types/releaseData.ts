@@ -85,3 +85,56 @@ export interface CrzEntrySummary {
   excludedRoadwayEntries: number
   totalEntries: number
 }
+
+/**
+ * Modelled historical air surface, published as a relative field.
+ *
+ * The pollutant and period labels are inferred from the source filename and absolute units are not
+ * established in the archive, so nothing here carries a concentration. Values are relative within the
+ * surface only.
+ */
+export interface AirContextSurface {
+  pollutantLabel: string
+  periodLabel: string
+  valuesNote: string
+  aggregation: string
+  /** `[west, south, east, north]` in EPSG:4326. */
+  bounds: [number, number, number, number]
+  width: number
+  height: number
+  /** Row-major relative values, null where the source had no data. */
+  grid: Array<Array<number | null>>
+}
+
+/** One historical health record: a rolling period for a county, which in NYC is a borough. */
+export interface HealthContextRecord {
+  indicator: string
+  county: string
+  borough: string
+  period: string
+  ageAdjustedRatePer10000: number | null
+  events: number | null
+  dailyMeanEvents: number | null
+}
+
+export interface HealthContext {
+  source: string
+  geographyLabel: string
+  periodLabel: string
+  records: HealthContextRecord[]
+}
+
+/** One archived disadvantaged-communities tract. */
+export interface EquityContextFeature {
+  geoid: string
+  county: string
+  population: number | null
+  vulnerabilityPercentile: number | null
+  geometry: { type: 'Polygon' | 'MultiPolygon', coordinates: unknown }
+}
+
+export interface EquityContext {
+  vintage: string
+  geographyLabel: string
+  features: EquityContextFeature[]
+}

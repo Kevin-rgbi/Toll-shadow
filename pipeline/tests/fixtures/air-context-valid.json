@@ -1,0 +1,10 @@
+{
+  "pollutant_label": "black carbon, annual average (label inferred from the filename; no codebook)",
+  "period_label": "2016 (inferred from the filename; not verified)",
+  "values": "relative 0-1 within this surface; absolute units are not established",
+  "aggregation": "2x2 mean of the 300 m source cells, nodata masked, min-max normalised",
+  "bounds": [-74.25, 40.5, -73.7, 40.92],
+  "width": 2,
+  "height": 2,
+  "grid": [[0.1, null], [0.75, 1.0]]
+}

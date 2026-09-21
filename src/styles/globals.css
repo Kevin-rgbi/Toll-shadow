@@ -1030,6 +1030,31 @@ button {
   border-left: 2px solid var(--muted-quiet);
 }
 
+/* Context surfaces: a relative air field and projected equity geography. */
+.air-surface-canvas {
+  display: block;
+  width: 100%;
+  max-width: 320px;
+  margin-top: 8px;
+  border: 1px solid var(--hairline);
+  background: var(--paper-sunk);
+}
+
+.equity-map {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 320px;
+  margin-top: 8px;
+  border: 1px solid var(--hairline);
+  background: var(--paper-sunk);
+}
+
+.equity-map-tract {
+  stroke: rgba(252, 252, 251, 0.6);
+  stroke-width: 0.5;
+}
+
 /* ------------------------------------------------------ sources document */
 
 .sources-card {

@@ -1,0 +1,12 @@
+{
+  "vintage": "2023 disadvantaged-communities criteria (archived layer)",
+  "geography_label": "census tract polygons clipped to New York City",
+  "aggregation": "geometry simplified with a 0.0004 degree tolerance, topology preserved",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": { "type": "Polygon", "coordinates": [[[-73.9, 40.8], [-73.89, 40.8], [-73.89, 40.81], [-73.9, 40.8]]] },
+      "properties": { "GEOID": "36005000100", "County": "Bronx", "Pop_Cnt": 1200, "Vulner_Pct": 88 }
+    }
+  ]
+}

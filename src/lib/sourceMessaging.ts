@@ -17,7 +17,8 @@ export const RELEASE_ASSET_LABELS: Record<ReleaseAssetKind, string> = {
   facility_crossings: 'MTA facility crossing',
   crz_context: 'CRZ entry context',
   dac_context: 'disadvantaged-community context',
-  historical_context: 'historical air and health context',
+  historical_context: 'modelled historical air surface',
+  health_context: 'historical health context',
 }
 
 /** Asset kind that backs each evidence module, or null when the module needs an approved method first. */

@@ -13,7 +13,17 @@
 
 import { ReleaseManifestError } from './releaseManifest'
 import { TRAFFIC_DAY_TYPES, TRAFFIC_TIME_BANDS } from '../types/releaseData'
-import type { CrzEntrySummary, FacilityCrossing, TrafficDayType, TrafficObservation } from '../types/releaseData'
+import type {
+  AirContextSurface,
+  CrzEntrySummary,
+  EquityContext,
+  EquityContextFeature,
+  FacilityCrossing,
+  HealthContext,
+  HealthContextRecord,
+  TrafficDayType,
+  TrafficObservation,
+} from '../types/releaseData'
 
 const MONTH = /^\d{4}-\d{2}$/
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/
@@ -290,4 +300,140 @@ export const parseCrzEntries = (
       totalEntries,
     }
   })
+}
+
+/** Optional count: absent stays null and is never coerced to zero. */
+const optionalCount = (value: unknown, assetLabel: string, field: string): number | null => {
+  if (value === null || value === undefined) return null
+  return requireCount(value, assetLabel, field)
+}
+
+/**
+ * Optional non-negative number: for published fields that are not counts, such as a percentile.
+ * Validating a percentile as a whole count is wrong and rejects a legitimate asset.
+ */
+const optionalNonNegativeNumber = (value: unknown, assetLabel: string, field: string): number | null => {
+  if (value === null || value === undefined) return null
+  return requireNonNegativeNumber(value, assetLabel, field)
+}
+
+/**
+ * Parse the published modelled air surface.
+ *
+ * Values must stay inside 0-1 because the published field is relative; a value that looks like a
+ * concentration means the wrong column was published, and that must fail rather than render.
+ */
+export const parseAirContext = (input: unknown, assetLabel = 'historical_context'): AirContextSurface => {
+  const root = requireRecord(input, assetLabel, 'asset')
+
+  const boundsRaw = root.bounds
+  if (!Array.isArray(boundsRaw) || boundsRaw.length !== 4) {
+    malformed(assetLabel, 'asset.bounds must be [west, south, east, north]')
+  }
+  const bounds = boundsRaw.map((value, index) =>
+    requireNumber(value, assetLabel, `asset.bounds[${index}]`)) as [number, number, number, number]
+
+  const width = requireCount(root.width, assetLabel, 'asset.width')
+  const height = requireCount(root.height, assetLabel, 'asset.height')
+  if (width === 0 || height === 0) malformed(assetLabel, 'asset.width and asset.height must be positive')
+
+  const gridRaw = root.grid
+  if (!Array.isArray(gridRaw) || gridRaw.length !== height) {
+    malformed(assetLabel, `asset.grid must have ${height} rows`)
+  }
+
+  const grid = gridRaw.map((row, y) => {
+    if (!Array.isArray(row) || row.length !== width) malformed(assetLabel, `asset.grid[${y}] must have ${width} columns`)
+    return row.map((value, x) => {
+      if (value === null) return null
+      const parsed = requireNumber(value, assetLabel, `asset.grid[${y}][${x}]`)
+      if (parsed < 0 || parsed > 1) {
+        malformed(assetLabel, `asset.grid[${y}][${x}] must be a relative value between 0 and 1 (got ${parsed})`)
+      }
+      return parsed
+    })
+  })
+
+  return {
+    pollutantLabel: requireString(root.pollutant_label, assetLabel, 'asset.pollutant_label'),
+    periodLabel: requireString(root.period_label, assetLabel, 'asset.period_label'),
+    valuesNote: requireString(root.values, assetLabel, 'asset.values'),
+    aggregation: requireString(root.aggregation, assetLabel, 'asset.aggregation'),
+    bounds,
+    width,
+    height,
+    grid,
+  }
+}
+
+const PERIOD_RANGE = /^\d{4}-\d{4}$/
+
+/** Parse the published historical health context. Rates are published as supplied, never recomputed. */
+export const parseHealthContext = (input: unknown, assetLabel = 'health_context'): HealthContext => {
+  const root = requireRecord(input, assetLabel, 'asset')
+
+  const records = root.records
+  if (!Array.isArray(records) || records.length === 0) malformed(assetLabel, 'asset.records must be a non-empty array')
+
+  const parsed: HealthContextRecord[] = records.map((entry, index) => {
+    const field = `records[${index}]`
+    const record = requireRecord(entry, assetLabel, field)
+
+    return {
+      indicator: requireString(record.indicator, assetLabel, `${field}.indicator`),
+      county: requireString(record.county, assetLabel, `${field}.county`),
+      borough: requireString(record.borough, assetLabel, `${field}.borough`),
+      period: requireMatch(record.period, PERIOD_RANGE, assetLabel, `${field}.period`, 'a YYYY-YYYY period'),
+      ageAdjustedRatePer10000: optionalCount(
+        record.age_adjusted_rate_per_10000, assetLabel, `${field}.age_adjusted_rate_per_10000`,
+      ),
+      events: optionalCount(record.events, assetLabel, `${field}.events`),
+      dailyMeanEvents: optionalCount(record.daily_mean_events, assetLabel, `${field}.daily_mean_events`),
+    }
+  })
+
+  return {
+    source: requireString(root.source, assetLabel, 'asset.source'),
+    geographyLabel: requireString(root.geography_label, assetLabel, 'asset.geography_label'),
+    periodLabel: requireString(root.period_label, assetLabel, 'asset.period_label'),
+    records: parsed,
+  }
+}
+
+/** Parse the published archived equity geography. */
+export const parseEquityContext = (input: unknown, assetLabel = 'dac_context'): EquityContext => {
+  const root = requireRecord(input, assetLabel, 'asset')
+
+  const features = root.features
+  if (!Array.isArray(features) || features.length === 0) malformed(assetLabel, 'asset.features must be a non-empty array')
+
+  const parsed: EquityContextFeature[] = features.map((entry, index) => {
+    const field = `features[${index}]`
+    const feature = requireRecord(entry, assetLabel, field)
+    if (feature.type !== 'Feature') malformed(assetLabel, `${field}.type must be "Feature"`)
+
+    const geometry = requireRecord(feature.geometry, assetLabel, `${field}.geometry`)
+    if (geometry.type !== 'Polygon' && geometry.type !== 'MultiPolygon') {
+      malformed(assetLabel, `${field}.geometry must be a Polygon or MultiPolygon (got "${String(geometry.type)}")`)
+    }
+    if (!Array.isArray(geometry.coordinates)) malformed(assetLabel, `${field}.geometry.coordinates must be an array`)
+
+    const properties = requireRecord(feature.properties, assetLabel, `${field}.properties`)
+
+    return {
+      geoid: requireString(properties.GEOID, assetLabel, `${field}.properties.GEOID`),
+      county: requireString(properties.County, assetLabel, `${field}.properties.County`),
+      population: optionalCount(properties.Pop_Cnt, assetLabel, `${field}.properties.Pop_Cnt`),
+      vulnerabilityPercentile: optionalNonNegativeNumber(
+        properties.Vulner_Pct, assetLabel, `${field}.properties.Vulner_Pct`,
+      ),
+      geometry: { type: geometry.type, coordinates: geometry.coordinates },
+    }
+  })
+
+  return {
+    vintage: requireString(root.vintage, assetLabel, 'asset.vintage'),
+    geographyLabel: requireString(root.geography_label, assetLabel, 'asset.geography_label'),
+    features: parsed,
+  }
 }
