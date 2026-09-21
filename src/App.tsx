@@ -3,13 +3,15 @@ import { MethodologyModal } from './components/UI/MethodologyModal'
 import { NarrativeOverlay } from './components/Story/NarrativeOverlay'
 import { ConfidencePanel } from './components/Detail/ConfidencePanel'
 import { ModuleUnavailable } from './components/Detail/ModuleUnavailable'
+import { HotspotDrawer } from './components/Hotspots/HotspotDrawer'
+import { HotspotDetailPanel } from './components/Detail/HotspotDetailPanel'
 import { SourcesPanel } from './components/Detail/SourcesPanel'
 import { DataRibbon } from './components/Status/DataRibbon'
 import { useReleaseManifest } from './hooks/useReleaseManifest'
 import { useReleaseBoundary } from './hooks/useReleaseBoundary'
 import { useReleaseAsset } from './hooks/useReleaseAsset'
 import { getReleaseTimelineBounds } from './lib/releaseManifest'
-import { parseTrafficObservations } from './lib/releaseData'
+import { parseCrzEntries, parseTrafficObservations } from './lib/releaseData'
 import { ComparisonModule } from './features/traffic/ComparisonModule'
 import { DEFAULT_COMPARISON, compareLocations, monthlyFeatures, parseMonthlyAsset } from './features/traffic/monthlyComparison'
 import type { ComparisonSelection } from './features/traffic/monthlyComparison'
@@ -23,6 +25,7 @@ import { AirModule } from './features/air/AirModule'
 import { AirTimeline } from './features/air/AirTimeline'
 import { buildAirMapPoints } from './features/air/airData'
 import { useAirDataset } from './hooks/useAirDataset'
+import { CrzModule } from './features/crz/CrzModule'
 import {
   filterTrafficByBorough,
   filterTrafficByDayType,
@@ -56,6 +59,7 @@ const NO_OBSERVATIONS: TrafficObservation[] = []
 const MODULE_TITLES: Partial<Record<(typeof APP_MODES)[number], string>> = {
   TRAFFIC: 'TRAFFIC OBSERVATIONS',
   CROSSINGS: 'MTA FACILITY CROSSINGS',
+  CRZ: 'CRZ ENTRY CONTEXT',
   AIR: 'MEASURED AIR CONTEXT',
   EQUITY: 'EQUITY CONTEXT',
   CONFIDENCE: 'CONFIDENCE CHECK',
@@ -66,6 +70,7 @@ function App() {
   const [methodologyOpen, setMethodologyOpen] = useState(false)
   // On phones the data rail becomes a bottom sheet; this is its collapsed/expanded state.
   const [railExpanded, setRailExpanded] = useState(false)
+  const [selectedHotspotId, setSelectedHotspotId] = useState<string | null>(null)
   const mode = useAppStore((state) => state.mode)
   const compareMode = useAppStore((state) => state.compareMode)
   const compareRenderMode = useAppStore((state) => state.compareRenderMode)
@@ -99,9 +104,11 @@ function App() {
   const releaseState = useReleaseManifest()
   const { release, isDevSynthetic, devSynthetic, status, reason } = releaseState
   const boundaryState = useReleaseBoundary(release)
-  const trafficState = useReleaseAsset(release, 'traffic_observations', parseTrafficObservations)
-  const crossingsState = useReleaseAsset(release, 'facility_crossings', parseMonthlyAsset)
-  const crzState = useReleaseAsset(release, 'crz_context', parseMonthlyAsset)
+  const monthlyAssetEnabled = mode === 'TRAFFIC' || mode === 'CROSSINGS' || mode === 'HOTSPOTS'
+  const trafficState = useReleaseAsset(release, 'traffic_observations', parseTrafficObservations, monthlyAssetEnabled)
+  const crossingsState = useReleaseAsset(release, 'facility_crossings', parseMonthlyAsset, monthlyAssetEnabled)
+  const monthlyCrzState = useReleaseAsset(release, 'crz_context', parseMonthlyAsset, monthlyAssetEnabled)
+  const crzState = useReleaseAsset(release, 'crz_context', parseCrzEntries, mode === 'CRZ')
   const airState = useAirDataset(mode === 'AIR', airGranularity, release, status, reason)
   const airMapDataset = airState.status === 'error' ? null : airState.dataset
   // A shared link seeds the filters once, at mount. Later edits go through the store and the URL
@@ -132,9 +139,9 @@ function App() {
   }, [mode])
   const monthlyMode = mode === 'TRAFFIC' || mode === 'CROSSINGS' || mode === 'HOTSPOTS'
   const locations = useMemo(() => compareLocations([
-    ...(crzState.status === 'ready' ? crzState.data.rows : []),
+    ...(monthlyCrzState.status === 'ready' ? monthlyCrzState.data.rows : []),
     ...(crossingsState.status === 'ready' ? crossingsState.data.rows : []),
-  ], comparisonSelection), [crzState, crossingsState, comparisonSelection])
+  ], comparisonSelection), [monthlyCrzState, crossingsState, comparisonSelection])
   const visibleLocations = useMemo(() => mode === 'CROSSINGS' ? locations.filter(item => item.layer === 'mta') : locations, [locations, mode])
   const focusedLocation = visibleLocations.find(item => item.id === selectedLocationId) ?? null
   const releaseFocus = useMemo(() => focusedLocation ? { id: focusedLocation.id, coordinates: focusedLocation.coordinates } : null, [focusedLocation])
@@ -258,6 +265,16 @@ function App() {
     () => summarizeSyntheticConfidence(syntheticHotspots ?? []),
     [syntheticHotspots],
   )
+
+  const activeHotspotId = useMemo(() => {
+    if (!syntheticHotspots || syntheticHotspots.length === 0) return null
+    if (!selectedHotspotId) return syntheticHotspots[0].id
+    return syntheticHotspots.some((hotspot) => hotspot.id === selectedHotspotId)
+      ? selectedHotspotId
+      : syntheticHotspots[0].id
+  }, [selectedHotspotId, syntheticHotspots])
+
+  const selectedHotspot = syntheticHotspots?.find((hotspot) => hotspot.id === activeHotspotId) ?? null
 
   // --- Released asset selection -------------------------------------------------------------
   // The month comes from the shared timeline; the borough filter narrows it further. Both the map
@@ -384,9 +401,26 @@ function App() {
       return <SourcesPanel state={releaseState} />
     }
 
+    if (mode === 'CRZ') {
+      return <CrzModule state={crzState} release={release} />
+    }
+
+    if (mode === 'HOTSPOTS' && isDevSynthetic && syntheticHotspots) {
+      return (
+        <section className="hotspot-stack" aria-label="Synthetic development hotspot panels">
+          <HotspotDrawer
+            hotspots={syntheticHotspots}
+            selectedId={activeHotspotId}
+            onSelect={setSelectedHotspotId}
+          />
+          <HotspotDetailPanel hotspot={selectedHotspot} />
+        </section>
+      )
+    }
+
     if (mode === 'TRAFFIC' || mode === 'CROSSINGS' || mode === 'HOTSPOTS') {
       return <>
-        <ComparisonModule mode={mode} selection={comparisonSelection} onChange={setComparisonSelection} locations={locations} selectedId={selectedLocationId} onSelect={setSelectedLocationId} crz={crzState} mta={crossingsState} release={release} />
+        <ComparisonModule mode={mode} selection={comparisonSelection} onChange={setComparisonSelection} locations={locations} selectedId={selectedLocationId} onSelect={setSelectedLocationId} crz={monthlyCrzState} mta={crossingsState} release={release} />
         {comparisonSelection.layers.includes('dot') && <TrafficModule
           state={trafficState}
           release={release}
@@ -529,7 +563,7 @@ function App() {
         )}
       </nav>
 
-      <DataRibbon state={releaseState} syntheticHotspots={mode === 'AIR' ? null : syntheticHotspots} latestCoverage={crzState.status === 'ready' && crossingsState.status === 'ready' ? `CRZ ${crzState.data.latest.month}: ${crzState.data.latest.coverage_days.join('/')} days (${crzState.data.latest.complete ? 'complete' : 'partial'}); MTA ${crossingsState.data.latest.month}: ${crossingsState.data.latest.coverage_days.join('/')} days (${crossingsState.data.latest.complete ? 'complete' : 'partial'})` : undefined} />
+      <DataRibbon state={releaseState} syntheticHotspots={mode === 'AIR' ? null : syntheticHotspots} latestCoverage={monthlyCrzState.status === 'ready' && crossingsState.status === 'ready' ? `CRZ ${monthlyCrzState.data.latest.month}: ${monthlyCrzState.data.latest.coverage_days.join('/')} days (${monthlyCrzState.data.latest.complete ? 'complete' : 'partial'}); MTA ${crossingsState.data.latest.month}: ${crossingsState.data.latest.coverage_days.join('/')} days (${crossingsState.data.latest.complete ? 'complete' : 'partial'})` : undefined} />
 
       {isDevSynthetic && compareMode === 'on' && mode !== 'SOURCES' && mode !== 'AIR' && (
         <section className="compare-mode-switch" aria-label="Synthetic development render mode">
@@ -586,6 +620,8 @@ function App() {
               activeMode={mode}
               compareMode={isDevSynthetic ? compareMode : 'off'}
               compareRenderMode={compareRenderMode}
+              focusedHotspotId={mode === 'HOTSPOTS' ? activeHotspotId : null}
+              focusedHotspotKind={mode === 'HOTSPOTS' ? (selectedHotspot?.kind ?? null) : null}
               dataError={dataError}
             />
           </Suspense>

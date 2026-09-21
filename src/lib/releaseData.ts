@@ -13,7 +13,7 @@
 
 import { ReleaseManifestError } from './releaseManifest'
 import { TRAFFIC_DAY_TYPES, TRAFFIC_TIME_BANDS } from '../types/releaseData'
-import type { FacilityCrossing, TrafficDayType, TrafficObservation } from '../types/releaseData'
+import type { CrzEntrySummary, FacilityCrossing, TrafficDayType, TrafficObservation } from '../types/releaseData'
 
 const MONTH = /^\d{4}-\d{2}$/
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/
@@ -236,6 +236,8 @@ export const parseFacilityCrossings = (
       measureId: requireString(record.measure_id, assetLabel, `${field}.measure_id`),
       observedOn: requireMatch(record.observed_on, ISO_DATE, assetLabel, `${field}.observed_on`, 'a YYYY-MM-DD date'),
       plazaId,
+      facilityCode: requireString(record.facility_code, assetLabel, `${field}.facility_code`),
+      facilityName: requireString(record.facility_name, assetLabel, `${field}.facility_name`),
       direction,
       ezpassVehicles,
       vtollVehicles,
@@ -243,4 +245,82 @@ export const parseFacilityCrossings = (
       ezpassSharePct,
     }
   })
+}
+
+/**
+ * Parse the published `crz_context` asset. Monthly sums per detection group, so every count must be a
+ * non-negative integer and the month a real `YYYY-MM`.
+ */
+export const parseCrzEntries = (
+  input: unknown,
+  assetLabel = 'crz_entry_summary',
+): CrzEntrySummary[] => {
+  const root = requireRecord(input, assetLabel, 'asset')
+
+  const records = Array.isArray(root.records) ? root.records : Array.isArray(root.rows) ? root.rows : null
+  if (!records) malformed(assetLabel, 'asset.records or asset.rows must be an array')
+  if (records.length === 0) malformed(assetLabel, 'asset.records must not be empty')
+
+  const entries = records.map((entry, index) => {
+    const field = `records[${index}]`
+    const record = requireRecord(entry, assetLabel, field)
+
+    const crzEntries = requireCount(record.crz_entries, assetLabel, `${field}.crz_entries`)
+    const excludedRoadwayEntries = requireCount(
+      record.excluded_roadway_entries, assetLabel, `${field}.excluded_roadway_entries`,
+    )
+    const totalEntries = requireCount(record.total_entries ?? record.all_entries, assetLabel, `${field}.total_entries`)
+
+    if (totalEntries !== crzEntries + excludedRoadwayEntries) {
+      malformed(
+        assetLabel,
+        `${field}.total_entries (${totalEntries}) must equal crz_entries + excluded_roadway_entries `
+        + `(${crzEntries} + ${excludedRoadwayEntries})`,
+      )
+    }
+
+    const legacyMonth = typeof record.month_start === 'string'
+      ? record.month_start.slice(0, 7)
+      : typeof record.year === 'number' && typeof record.month === 'number'
+        ? `${record.year}-${String(record.month).padStart(2, '0')}`
+        : null
+
+    return {
+      sourceId: typeof record.source_id === 'string' && record.source_id.trim() !== ''
+        ? requireString(record.source_id, assetLabel, `${field}.source_id`)
+        : 'mta_crz_entries_2025_2026',
+      measureId: typeof record.measure_id === 'string' && record.measure_id.trim() !== ''
+        ? requireString(record.measure_id, assetLabel, `${field}.measure_id`)
+        : 'crz_monthly_detection_group_entries',
+      detectionGroup: requireString(record.detection_group, assetLabel, `${field}.detection_group`),
+      detectionRegion: requireString(record.detection_region, assetLabel, `${field}.detection_region`),
+      month: requireMatch(
+        typeof record.month === 'string' ? record.month : legacyMonth,
+        MONTH,
+        assetLabel,
+        `${field}.month`,
+        'a YYYY-MM month',
+      ),
+      crzEntries,
+      excludedRoadwayEntries,
+      totalEntries,
+    }
+  })
+
+  if (Array.isArray(root.records)) return entries
+
+  const grouped = new Map<string, CrzEntrySummary>()
+  for (const entry of entries) {
+    const key = `${entry.sourceId}\n${entry.measureId}\n${entry.detectionGroup}\n${entry.detectionRegion}\n${entry.month}`
+    const existing = grouped.get(key)
+    if (!existing) {
+      grouped.set(key, { ...entry })
+      continue
+    }
+    existing.crzEntries += entry.crzEntries
+    existing.excludedRoadwayEntries += entry.excludedRoadwayEntries
+    existing.totalEntries += entry.totalEntries
+  }
+
+  return [...grouped.values()]
 }

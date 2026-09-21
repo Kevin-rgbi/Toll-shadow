@@ -14,6 +14,8 @@ const crossing = (overrides: Partial<FacilityCrossing> = {}): FacilityCrossing =
   measureId: 'mta_daily_facility_crossings',
   observedOn: '2024-01-01',
   plazaId: 21,
+  facilityCode: 'TBX',
+  facilityName: 'Robert F. Kennedy Bridge (Bronx and Queens plazas)',
   direction: 'I',
   ezpassVehicles: 90,
   vtollVehicles: 10,

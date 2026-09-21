@@ -71,7 +71,8 @@
             },
             "variableMeasured": [
               "Mean observed 15-minute traffic volume, by segment and period",
-              "E-ZPass share of daily vehicles, by toll plaza and direction",
+              "Monthly MTA facility crossing totals from the published release asset",
+              "Monthly CRZ entry counts by detection group",
               "Preliminary observed daily and hourly NYCCAS PM2.5 monitor concentration"
             ],
             "isBasedOn": [
@@ -91,6 +92,12 @@
                 "name": "facility_crossings",
                 "encodingFormat": "application/json",
                 "contentUrl": "https://tollshallow.web.app/data/releases/2026-09-18.1/facility_crossings.json"
+              },
+              {
+                "@type": "DataDownload",
+                "name": "crz_entries",
+                "encodingFormat": "application/json",
+                "contentUrl": "https://tollshallow.web.app/data/releases/2026-09-18.1/crz_entries.json"
               },
               {
                 "@type": "DataDownload",
@@ -132,7 +139,11 @@
           </li>
           <li>
             <a href="/data/releases/2026-09-18.1/facility_crossings.json">MTA facility crossings</a>:
-            8,352 daily rows across 10 plazas.
+            monthly facility summaries with source-register names.
+          </li>
+          <li>
+            <a href="/data/releases/2026-09-18.1/crz_entries.json">CRZ entries</a>:
+            monthly detection-group context with approximate supplied locations.
           </li>
           <li>
             <a href="/data/releases/2026-09-18.1/nyccas_pm25_daily.csv">NYCCAS daily PM2.5 monitor measurements</a>:

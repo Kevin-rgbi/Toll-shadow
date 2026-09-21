@@ -80,7 +80,7 @@ export function TrafficModule({
       <p className="analysis-kicker">TRAFFIC OBSERVATIONS</p>
       <h3>Sampled DOT counts, published monthly</h3>
 
-      {state.status === 'loading' && <p className="sources-note">Reading the published traffic asset…</p>}
+      {(state.status === 'loading' || state.status === 'idle') && <p className="sources-note">Reading the published traffic asset…</p>}
 
       {state.status === 'unavailable' && (
         <p className="sources-note">

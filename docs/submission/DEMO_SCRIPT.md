@@ -1,9 +1,8 @@
 # Demonstration Script
 
-A reviewer walkthrough, in order, with the URL state each step produces. Start from a clean checkout (`release-1-evidence-modules`) and run the app locally.
+A reviewer walkthrough, in order, with the URL state each step produces. Start from a clean checkout and run the app locally.
 
 ```bash
-cd source/github-repo
 npm ci
 npm run build
 npm run preview      # serves the built release bundle
@@ -33,19 +32,23 @@ Pick a borough, then read the URL:
 ?module=TRAFFIC&date=2025-03-31&borough=Queens
 ```
 
-## 3. Facility crossings — a different asset, a different grain
+## 3. Facility crossings and CRZ context — different assets, different grains
 
-Open **CROSSINGS**. This module reads `facility_crossings`, not the traffic asset.
+Open **CROSSINGS**. The monthly comparison panel reads `facility_crossings` and `crz_entries`, not
+the traffic asset.
 
-- Set the window with the two date inputs (defaults to the asset's own published bounds, 2024-01-01 → 2025-04-12).
-- The summary reports published daily rows, plazas in the window, total counted vehicles, and the window itself.
-- **By direction** and **By plaza** aggregate the published daily counts. The E-ZPass share is recomputed from summed components, not averaged across daily shares.
-- Plazas appear as **published identifiers** (`Plaza 21`, `Plaza 22`, …) with a note that the release publishes no facility-name mapping.
-- The provenance block repeats the asset's own limitations, including that the source is a daily aggregate and cannot support hourly analysis.
+- The default comparison is February-August 2025 vs 2026, excluding January.
+- MTA facility crossings remain all-day/all-direction monthly summaries; CRZ entries have Peak and
+  Overnight period controls.
+- Facility names come from the source register, and the panel keeps CRZ and MTA measures separate.
+- Selecting a ranked facility or detection group highlights the corresponding published point on the map.
 
 ```text
-?module=CROSSINGS&date=2025-01-05&crossingsFrom=2024-01-01&crossingsTo=2024-06-30
+?module=CROSSINGS&baseline=2025&comparison=2026&months=2,3,4,5,6,7,8
 ```
+
+Open **CRZ** for the newer dedicated CRZ summary panel. It normalizes the published monthly entry
+asset to detection-group totals and labels the points as approximate supplied context markers.
 
 Share either URL: both restore module, timeline date, and filters on load.
 
@@ -78,8 +81,7 @@ Restore both files (or rebuild) afterwards.
 ## 7. Reproducing the release
 
 ```bash
-cd source/github-repo
-python3 scripts/release_acceptance.py        # 47 checks, 0 failed
+python3 scripts/release_acceptance.py        # 49 checks, 0 failed
 ```
 
 The release itself is rebuilt from registered inputs by the monthly release builder:

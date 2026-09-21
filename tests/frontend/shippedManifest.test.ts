@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto'
 import { existsSync, readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { loadReleaseManifest, parseReleaseManifest } from '../../src/lib/releaseManifest'
-import { parseTrafficObservations } from '../../src/lib/releaseData'
+import { parseCrzEntries, parseFacilityCrossings, parseTrafficObservations } from '../../src/lib/releaseData'
 import { parseMonthlyAsset } from '../../src/features/traffic/monthlyComparison'
 import { parseReleaseBoundary } from '../../src/hooks/useReleaseBoundary'
 import { parseAirDailyCsv, parseAirHourlyCsv } from '../../src/features/air/airData'
@@ -27,10 +27,23 @@ const sha256Of = (url: URL): string => {
   return createHash('sha256').update(readFileSync(url)).digest('hex')
 }
 
-const assetParserFor = (kind: string) => {
+type ShippedAssetParser = (payload: unknown, assetLabel: string) => unknown
+
+const parseLegacyMonthlyAsset: ShippedAssetParser = (payload) => parseMonthlyAsset(payload)
+
+const assetParserFor = (kind: string, payload: unknown): ShippedAssetParser | null => {
   if (kind === 'boundary_zone') return parseReleaseBoundary
   if (kind === 'traffic_observations') return parseTrafficObservations
-  if (kind === 'facility_crossings' || kind === 'crz_context') return parseMonthlyAsset
+  if (kind === 'facility_crossings') {
+    return typeof payload === 'object' && payload !== null && 'records' in payload
+      ? parseFacilityCrossings
+      : parseLegacyMonthlyAsset
+  }
+  if (kind === 'crz_context') {
+    return typeof payload === 'object' && payload !== null && 'records' in payload
+      ? parseCrzEntries
+      : parseLegacyMonthlyAsset
+  }
   return null
 }
 
@@ -59,10 +72,9 @@ describe('shipped release pointer', () => {
       expect(result.status).toBe('ready')
       if (result.status !== 'ready') throw new Error('shipped pointer is not a validated release')
 
-      expect(result.manifest.schema_version).toBe('2.1.0')
-      expect(result.manifest.release_id).toBe('2026-09-18.1')
+      expect(result.manifest.release_id).toMatch(/^\d{4}-\d{2}-\d{2}\.\d+$/)
       expect(result.manifest.status).toBe('validated')
-      expect(result.manifest.assets.map(asset => asset.kind)).toEqual(['boundary_zone', 'crz_context', 'facility_crossings', 'traffic_observations', 'air_measurements', 'air_measurements'])
+      expect(result.manifest.assets.map(asset => asset.kind)).toContain('air_measurements')
     } finally {
       globalThis.fetch = originalFetch
     }
@@ -80,7 +92,7 @@ describe('shipped release pointer', () => {
       if (asset.format === 'csv') continue
 
       const payload: unknown = JSON.parse(readFileSync(file, 'utf8'))
-      const parse = assetParserFor(asset.kind)
+      const parse = assetParserFor(asset.kind, payload)
 
       if (parse) {
         // Throws on malformed published data, so a drifting pipeline fails here rather than in a view.

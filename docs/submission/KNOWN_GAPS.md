@@ -14,9 +14,12 @@ The Firebase target itself is corrected and verified: the account owns exactly o
 
 `EQUITY`, `CONFIDENCE`, and `HOTSPOTS` render an explicit "Not available for this claim" state. Their underlying material — 2023 DAC layers, historical asthma records, and any hotspot ranking — is excluded from Release 1. `AIR` now publishes preliminary observed NYCCAS PM2.5 monitor measurements at daily and hourly resolution, with missing values preserved and a non-causal label.
 
-## 3. Facility names are not published
+## 3. Facility geometry remains provenance-limited
 
-The source register resolves plaza identifiers 21–30 to named facilities from authority metadata, but the published `facility_crossings` asset carries identifiers only. The crossings module therefore shows `Plaza 21`, `Plaza 22`, … and states that no name mapping is published. Adding names requires the pipeline to publish and validate that mapping first.
+The source register now resolves plaza identifiers 21–30 to named facilities from authority metadata,
+and the release assets keep those names. The remaining limitation is geometry: facility points and
+the 12 CRZ detection points still come from legacy derivatives with approximate supplied
+coordinates, so the UI treats them as context markers rather than exact detector locations.
 
 ## 4. Traffic coverage is thin and has gaps
 
@@ -28,7 +31,9 @@ The published traffic asset contains 2,561 aggregates over 195 segments, derived
 
 ## 6. Accessibility and E2E coverage are incomplete
 
-Keyboard navigation, visible focus, `aria-live` status regions, and reduced-motion handling are implemented. There is no automated accessibility gate and no Playwright E2E suite, so module switching, deep links, and mobile viewport behavior are verified by code review and unit tests rather than by browser automation.
+Keyboard navigation, visible focus, `aria-live` status regions, reduced-motion handling, and an
+automated accessibility test are implemented. There is still no full Playwright E2E suite for module
+switching, deep links, and mobile viewport behavior.
 
 ## 7. Development-prototype code remains in the production bundle
 
@@ -44,8 +49,12 @@ Keyboard navigation, visible focus, `aria-live` status regions, and reduced-moti
 
 ## 10. The deployment gate has provisional thresholds
 
-The gate's measured 64 MiB budget for `dist/data` covers the on-demand hourly NYCCAS CSV. The gate is also manual — there is no CI workflow that runs it on push.
+The gate's measured 64 MiB budget for `dist/data` covers the on-demand hourly NYCCAS CSV, while the
+entry and lazy map chunks have separate gzipped budgets. CI runs the gate on push, but live preview
+smoke checks remain a manual deployment-runbook step.
 
-## 11. No commits were made
+## 11. Final review should use the merge commit
 
-All work sits uncommitted on the branch `release-1-evidence-modules` in `source/github-repo/`, which also carries earlier uncommitted work from the other workstreams. Nothing has been committed or pushed.
+This package is being reconciled through a Git merge that preserves the local `2026-09-18.1` AIR
+candidate and the newer `origin/main` release line. Review should use the completed merge commit,
+not either parent commit alone.

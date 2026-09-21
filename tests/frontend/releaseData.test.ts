@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { parseFacilityCrossings, parseTrafficObservations } from '../../src/lib/releaseData'
+import { parseCrzEntries, parseFacilityCrossings, parseTrafficObservations } from '../../src/lib/releaseData'
 
 const trafficFeature = (overrides: Record<string, unknown> = {}, geometry: unknown = { type: 'Point', coordinates: [-73.93, 40.714] }) => ({
   type: 'Feature',
@@ -32,6 +32,8 @@ const crossingRecord = (overrides: Record<string, unknown> = {}) => ({
   measure_id: 'mta_daily_facility_crossings',
   observed_on: '2024-01-01',
   plaza_id: 21,
+  facility_code: 'TBX',
+  facility_name: 'Robert F. Kennedy Bridge (Bronx and Queens plazas)',
   direction: 'I',
   ezpass_vehicles: 93274,
   vtoll_vehicles: 18784,
@@ -172,5 +174,84 @@ describe('parseFacilityCrossings', () => {
 
   it('rejects a payload without a records array', () => {
     expect(() => parseFacilityCrossings({ data: [] })).toThrow(/records must be an array/)
+  })
+})
+
+describe('parseCrzEntries', () => {
+  const crzRecord = (overrides: Record<string, unknown> = {}) => ({
+    source_id: 'mta_crz_entries_archive_20260920',
+    measure_id: 'crz_monthly_detection_group_entries',
+    detection_group: 'Brooklyn Bridge',
+    detection_region: 'Brooklyn',
+    month: '2025-01',
+    crz_entries: 769760,
+    excluded_roadway_entries: 539089,
+    total_entries: 1308849,
+    ...overrides,
+  })
+
+  it('maps a published aggregate row into the canonical model', () => {
+    const [entry] = parseCrzEntries({ records: [crzRecord()] })
+
+    expect(entry.detectionGroup).toBe('Brooklyn Bridge')
+    expect(entry.month).toBe('2025-01')
+    expect(entry.totalEntries).toBe(1308849)
+  })
+
+  it('normalizes the 2026-09-18.1 legacy CRZ rows to monthly detection-group entries', () => {
+    const entries = parseCrzEntries({
+      rows: [
+        {
+          month_start: '2025-01-01',
+          year: 2025,
+          month: 1,
+          detection_group: 'Brooklyn Bridge',
+          detection_region: 'Brooklyn',
+          time_period: 'Overnight',
+          crz_entries: 223176,
+          excluded_roadway_entries: 137936,
+          all_entries: 361112,
+        },
+        {
+          month_start: '2025-01-01',
+          year: 2025,
+          month: 1,
+          detection_group: 'Brooklyn Bridge',
+          detection_region: 'Brooklyn',
+          time_period: 'Peak',
+          crz_entries: 546584,
+          excluded_roadway_entries: 401153,
+          all_entries: 947737,
+        },
+      ],
+    })
+
+    expect(entries).toHaveLength(1)
+    expect(entries[0]).toMatchObject({
+      detectionGroup: 'Brooklyn Bridge',
+      month: '2025-01',
+      crzEntries: 769760,
+      excludedRoadwayEntries: 539089,
+      totalEntries: 1308849,
+    })
+  })
+
+  it('rejects a total that does not equal its own components', () => {
+    expect(() => parseCrzEntries({ records: [crzRecord({ total_entries: 1 })] }))
+      .toThrow(/must equal crz_entries \+ excluded_roadway_entries/)
+  })
+
+  it('rejects a negative entry count', () => {
+    expect(() => parseCrzEntries({ records: [crzRecord({ crz_entries: -5, total_entries: 539084 })] }))
+      .toThrow(/must not be negative/)
+  })
+
+  it('rejects a malformed month', () => {
+    expect(() => parseCrzEntries({ records: [crzRecord({ month: '2025-1' })] }))
+      .toThrow(/must be a YYYY-MM month/)
+  })
+
+  it('rejects an empty payload rather than rendering an empty module', () => {
+    expect(() => parseCrzEntries({ records: [] })).toThrow(/must not be empty/)
   })
 })

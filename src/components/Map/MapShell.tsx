@@ -16,6 +16,7 @@ import {
   NYC_BOUNDS,
   NYC_CENTER,
   NYC_REFERENCE_LABELS,
+  focusOffsetForMode,
 } from './mapConfig'
 import {
   blendColor,
@@ -74,6 +75,8 @@ interface MapShellProps {
   activeMode: AppMode
   compareMode: CompareMode
   compareRenderMode: CompareRenderMode
+  focusedHotspotId: string | null
+  focusedHotspotKind: 'traffic' | 'monitor' | null
   dataError: boolean
 }
 
@@ -112,6 +115,8 @@ export function MapShell({
   activeMode,
   compareMode,
   compareRenderMode,
+  focusedHotspotId,
+  focusedHotspotKind,
   dataError,
 }: MapShellProps) {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -159,13 +164,23 @@ export function MapShell({
   }, [])
 
   const triggerFocusIndicator = useCallback((lngLat: [number, number]) => {
-    positionFocusIndicator(lngLat)
     const indicator = focusIndicatorRef.current
-    if (indicator) {
-      indicator.classList.remove('is-active')
-      void indicator.offsetWidth
-      indicator.classList.add('is-active')
+    if (!indicator) return
+
+    positionFocusIndicator(lngLat)
+    indicator.classList.remove('is-active')
+    // Force reflow so repeated selections can replay the animation.
+    void indicator.offsetWidth
+    indicator.classList.add('is-active')
+
+    if (focusIndicatorTimeoutRef.current !== null) {
+      window.clearTimeout(focusIndicatorTimeoutRef.current)
     }
+
+    focusIndicatorTimeoutRef.current = window.setTimeout(() => {
+      indicator.classList.remove('is-active')
+      focusIndicatorTimeoutRef.current = null
+    }, 1400)
   }, [positionFocusIndicator])
 
   const drawOverlay = useCallback(() => {
@@ -608,40 +623,81 @@ export function MapShell({
   }, [activeMode, mapReady, onReleaseSelect])
 
   useEffect(() => {
+    const map = mapRef.current
     const indicator = focusIndicatorRef.current
-    if (!indicator) return
-    if (!releaseFocus) {
+    if (!map || !mapReady || !indicator) return
+
+    let focusKey: string | null = null
+    let center: [number, number] | null = null
+    let offset: [number, number] | undefined
+    let zoom: number | undefined
+
+    if (releaseFocus) {
+      focusKey = `release:${releaseFocus.id}`
+      center = releaseFocus.coordinates
+      zoom = Math.max(map.getZoom(), 13)
+    } else if (syntheticDataset && focusedHotspotId && focusedHotspotKind) {
+      focusKey = `hotspot:${focusedHotspotKind}:${focusedHotspotId}`
+
+      if (focusedHotspotKind === 'traffic') {
+        const corridor = syntheticDataset.effects.traffic.find((item) => item.locationId === focusedHotspotId)
+        if (corridor && corridor.coordinates.length > 0) {
+          center = corridor.coordinates[Math.floor(corridor.coordinates.length / 2)]
+        }
+      }
+
+      if (focusedHotspotKind === 'monitor') {
+        const monitor = syntheticDataset.effects.monitors.find((item) => item.monitorId === focusedHotspotId)
+        if (monitor) center = monitor.coordinates
+      }
+
+      offset = focusOffsetForMode(activeMode)
+    }
+
+    if (!focusKey || !center) {
       lastCenteredHotspotKeyRef.current = null
+      focusTargetRef.current = null
       indicator.classList.remove('is-active')
       return
     }
-    const { id, coordinates } = releaseFocus
-    const map = mapRef.current
-    if (!map || !mapReady) return
-    if (lastCenteredHotspotKeyRef.current === id) return
-    lastCenteredHotspotKeyRef.current = id
-    focusTargetRef.current = coordinates
-    triggerFocusIndicator(coordinates)
-    map.easeTo({ center: coordinates, zoom: Math.max(map.getZoom(), 13), duration: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 780 })
-  }, [activeMode, mapReady, releaseFocus, triggerFocusIndicator])
+
+    if (lastCenteredHotspotKeyRef.current === focusKey) return
+
+    focusTargetRef.current = center
+    triggerFocusIndicator(center)
+
+    map.easeTo({
+      center,
+      offset,
+      zoom,
+      duration: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 780,
+      essential: true,
+    })
+    lastCenteredHotspotKeyRef.current = focusKey
+  }, [
+    activeMode,
+    focusedHotspotId,
+    focusedHotspotKind,
+    mapReady,
+    releaseFocus,
+    syntheticDataset,
+    triggerFocusIndicator,
+  ])
 
   useEffect(() => {
-    if (!releaseFocus) {
-      focusIndicatorRef.current?.classList.remove('is-active')
-      focusTargetRef.current = null
-    }
-  }, [releaseFocus])
+    const focusedHotspotKey = focusedHotspotId && focusedHotspotKind
+      ? `${focusedHotspotKind}:${focusedHotspotId}`
+      : null
 
-  useEffect(() => {
     overlayStateRef.current = {
       syntheticDataset,
       currentDateIso,
       activeMode,
       compareMode,
-      focusedHotspotKey: null,
+      focusedHotspotKey,
     }
     drawOverlay()
-  }, [activeMode, compareMode, currentDateIso, drawOverlay, syntheticDataset])
+  }, [activeMode, compareMode, currentDateIso, drawOverlay, focusedHotspotId, focusedHotspotKind, syntheticDataset])
 
   useEffect(() => {
     hoveredKeyRef.current = hoveredTarget?.key ?? null

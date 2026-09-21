@@ -7,6 +7,7 @@ export const APP_MODES = [
   'STORY',
   'TRAFFIC',
   'CROSSINGS',
+  'CRZ',
   'AIR',
   'EQUITY',
   'CONFIDENCE',

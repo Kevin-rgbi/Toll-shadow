@@ -1,6 +1,6 @@
 # Release Evidence
 
-All commands below were run in the session that produced this document, from `source/github-repo/` unless stated otherwise. Outputs are quoted as produced, including warnings.
+All commands below were run in the session that produced this document, from this repository root unless stated otherwise. Outputs are quoted as produced, including warnings.
 
 ## Release contents — `2026-09-18.1`
 
@@ -46,8 +46,8 @@ The one rejected DOT row is the archived negative-volume sentinel recorded in th
 
 ```text
 $ npm run test
- Test Files  25 passed (25)
-      Tests  151 passed (151)
+ Test Files  27 passed (27)
+      Tests  173 passed (173)
 ```
 
 The suite includes pipeline tests (contract validation, MTA/traffic parsers, geospatial checks, measure spec, source catalog) and frontend tests, including the module failure-state copy checks in `tests/frontend/moduleStates.test.ts`.
@@ -78,12 +78,12 @@ $ npm run lint
 > eslint .
 (no findings)
 
-$ npm run build
-dist/index.html                                                         7.76 kB │ gzip:   2.36 kB
-dist/assets/index-B0hbw4hL.js                                         315.77 kB │ gzip:   97.12 kB
+$ VITE_USE_DEMO_DATA=false npm run build
+dist/index.html                                                         8.32 kB │ gzip:   2.44 kB
 dist/assets/index-DwvIpg2a.css                                        117.35 kB │ gzip:   19.67 kB
-dist/assets/MapShell-Dc-8fxv7.js                                    1,065.95 kB │ gzip: 292.00 kB
-✓ built in 343ms
+dist/assets/index-C86UzIF2.js                                         324.24 kB │ gzip:   99.20 kB
+dist/assets/MapShell-DzELj_Cj.js                                    1,066.58 kB │ gzip: 292.25 kB
+✓ built in 323ms
 (!) Some chunks are larger than 500 kB after minification.
 (plus seven self-hosted woff2 font files, 152 kB total)
 ```
@@ -94,9 +94,9 @@ The >500 kB warning is the lazy-loaded MapLibre chunk, unchanged from the pre-im
 
 ```text
 $ python3 scripts/release_acceptance.py
-Release acceptance gate: .../source/github-repo/dist
+Release acceptance gate: /Users/kevinguillermo/Downloads/Toll-shadow-main/dist
 
-47 checks passed, 0 failed
+49 checks passed, 0 failed
 
 RELEASE ACCEPTED — proceed to the preview-channel runbook.
 ```
@@ -134,10 +134,12 @@ $ npx firebase hosting:sites:list --project tollshallows
 Error: ... HTTP Error: 403, The caller does not have permission
 
 $ curl -o /dev/null -w "%{http_code}" https://tollshallow.web.app/
-404
+200
 ```
 
 `.firebaserc` was corrected from the plural `tollshallows` to the confirmed singular `tollshallow`.
+Production serves the older verified `2026-09-16.2` release; the `2026-09-18.1` AIR candidate remains
+local until it follows the preview runbook.
 
 ### Built preview verification (2026-09-18)
 
@@ -146,7 +148,7 @@ $ npm run build
 ✓ built in 513ms
 
 $ python3 scripts/release_acceptance.py --json
-"passed": 47, "failed": 0
+"passed": 49, "failed": 0
 ```
 
 The candidate build serves the release pointer and all six assets from `dist/data`; the gate verifies

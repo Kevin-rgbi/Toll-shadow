@@ -57,9 +57,31 @@ export interface FacilityCrossing {
   /** Observation date as `YYYY-MM-DD`. */
   observedOn: string
   plazaId: number
+  /** Register facility code, e.g. TBX. Resolved by the pipeline from the source register. */
+  facilityCode: string
+  /** Register facility name. A crossing the register cannot name is never published. */
+  facilityName: string
   direction: 'I' | 'O'
   ezpassVehicles: number
   vtollVehicles: number
   totalVehicles: number
   ezpassSharePct: number
+}
+
+/**
+ * One calendar-month aggregate of CRZ vehicle entries for a detection group.
+ *
+ * Detection groups are areas around the Central Business District, not detector points, and the
+ * published grain is monthly: neither an hourly view nor a precise location follows from this record.
+ */
+export interface CrzEntrySummary {
+  sourceId: string
+  measureId: string
+  detectionGroup: string
+  detectionRegion: string
+  /** Observation month as `YYYY-MM`. */
+  month: string
+  crzEntries: number
+  excludedRoadwayEntries: number
+  totalEntries: number
 }

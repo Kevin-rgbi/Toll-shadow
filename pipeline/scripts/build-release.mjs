@@ -23,6 +23,7 @@ buildRelease({
   generatedAt,
   trafficInput: path.join(workspaceRoot, 'data/raw/traffic/Automated_Traffic_Volume_Counts_20260915 (1).csv'),
   mtaInput: path.join(workspaceRoot, 'data/raw/traffic/Daily_Traffic_on_MTA_Bridges_&_Tunnels_20260915.csv'),
+  crzInput: path.join(workspaceRoot, 'data/raw/crz/crz_entries_by_group_month.json'),
   catalogPath: path.join(workspaceRoot, 'data/catalog/sources.yaml'),
   methodSpecPath: path.join(repositoryRoot, 'pipeline/methods/release-1.yaml'),
   releaseRoot: path.join(repositoryRoot, 'data/releases'),

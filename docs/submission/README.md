@@ -29,16 +29,17 @@ The claim boundary is enforced in code, not only in copy:
 
 ## Where the work lives
 
-The application repository is a separate Git checkout at `source/github-repo/`, currently on branch `release-1-evidence-modules`.
+The application repository is this Git checkout. The merge that produced this package keeps the
+local `2026-09-18.1` AIR candidate and the newer `origin/main` release, CI, CRZ, traffic,
+accessibility, and documentation work together.
 
 ```text
-source/github-repo/
-  pipeline/            # source adapters, contract validation, release builder
-  data/contracts/      # ODCS-inspired published contracts
-  data/releases/       # versioned release output (manifest, assets, quality, README)
-  public/data/         # browser-facing release pointer and release assets
-  src/                 # React + MapLibre application
-  scripts/             # release acceptance gate
+pipeline/            # source adapters, contract validation, release builder
+data/contracts/      # ODCS-inspired published contracts
+data/releases/       # versioned release output (manifest, assets, quality, README)
+public/data/         # browser-facing release pointer and release assets
+src/                 # React + MapLibre application
+scripts/             # release acceptance gate
 visualization/kepler/  # Kepler reproducibility artifact + validator
 data/catalog/          # immutable source register
 docs/                  # product, method, and submission documentation

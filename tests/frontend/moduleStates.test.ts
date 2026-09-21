@@ -73,6 +73,8 @@ const crossing: FacilityCrossing = {
   measureId: 'mta_daily_facility_crossings',
   observedOn: '2024-01-01',
   plazaId: 21,
+  facilityCode: 'TBX',
+  facilityName: 'Robert F. Kennedy Bridge (Bronx and Queens plazas)',
   direction: 'I',
   ezpassVehicles: 90,
   vtollVehicles: 10,
@@ -194,7 +196,7 @@ describe('crossings module states', () => {
     expect(markup).not.toContain('Total vehicles counted')
   })
 
-  it('shows published plaza identifiers without asserting a facility name', () => {
+  it('names the facility and keeps the published identifier beside it', () => {
     const markup = renderToStaticMarkup(createElement(CrossingsModule, {
       state: { status: 'ready', data: [crossing] },
       release,
@@ -203,8 +205,9 @@ describe('crossings module states', () => {
       onRangeChange: () => undefined,
     }))
 
-    expect(markup).toContain('Plaza 21')
-    expect(markup).not.toMatch(/Robert F\. Kennedy|Whitestone|Verrazzano/)
-    expect(markup).toContain('does not publish a facility')
+    expect(markup).toContain('Robert F. Kennedy Bridge (Bronx and Queens plazas)')
+    expect(markup).toContain('TBX')
+    expect(markup).toContain('plaza 21')
+    expect(markup).toContain('source register')
   })
 })

@@ -25,6 +25,7 @@ Deliberately NOT checked here (owned elsewhere):
 from __future__ import annotations
 
 import argparse
+import gzip
 import hashlib
 import json
 import re
@@ -38,6 +39,11 @@ EXPECTED_PROJECT_NUMBER = "1094344081770"
 # Browser-asset budget for dist/data. The measured release includes the on-demand hourly
 # NYCCAS CSV, so the gate uses a 64 MiB ceiling and still reports the exact payload.
 DEFAULT_BUDGET_BYTES = 64 * 1024 * 1024
+
+# Agreed browser-code budgets, documented in docs/DATA_STRATEGY.md. The data payload budget remains
+# configurable because the AIR release intentionally ships an on-demand hourly CSV.
+ENTRY_BUDGET_GZIP_BYTES = 130 * 1024
+MAP_CHUNK_BUDGET_GZIP_BYTES = 330 * 1024
 
 # Browser releases may include validated CSV measurements, but raw/archive payloads must never ship.
 RAW_PAYLOAD_SUFFIXES = (".tif", ".adf", ".zip", ".pdf", ".xls", ".xlsx")
@@ -424,7 +430,36 @@ def gate(repo_root: Path, dist: Path, budget_bytes: int, dist_overridden: bool =
     ):
         result.check(f"index.html declares the {label}", marker in index, f"marker {marker!r} not found")
 
-    # --- 5d. Map library runtime files ------------------------------------
+    # --- 5d. Agreed browser-code budgets ---------------------------------
+    def gzip_size(path: Path) -> int:
+        return len(gzip.compress(path.read_bytes(), compresslevel=9))
+
+    assets_dir = dist / "assets"
+    entry_js = [p for p in assets_dir.glob("index-*.js") if p.is_file()]
+    entry_css = [p for p in assets_dir.glob("index-*.css") if p.is_file()]
+    map_chunks = [p for p in assets_dir.glob("MapShell-*.js") if p.is_file()]
+
+    if entry_js and entry_css and map_chunks:
+        entry_bytes = sum(gzip_size(p) for p in entry_js) + sum(gzip_size(p) for p in entry_css)
+        result.check(
+            "entry bundle is inside the agreed gzipped budget",
+            entry_bytes <= ENTRY_BUDGET_GZIP_BYTES,
+            f"entry={entry_bytes} bytes gzipped, budget={ENTRY_BUDGET_GZIP_BYTES}",
+        )
+        map_bytes = sum(gzip_size(p) for p in map_chunks)
+        result.check(
+            "lazy map chunk is inside the agreed gzipped budget",
+            map_bytes <= MAP_CHUNK_BUDGET_GZIP_BYTES,
+            f"map chunk={map_bytes} bytes gzipped, budget={MAP_CHUNK_BUDGET_GZIP_BYTES}",
+        )
+    else:
+        result.check(
+            "entry, styles and map chunk are present to measure",
+            False,
+            f"js={len(entry_js)} css={len(entry_css)} map={len(map_chunks)}",
+        )
+
+    # --- 5e. Map library runtime files ------------------------------------
     # MapLibre resolves its worker and that worker's shared module as siblings of the bundle chunk,
     # at runtime. If either is missing the worker dies silently, the map never loads its style, and
     # the page shows a grey map with no data and no error. Nothing else in the build catches that.

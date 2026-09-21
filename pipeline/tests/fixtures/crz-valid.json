@@ -1,0 +1,9 @@
+[
+  {
+    "detection_group": "Brooklyn Bridge",
+    "detection_region": "Brooklyn",
+    "month": "2025-01-01T00:00:00.000",
+    "crz_entries": "769760",
+    "excluded_roadway_entries": "539089"
+  }
+]

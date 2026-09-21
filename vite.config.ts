@@ -62,6 +62,8 @@ const pruneSyntheticDevAssets = (): Plugin => ({
  */
 const MAPLIBRE_RUNTIME_FILES = [
   'maplibre-gl-worker.mjs',
+  // The worker imports this one, so copying only the worker produces a worker that parses, fails its
+  // import, and dies. The chain ends here: this file imports nothing relative.
   'maplibre-gl-shared.mjs',
 ]
 

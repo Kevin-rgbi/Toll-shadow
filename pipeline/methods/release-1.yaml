@@ -1,5 +1,5 @@
 schema_version: 1.1.0
-release_id: 2026-09-16.2
+release_id: 2026-09-20.2
 policy_reference:
   date: '2025-01-05'
   source_url: https://www.mta.info/press-release/new-york-joins-world-cities-launch-of-first-nation-program-deliver-cleaner-air-less
@@ -49,13 +49,36 @@ measures:
       - valid MTA daily contract row with a known plaza ID and I/O direction
     exclusion_rules:
       - invalid source row
+      - a plaza identifier with no facility name in the source register
+    facility_naming: plaza identifiers are resolved to a name and code from the source register; a crossing the register cannot name is refused rather than published with a bare identifier
     limitations:
       - source is a daily aggregate view and cannot support hourly analysis
       - facility comparisons are descriptive and do not estimate a congestion-pricing effect
       - archive coverage ends 2025-04-12
     claim_policy: descriptive_only
+  - measure_id: crz_monthly_detection_group_entries
+    asset_kind: crz_context
+    source_ids: [mta_crz_entries_archive_20260920]
+    coverage:
+      start: '2025-01-01'
+      end: '2026-09-30'
+    grain: one calendar-month aggregate per CRZ detection group
+    numerator: summed crz_entries for the detection group and month, or summed excluded_roadway_entries
+    denominator: not applicable; these are sums over the month, not rates
+    aggregation: one documented SoQL aggregate of the authoritative 10-minute CRZ dataset, reduced to monthly sums per detection group
+    inclusion_rules:
+      - month within coverage
+      - aggregate row with a detection group, a region, and non-negative integer sums
+    exclusion_rules:
+      - aggregate row with an unparseable month or a non-integer count
+    limitations:
+      - detection groups are areas around the Central Business District, not detector points
+      - the published grain is monthly; hourly or 10-minute analysis is not supported by this asset
+      - entries are counts of vehicles entering, not revenue, payment behaviour, or route displacement
+      - descriptive only; no causal policy effect is estimated
+    claim_policy: descriptive_only
+
 excluded_asset_kinds:
-  crz_context: Legacy summary has no reproducible transformation recipe.
   cbd_boundary: Legacy derivative needs geometry/release validation.
   dac_context: Archived 2023 layer requires an owner release decision.
   historical_context: NYCCAS and asthma sources are historical context, not Release 1 outcomes.
