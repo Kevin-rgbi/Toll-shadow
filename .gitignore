@@ -31,3 +31,6 @@ __pycache__/
 test-results/
 playwright-report/
 .fossil/
+.serena/
+data/chroma_db/
+data/index_metadata.json
