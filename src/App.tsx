@@ -1,10 +1,8 @@
 import { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react'
 import { MethodologyModal } from './components/UI/MethodologyModal'
 import { NarrativeOverlay } from './components/Story/NarrativeOverlay'
-import { ConfidencePanel } from './components/Detail/ConfidencePanel'
 import { ModuleUnavailable } from './components/Detail/ModuleUnavailable'
-import { HotspotDrawer } from './components/Hotspots/HotspotDrawer'
-import { HotspotDetailPanel } from './components/Detail/HotspotDetailPanel'
+import { DevConfidencePanel, DevHotspotStack } from './dev/devPanels'
 import { SourcesPanel } from './components/Detail/SourcesPanel'
 import { DataRibbon } from './components/Status/DataRibbon'
 import { useReleaseManifest } from './hooks/useReleaseManifest'
@@ -425,19 +423,19 @@ function App() {
     }
 
     if (mode === 'CONFIDENCE') {
-      return <ConfidencePanel summary={confidenceSummary} />
+      if (!DevConfidencePanel) return null
+      return <DevConfidencePanel summary={confidenceSummary} />
     }
 
     if (mode === 'HOTSPOTS') {
+      if (!DevHotspotStack) return null
       return (
-        <section className="hotspot-stack" aria-label="Synthetic development hotspot panels">
-          <HotspotDrawer
-            hotspots={syntheticHotspots}
-            selectedId={activeHotspotId}
-            onSelect={setSelectedHotspotId}
-          />
-          <HotspotDetailPanel hotspot={selectedHotspot} />
-        </section>
+        <DevHotspotStack
+          hotspots={syntheticHotspots}
+          selectedId={activeHotspotId}
+          selectedHotspot={selectedHotspot}
+          onSelect={setSelectedHotspotId}
+        />
       )
     }
 

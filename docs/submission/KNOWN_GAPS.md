@@ -61,29 +61,41 @@ Each asset is now fetched only while the module that reads it is open, so the en
 data. What remains is the map chunk itself. No tiling decision has been made: `docs/DATA_STRATEGY.md`
 requires a measured bottleneck before adding PMTiles, and none has been measured.
 
-## 7. Two map files hold their size allowances
+## 7. Three files still hold size allowances
 
-`src/components/Map/MapShell.tsx` (791 lines) and `src/components/Map/RasterMap.tsx` (615) are inside
-the 800-line hard ceiling but above the 200-400 typical range. `src/App.tsx` is 636 and
-`src/lib/releaseData.ts` is 444. All four are ratcheted by `tests/frontend/sourceSize.test.ts`: they
-may not grow, and a file that comes back inside the typical range must leave the recorded list. The
-1,612-line stylesheet that used to be the worst offender is now nine files under `src/styles/`, none
-larger than 326 lines.
+`src/components/Map/MapShell.tsx` no longer does: it went from **791 lines to 362** by moving its
+drawing routine to `mapOverlayDraw.ts`, its map lifecycle to `useMapInstance.ts`, and its release
+layers to `useMapLayers.ts`, each verified against the behaviour it replaced (identical overlay
+pixels; identical map state across eleven observed properties; the published traffic layer still
+reporting "60 of 100 points in view").
 
-The split of the two map files is deferred deliberately. They hold the map lifecycle and the two
-renderers, which is the code that has produced most of this project's defects, and the extraction that
-would bring them inside the typical range touches the lifecycle rather than a leaf.
+What remains above the 200-400 typical range is `src/App.tsx` (633), `src/components/Map/RasterMap.tsx`
+(615) and `src/lib/releaseData.ts` (483). All three are ratcheted by
+`tests/frontend/sourceSize.test.ts`: they may not grow, and a file that comes back inside the typical
+range must leave the recorded list. `RasterMap` holds the whole software-renderer path, and `App`
+wires every surface together. The 1,612-line stylesheet that used to be the worst offender is now
+nine files under `src/styles/`, none larger than 326 lines.
 
-## 8. Three development-only panels still ship their markup
+## 8. The map is view-only for published points, and the selection card cannot open
 
-`ConfidencePanel`, `HotspotDrawer`, `HotspotDetailPanel` render only when a synthetic dataset is
-loaded, which a production build never does. Verified absent from the production bundle: the dataset
-loader, the date interpolator, the hotspot ranking functions, the synthetic payload, and the dev flag
-itself. Verified present: the panels' markup strings, unreachably.
+The click-to-inspect card on the map is reachable only in the development build. `hitTargetsRef` is
+written by exactly one place, the prototype overlay frame, and that frame returns no targets in a
+release build because a production bundle never loads a synthetic dataset. Clicking a published point
+therefore finds no hit, clears the selection, and no card appears.
 
-Gating them behind a lazy import was tried on 2026-09-20 and measured: it produced five chunks instead
-of two with the same strings still shipped, so it was reverted rather than kept for appearance.
-Removing the components outright risks deleting prototype work the team may still want.
+This is not a regression from the recent map split — the behaviour is byte-identical before and after
+it — but it means the published traffic layer is decoration rather than an interactive surface, and
+the synthetic-mode strings still in that card's markup are unreachable in production. Making published
+points selectable is unbuilt work, and it should come with the same claim discipline the modules have.
+
+## 8b. Development-labelled strings remain in components that ship
+
+The prototype *modules* are out of the production bundle: `ConfidencePanel`, `HotspotDrawer` and
+`HotspotDetailPanel` no longer appear in it at all, verified by searching for copy unique to them
+(0 occurrences) rather than for their names. What remains are string literals in development-guarded
+branches of components that legitimately ship — the release ribbon's dev summary, the app's dev-build
+eyebrow, and the selection card's synthetic-mode labels described above. They are inert text, not
+reachable UI, but they are the reason a search for "SYNTHETIC DEV" in the bundle still returns hits.
 
 ## 9. The Kepler artifact rests on undocumented legacy derivatives
 

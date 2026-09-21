@@ -22,13 +22,16 @@ const TYPICAL_LIMIT = 400
  * nine-file system under `src/styles/`, so it no longer appears here.
  */
 /**
- * `releaseData` sits at 483 after the equity parser grew a ring-structure validator: a published
- * geometry whose `coordinates` is an array of anything at all used to pass the shape check and then
- * throw during render, which reaches a reader as a blank module. Validating the published contract is
- * that file's job, so the allowance was raised deliberately rather than the helper split out.
+ * `MapShell` has left this list: it went from 791 lines to 362 by moving its drawing routine, its map
+ * lifecycle, and its release layers into modules of their own, each verified against the behaviour it
+ * replaced. `releaseData` sits at 483 after the equity parser grew a ring-structure validator: a
+ * published geometry whose `coordinates` is an array of anything at all used to pass the shape check
+ * and then throw during render, which reaches a reader as a blank module. Validating the published
+ * contract is that file's job, so the allowance was raised deliberately rather than the helper split
+ * out. `App` and `RasterMap` keep theirs: the app shell wires every surface together, and the raster
+ * renderer is the fallback whole.
  */
 const RECORDED: Record<string, number> = {
-  'src/components/Map/MapShell.tsx': 795,
   'src/App.tsx': 640,
   'src/components/Map/RasterMap.tsx': 620,
   'src/lib/releaseData.ts': 490,
