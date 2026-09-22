@@ -10,7 +10,7 @@ npm run preview      # serves the built release bundle
 
 ## 1. The product states its boundary before showing data
 
-Open `/`. The landing story view names the release window (`NYC · 2024-01-01 → 2026-09-21`) and the status strip reads release `2026-09-21.1` and `· VALIDATED`. The summary ribbon reports the release ID, coverage window, published asset count, and source-register count — release facts, not modelled metrics.
+Open `/`. The landing story view names the release window (`NYC · 2024-01-01 → 2026-09-21`) and the status strip reads release `2026-09-22.1` and `· VALIDATED`. The summary ribbon reports ten assets and twelve source registers — release facts, not modelled metrics.
 
 
 Open **METHODS** for the claim guardrail and the release limitations.
@@ -62,11 +62,29 @@ from the release manifest, preserves missing and insufficient-coverage monitors,
 playback. Switch to **Hourly** to fetch the larger CSV on demand; missing hours remain missing and no
 prior reading is carried forward.
 
-## 5. Sources — the whole release in one place
+## 5. CONFIDENCE — source quality and Westchester Square coverage
+
+Open **CONFIDENCE**. Select EC/BC, NO/NO2, PM2.5, or O3 to inspect direct workbook row counts,
+analytic-field completeness, QA-flag counts, and site/post coverage. These are source-quality facts,
+not a statistical confidence score. Search for site `12528-EJ` to inspect its published coordinates
+and coverage.
+
+The Westchester Square section uses the official NYC NTA `BX1001` boundary. It reports zero historical
+sites and zero current monitors inside. The nearest historical site is 0.188 km outside and Hunts Point
+is 3.314 km outside; the map and copy keep both explicitly outside and publish no neighborhood mean.
+
+## 6. HOTSPOTS — ranked observed traffic, not air or causality
+
+Open **HOTSPOTS**. The month, borough, day-type, and time-band controls use the same published traffic
+selection as TRAFFIC. Switch among highest published mean, largest observed 15-minute volume, and most
+source observations. Every row names the ranking value and sample coverage. The view does not rank air
+pollution or claim congestion pricing caused a difference.
+
+## 7. Sources — the whole release in one place
 
 Open **SOURCES**. The panel lists the release ID, contract version, coverage, transform version, the source registers cited, every published asset with its grain/coverage/format/CRS/checksum, each asset's limitations, and the release-level limitations.
 
-## 6. Failure behaviour (the part that matters most)
+## 8. Failure behaviour (the part that matters most)
 
 With the built preview running, confirm the honest failure paths:
 
@@ -81,7 +99,7 @@ A tampered asset is also refused: change one byte in the built copy of `traffic_
 
 Restore both files (or rebuild) afterwards.
 
-## 7. Reproducing the release
+## 9. Reproducing the release
 
 ```bash
 cd source/github-repo
@@ -98,10 +116,15 @@ node pipeline/scripts/build-unified-release.mjs \
   --dot-input /path/to/Automated_Traffic_Volume_Counts_20260921.csv
 ```
 
-This writes `public/data/manifest.json` and both copies of `data/releases/2026-09-21.1/`. The builder
-refuses to overwrite an existing release directory. The source archive checksums are recorded in the
-release README, exact Socrata queries and source counts are recorded in the dated retrieval snapshot,
-and `quality.json` records derivation counts without leaking machine-local paths.
+The unified builder produces the retained eight assets. The confidence/hotspots release builder then
+verifies those checksums and publishes the two new context assets as immutable release `2026-09-22.1`:
+
+```bash
+PATH="$PWD/.venv/bin:$PATH" node pipeline/scripts/build-confidence-hotspots-release.mjs
+```
+
+Both builders refuse to overwrite an existing release directory. Source checksums and derivation
+counts are recorded without leaking machine-local paths.
 
 The Kepler artifact is separate and source-side only:
 

@@ -1,7 +1,7 @@
 # Firebase Hosting Preview and Rollback Runbook
 
 **Owner:** Agent 3
-**Status:** release `2026-09-21.1` deployed to `tollshallows.web.app` on 2026-09-21 after preview and production smoke checks. The owner confirmed the canonical project and site are `tollshallows`; before this release the site served an older manifest generated 2026-09-11 with no release ID. The rollback section below was rehearsed on preview channel `p10-rehearsal` on 2026-09-20 against the installed CLI, which is how the two non-existent commands it used to name were found. The steps below are the standing procedure.
+**Status:** release candidate `2026-09-22.1` awaits preview and production smoke checks; `2026-09-21.1` remains deployed to `tollshallows.web.app`. The owner confirmed the canonical project and site are `tollshallows`; before the prior release the site served an older manifest generated 2026-09-11 with no release ID. The rollback section below was rehearsed on preview channel `p10-rehearsal` on 2026-09-20 against the installed CLI, which is how the two non-existent commands it used to name were found. The steps below are the standing procedure.
 
 
 This runbook is the only approved path from a candidate build to `tollshallows.web.app`. Its purpose is that hosting never conceals an invalid data release: every step before a channel deploy is a gate, and a failed gate stops the run.
@@ -165,5 +165,5 @@ note the incident in the log.
 ## Open items
 
 1. ~~**Cache policy vs. immutable releases.**~~ **Resolved.** `firebase.json` now serves `/data/manifest.json` with `no-cache, max-age=0, must-revalidate` and `/data/releases/**` with `public, max-age=31536000, immutable`. The previous blanket `/data/**` 3600 s rule was removed rather than reordered, so no two rules overlap and there is no glob-precedence ambiguity. The release acceptance gate now asserts both headers.
-2. **Asset budget is sized to the merged branch, not surveyed.** The gate's 64 MiB `dist/data` ceiling keeps the unified `2026-09-21.1` candidate buildable; its eight assets total about 52.2 MiB, with the 46.9 MB hourly AIR file loaded on demand. Re-derive the ceiling when a larger release is proposed.
+2. **Asset budget is sized to the merged branch, not surveyed.** The gate's 64 MiB `dist/data` ceiling keeps the `2026-09-22.1` candidate buildable; its ten assets total about 52.6 MiB, with the 46.9 MB hourly AIR file loaded on demand. Re-derive the ceiling when a larger release is proposed.
 3. **Preview-channel smoke checks are still manual.** The application itself now has an end-to-end suite in CI (`npm run test:e2e`, 66 tests) that covers the shell, deep links, filters, measured AIR, the phone sheet, and the failure states, but nothing in CI deploys or probes a channel. Steps 4 and 5 stay manual until a release job exists.

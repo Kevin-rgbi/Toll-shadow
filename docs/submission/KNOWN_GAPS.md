@@ -2,13 +2,14 @@
 
 Stated plainly, ordered by how much they affect a reviewer's ability to trust or use the product.
 
-Figures below were read from release `2026-09-21.1` and its built bundle on **2026-09-21**, not carried
+Figures below were read from release candidate `2026-09-22.1` and its built bundle on **2026-09-22**, not carried
 forward from an earlier revision of this document.
 
 ## 1. Deployed, but not independently reviewed or monitored
 
-Release `2026-09-21.1` is live at <https://tollshallows.web.app>. Nobody outside this workstream has
-reviewed the new result, and there is no uptime or error monitoring.
+Release candidate `2026-09-22.1` is awaiting the preview and production deployment checks at
+<https://tollshallows.web.app>. Nobody outside this workstream has reviewed the new result, and there
+is no uptime or error monitoring.
 
 Rollback was rehearsed on a preview channel on 2026-09-20, and this release passed its own preview
 channel before production promotion on 2026-09-21 (see
@@ -19,13 +20,14 @@ live site back is a Firebase console operation, or a redeploy of the previous ar
 now records the working commands and the observed behaviour.
 
 
-## 2. Two modules still have no published asset
+## 2. Westchester Square has no monitor inside the official boundary
 
-`CONFIDENCE` and `HOTSPOTS` render under the development flag only, because a confidence composition
-and a hotspot ranking both imply an inference the published data does not support. `AIR` and `EQUITY`
-used to be in this group and no longer are: release `2026-09-20.5` publishes a modelled historical air
-surface, current measured PM2.5, and the archived 2023 disadvantaged-communities geography, each with
-its vintage and a non-causal label.
+The official NYC NTA `BX1001` polygon contains zero historical NYCCAS site/post locations and zero
+current PM2.5 monitors in the published sources. The nearest historical site, `12528-EJ`, is 0.188 km
+outside; the nearest current monitor, Hunts Point, is 3.314 km outside. `CONFIDENCE` exposes these as
+coverage facts and does not average either point into Westchester Square or publish a neighborhood
+concentration. The view's completeness and QA counts are direct source counts, not a statistical
+confidence score.
 
 ## 3. The optional historical air surface carries no units
 
@@ -56,7 +58,7 @@ criteria; the 2025 revision means it cannot be presented as a current designatio
 
 `npm run build` emits a >500 kB warning for the lazy-loaded MapLibre chunk: **1,065 kB raw / 292 kB
 gzip**. The main bundle is 325 kB raw / 100 kB gzip and the stylesheet 110 kB. The data payload is
-**about 52.2 MiB of the gate's 64 MiB merged ceiling** across eight assets. The hourly PM2.5 CSV is
+**about 52.6 MiB of the gate's 64 MiB merged ceiling** across ten assets. The hourly PM2.5 CSV is
 the dominant asset and is fetched only when hourly mode is selected.
 
 
@@ -106,7 +108,7 @@ undocumented. Kepler is a source-side reproducibility artifact and is not part o
 ## 11. The deployment gate's data budget is a working figure
 
 The gate's 64 MiB ceiling for `dist/data` is a merged-branch compatibility number, not a surveyed
-ideal; release `2026-09-21.1` is about 52.2 MiB because it publishes the explicit 217,872-row hourly
+ideal; release `2026-09-22.1` is about 52.6 MiB because it publishes the explicit 217,872-row hourly
 station grid. The entry and map-chunk budgets have numbers in `docs/DATA_STRATEGY.md` and the gate
 measures both.
 
@@ -121,8 +123,8 @@ budget table rather than left to look gated.
 ## 13. Two historical-context recipes still cannot be re-run on this machine
 
 `rasterio` and `shapely` are installed in no interpreter here, so the historical raster and equity
-derivatives remain the retained copies of those steps. The new PM2.5 and traffic derivations were
-executed successfully here and require only Python's standard library and Node.
+derivatives remain the retained copies of those steps. The PM2.5, traffic, and NYCCAS workbook-quality
+derivations were executed successfully here; the workbook step uses the pinned `openpyxl` dependency.
 
 ## 14. The work is unreviewed by a second person
 

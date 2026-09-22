@@ -1,6 +1,6 @@
 # Sources and Methods
 
-The authoritative source register is `data/catalog/sources.yaml` and holds **20 entries**.
+The authoritative source register is `data/catalog/sources.yaml` and holds **25 entries**.
 Each published asset carries its source's registered `authoritative_url` in the manifest, and every
 module renders it as a link, because the PRD requires a source URL on every displayed metric and a
 register identifier is not a link. The build refuses to publish an asset whose source has no recorded
@@ -12,7 +12,7 @@ disagree, the register wins.
 
 ## Sources used by the release
 
-Seven sources feed eight published assets; measured AIR has separate daily and hourly files. Every
+Twelve sources feed ten published assets; measured AIR has separate daily and hourly files. Every
 source is recorded with its SHA-256 in the register, and the manifest carries asset checksums that the
 browser re-verifies before rendering.
 
@@ -25,6 +25,11 @@ browser re-verifies before rendering.
 | `nyccas_air_context_derived_2016` | New York City Community Air Survey, derived here from the archived ESRI grid | 2016-01-01 → 2016-12-31 | One modelled value per pooled ~600 m grid cell | `historical_context` |
 | `nys_asthma_context_derived_historical` | New York State Department of Health (archived extract) | 2000-01-01 → 2019-12-31 | One rolling multi-year period per county (borough) | `health_context` |
 | `nyc_dac_context_derived_2023` | NYS Climate Justice Working Group / NYSERDA, archived subset | 2023-01-01 → 2023-12-31 | One archived census-tract feature | `dac_context` |
+| `nyccas_ec_year1_17_20260810` | NYC DOHMH / NYCCAS | 2008-12-16 → 2025-11-26 | Raw EC/BC workbook rows summarized by source field and site/post | `air_quality_context` |
+| `nyccas_nox_year1_17_20260810` | NYC DOHMH / NYCCAS | 2008-12-16 → 2025-11-26 | Raw NO/NO2 workbook rows summarized by source field and site/post | `air_quality_context` |
+| `nyccas_pm_year1_17_20260810` | NYC DOHMH / NYCCAS | 2008-12-16 → 2025-11-26 | Raw PM2.5 workbook rows summarized by source field and site/post | `air_quality_context` |
+| `nyccas_o3_year1_17_20260810` | NYC DOHMH / NYCCAS | 2009-05-27 → 2025-08-20 | Raw O3 workbook rows summarized by source field and site/post | `air_quality_context` |
+| `nyc_nta_westchester_square_2020_20260922` | NYC Department of City Planning | 2020 geography | Official NTA `BX1001` polygon | `neighborhood_context` |
 
 Raw and derived inputs are held immutably under `data/` and recorded in the register. The pipeline
 reads them; nothing writes back.
@@ -58,7 +63,7 @@ excluded — `cbd_boundary`, whose legacy derivative needs geometry and release 
 
 ## Measure specifications
 
-Seven measures, all with `claim_policy: descriptive_only`.
+Ten measures, all with `claim_policy: descriptive_only`.
 
 ### `dot_monthly_sampled_traffic_volume` → `traffic_observations`
 
@@ -122,6 +127,27 @@ Seven measures, all with `claim_policy: descriptive_only`.
 - **Geography:** census-tract polygons clipped to New York City, simplified with a 0.0004 degree tolerance and preserved topology, **for display only**.
 - **Vintage:** the **archived 2023** criteria. The 2025 Version 2.0 update makes a current-designation claim unsupportable, and the module states this rather than implying currency.
 - **Published:** 958 features across 5 counties, 470 KB.
+
+### `nyccas_source_quality_coverage` → `air_quality_context`
+
+- **Numerator:** source rows with a present approved analytic field or a reported QA flag, depending on the displayed count.
+- **Denominator:** all nonblank source rows in each pollutant workbook.
+- **Aggregation:** direct completeness, QA, distinct-site, and site/post counts; no concentration is averaged, weighted, or imputed.
+- **Published:** 7,491 EC, 7,757 NOX, 7,555 PM, and 1,970 O3 source rows summarized in 340,942 bytes.
+- **Limitation:** these are source-quality and coverage facts, not a statistical confidence score.
+
+### `westchester_square_monitor_coverage` → `neighborhood_context`
+
+- **Geography:** official NYC NTA `BX1001`, Westchester Square, Bronx.
+- **Aggregation:** hole-aware point-in-polygon counts and nearest point-to-boundary distance.
+- **Published:** zero historical sites and zero current monitors inside; `12528-EJ` is 0.188 km outside and Hunts Point is 3.314 km outside.
+- **Limitation:** neither outside point is a Westchester Square measurement and no neighborhood concentration is published.
+
+### `dot_observed_segment_ranking` → retained `traffic_observations`
+
+- **Ranking:** descending published mean, observed maximum, or source observation count within the selected traffic dimensions.
+- **Tie break:** segment ID, direction, day type, then time band; the source array is not mutated.
+- **Limitation:** rank is not an air-pollution hotspot, displacement finding, exceedance, or causal policy effect.
 
 ## How the policy reference date is used
 

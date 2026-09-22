@@ -1,17 +1,18 @@
 # Release Evidence
 
-Release `2026-09-21.1` figures were produced and deployed on **2026-09-21**.
-The earlier `2026-09-20.5` deployment record remains below as historical evidence.
+Release candidate `2026-09-22.1` figures were produced on **2026-09-22**. Deployment evidence is
+recorded only after the preview and production checks complete. Earlier deployment records remain
+below as historical evidence.
 
-## Release contents — `2026-09-21.1`
+## Release contents — `2026-09-22.1`
 
 | Fact | Value |
 |---|---|
-| Schema / transform | `2.1.0` / `unified-air-traffic-2.0.0` |
-| Status | `validated`, live at <https://tollshallows.web.app> |
+| Schema / transform | `2.2.0` / `quality-hotspots-1.0.0` |
+| Status | `validated`, deployment pending |
 | Release coverage | 2024-01-01 → 2026-09-21 |
-| Published assets | 8 |
-| Payload | 54,752,645 bytes (about 52.2 MiB) |
+| Published assets | 10 |
+| Payload | 55,105,721 bytes (about 52.6 MiB) |
 
 | Asset | Coverage | Bytes |
 |---|---|---:|
@@ -21,6 +22,8 @@ The earlier `2026-09-20.5` deployment record remains below as historical evidenc
 | NYCCAS PM2.5 daily | 2024-12-31 local date → 2026-09-20 local date | 1,540,151 |
 | NYCCAS PM2.5 hourly | 2025-01-01 00:00 UTC → 2026-09-21 00:00 UTC | 46,933,880 |
 | Historical air / health / equity | dated context retained from `2026-09-20.5` | 543,724 |
+| NYCCAS source quality and coverage | 2008-12-16 → 2025-11-26 | 340,942 |
+| Westchester Square neighborhood context | 2008-12-16 → 2026-09-20 | 12,133 |
 
 Quality evidence: 1,875,154 DOT rows inspected (186,691 included, one negative sentinel rejected);
 2,939,033 official crossing rows represented by 23,397 server aggregates and 11,699 published daily
@@ -28,6 +31,35 @@ facility/direction rows; 6,386,688 CRZ rows represented by 252 month/group aggre
 NYCCAS observations represented by 217,872 active station-hours, including 19,667 explicit null gaps.
 There are no duplicate NYCCAS site-hours. Daily PM2.5 uses New York calendar days, including 23/25
 hour DST days, and withholds one relocation-day mean.
+
+The four NYCCAS quality inputs contain 7,491 EC, 7,757 NOX, 7,555 PM, and 1,970 O3 source rows.
+The published asset contains completeness, QA, and site/post coverage counts only; it omits raw
+concentrations because those samples require temporal adjustment and modeling before they describe
+citywide or neighborhood conditions. The official `BX1001` Westchester Square boundary contains zero
+historical sites and zero current monitors. The nearest published points remain explicitly outside.
+
+`HOTSPOTS` uses the retained traffic asset unchanged and applies the approved
+`dot_observed_segment_ranking` measure: descending published mean, observed maximum, or source
+observation count within the selected month/borough/day-type/time-band dimensions. It is not an air
+ranking, displacement finding, or causal policy estimate.
+
+## Candidate verification — `2026-09-22.1`
+
+| Gate | Result |
+|---|---|
+| Source catalog | 25 registered sources validated |
+| NYCCAS workbook derivation | 6 passed |
+| Pipeline suite | 44 passed |
+| Frontend/unit suite | 248 passed |
+| Accessibility surfaces | 11 surfaces with zero serious/critical violations; negative gate test passed |
+| Production build | passed; entry 105.20 kB gzip, lazy map 291.88 kB gzip |
+| Release acceptance | 72 passed, 0 failed |
+| Kepler identity validator | 34 passed, 0 failed |
+| Desktop/mobile browser suite | 67 passed, 3 expected desktop skips for phone-only tests |
+
+The production build was also inspected at 1440x900 and 412x915. Both new panels had no horizontal
+overflow; the CONFIDENCE map showed the official boundary and outside context points, and the
+HOTSPOTS list/map selection used the same filtered traffic rows.
 
 Reproduction commands:
 
@@ -38,7 +70,7 @@ node pipeline/scripts/build-unified-release.mjs \
   --dot-input /path/to/Automated_Traffic_Volume_Counts_20260921.csv
 ```
 
-## Deployment verification — `2026-09-21.1`
+## Prior deployment verification — `2026-09-21.1`
 
 | Fact | Verified value |
 |---|---|

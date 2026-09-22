@@ -6,13 +6,14 @@ plan's "definition of done" item that was missing until now: previously no FR wa
 Run everything below with:
 
 ```bash
-npm run test                                  # 229 tests: accessibility, claim and size gates
-npm run pipeline:test                         # 43 tests, includes contract enforcement
-npm run test:e2e                              # 66 end-to-end tests, desktop and phone viewports
+npm run test                                  # 248 tests: accessibility, claim and size gates
+npm run pipeline:test                         # 44 tests, includes contract enforcement
+npm run pipeline:quality-test                 # 6 NYCCAS workbook derivation tests
+npm run test:e2e                              # 67 passed, 3 expected phone-only skips
 npm run lint
 npx tsc -b
 npm run build
-python3 scripts/release_acceptance.py          # 66 release and deployment checks
+python3 scripts/release_acceptance.py          # 72 release and deployment checks
 python3 visualization/kepler/validate_kepler_export.py   # 34 checks
 
 ```
@@ -24,12 +25,12 @@ CI (`.github/workflows/verify.yml`) runs the same set on every push to `main` an
 | FR-01 | Load a versioned manifest before any data view; fail clearly when missing, malformed, or invalid | `tests/frontend/releaseManifest.test.ts`, `tests/frontend/shippedManifest.test.ts`; gate checks pointer caching, schema, status | Met |
 | FR-02 | Landing view names the window and the evidence boundary, with no synthetic, "expected", or causal language | `tests/frontend/moduleStates.test.ts` asserts the absence of causal/expected wording; `tests/frontend/claimGate.test.ts` renders the air, health and equity modules and asserts no affirmative current or causal claim (the technical design document's claim-gate item that nothing enforced); story view copy | Met (claim-lint is by test, not by a copy scanner) |
 | FR-03 | Traffic module with filters, date range, grain, sample fields, source link | `tests/frontend/trafficSummary.test.ts`, `moduleStates.test.ts`, `releaseData.test.ts`; `tests/e2e/filters.spec.ts` (a filter narrows the figure, writes the URL, and the control reports the applied value); module renders `AssetProvenance` | Met |
-| FR-04 | MTA crossings module with **named** facilities, directions, and the MTA caveat | Release `2026-09-21.1` derives 11,699 daily facility/direction rows from the official hourly source, retaining source names, IDs, full direction labels, and nullable payment coverage; `pipeline/tests/mta-hourly.test.mjs`, `tests/frontend/crossingsSummary.test.ts`, `tests/e2e/modules.spec.ts` | Met |
+| FR-04 | MTA crossings module with **named** facilities, directions, and the MTA caveat | Release `2026-09-22.1` retains 11,699 daily facility/direction rows from the official hourly source, with source names, IDs, full direction labels, and nullable payment coverage; `pipeline/tests/mta-hourly.test.mjs`, `tests/frontend/crossingsSummary.test.ts`, `tests/e2e/modules.spec.ts` | Met |
 | FR-05 | CRZ-entry module with aggregation window and coordinate-precision label | `tests/frontend/crzSummary.test.ts`, `releaseData.test.ts` (`parseCrzEntries`), `moduleStates` a11y surface; `pipeline/tests/release.test.mjs` covers the asset; module states areas-not-points; `tests/e2e/modules.spec.ts` | Met |
-| FR-06 | Equity/context module: measured PM2.5 plus dated DAC, historical air, and health context | Release `2026-09-21.1` publishes daily/hourly measured PM2.5, the archived 2023 DAC geography, the relative 2016 air surface, and 132 asthma records ending 2019. Historical layers remain clearly dated optional context; `pipeline/tests/air-measurements.test.mjs`, `tests/frontend/airData.test.ts`, and `tests/frontend/healthContext.test.ts` cover their contracts | Met |
+| FR-06 | Equity/context module: measured PM2.5 plus dated DAC, historical air, health, and source-quality context | Release `2026-09-22.1` retains daily/hourly measured PM2.5, the archived 2023 DAC geography, the relative 2016 air surface, and 132 asthma records ending 2019. It adds direct NYCCAS completeness/QA/site coverage and official Westchester Square monitor coverage without publishing a concentration estimate; `pipeline/tests/nyccas_quality_test.py`, `tests/frontend/qualityData.test.ts`, `tests/frontend/qualityModule.test.ts`, and `tests/e2e/modules.spec.ts` cover the contracts | Met |
 | FR-07 | Every module exposes source URL, coverage, grain, transform version, and limitations | Each published asset now carries a `source_urls` entry resolved from the source register, and `AssetProvenance` renders it as a link. The manifest contract requires it, `pipeline/tests/contracts.test.mjs` enforces it against the shipped manifest, the release gate refuses an unlinked asset (6 checks), and `tests/e2e/modules.spec.ts` asserts a rendered `http(s)` link in every module. Coverage, grain, transform, and limitations were already asserted by `moduleStates.test.ts`. **This row was previously marked Met while no URL was exposed anywhere in the product** | Met |
-| FR-08 | URL encodes the selected module and supported filter state | `tests/frontend/viewState.test.ts`, including AIR daily/hourly resolution, AIR timestamp, build identity, and renderer choice; `tests/e2e/view-state.spec.ts` opens deep links cold and asserts state survives a reload | Met |
-| FR-09 | Keyboard, focus, reduced motion, and an **automated accessibility gate** | `tests/frontend/accessibility.test.tsx`: nine surfaces (traffic, crossings, CRZ, air and health, equity, sources, story, figures strip, and the module-unavailable state), zero serious or critical violations, plus a negative test proving axe reports real violations; `tests/e2e/mobile.spec.ts` covers the phone sheet's `aria-expanded` state and horizontal overflow | Met |
+| FR-08 | URL encodes the selected module and supported filter state | `tests/frontend/viewState.test.ts`, including AIR resolution/timestamp, traffic filters, quality pollutant/site, hotspot ranking, build identity, and renderer choice; `tests/e2e/view-state.spec.ts` opens deep links cold and asserts state survives a reload | Met |
+| FR-09 | Keyboard, focus, reduced motion, and an **automated accessibility gate** | `tests/frontend/accessibility.test.tsx`: eleven evidence surfaces, including confidence and hotspots, with zero serious or critical violations, plus a negative test proving axe reports real violations; `tests/e2e/mobile.spec.ts` covers the phone sheet's `aria-expanded` state and horizontal overflow | Met |
 | FR-10 | Deployable through a preview channel before production | Preview channel `p10-rehearsal` deployed, smoke-checked (manifest `release_id` and `status`, cache headers per `firebase.json`), and deleted 2026-09-20; production deploy of `2026-09-20.5` verified live against its manifest. `docs/deployment/HOSTING_PREVIEW_ROLLBACK_RUNBOOK.md` records the rehearsal and the commands that actually exist in firebase-tools 15.30 | Met |
 
 
@@ -37,10 +38,10 @@ CI (`.github/workflows/verify.yml`) runs the same set on every push to `main` an
 
 | Metric | Evidence | Status |
 |---|---|---|
-| 100% of public data assets have manifest entries, SHA-256, source reference, coverage, status | Gate refuses an asset without a checksum; manifest publishes all eight assets, including separate daily/hourly measured-air files | Met |
+| 100% of public data assets have manifest entries, SHA-256, source reference, coverage, status | Gate refuses an asset without a checksum; manifest publishes all ten assets, including quality and neighborhood context | Met |
 | 0 synthetic records in production assets; **CI** blocks `synthetic: true` | Gate blocks it, and the workflow now runs the gate on push and PR | Met |
 | 100% of displayed metrics have a source/method link | `AssetProvenance` in every module now renders the registered source URL as a link, not only the register identifier | Met |
-| Initial payload inside the defined performance budget | The gate measures the entry, map chunk, and published data. The eight assets total about 52.2 MiB of the 64 MiB ceiling; the 46.9 MB hourly file loads only when hourly AIR is selected | Met |
+| Initial payload inside the defined performance budget | The gate measures the entry, map chunk, and published data. The ten assets total about 52.6 MiB of the 64 MiB ceiling; the 46.9 MB hourly file loads only when hourly AIR is selected | Met |
 | All blocking acceptance tests pass before a production deploy | Gate run before each deploy; CI runs the gate, both suites, and the size ratchet on push | Met |
 
 ## Known gaps that remain outside the FR list
