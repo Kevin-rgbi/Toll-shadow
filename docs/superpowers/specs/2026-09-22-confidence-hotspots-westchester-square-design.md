@@ -35,7 +35,9 @@ NYC Planning's official 2020 Neighborhood Tabulation Area dataset identifies Wes
 Square as `BX1001`. No historical NYCCAS site coordinate falls inside that polygon. The
 nearest historical site is `12528-EJ`, approximately 0.19 km outside the boundary. No
 current monitor in the supplied station history falls inside it; Hunts Point is the nearest
-current monitor at approximately 3.31 km outside. Distances are measured from each point
+current monitor at approximately 3.31 km outside. Current-monitor locations come from the
+checksum-verified daily-air asset in release `2026-09-21.1`; no unpinned station file is
+introduced. Distances are measured from each point
 to the official polygon boundary and must be recomputed by the pipeline, not hard-coded.
 
 ## Measure Specifications
