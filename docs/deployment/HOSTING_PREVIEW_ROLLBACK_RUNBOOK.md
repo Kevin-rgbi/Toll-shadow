@@ -1,7 +1,7 @@
 # Firebase Hosting Preview and Rollback Runbook
 
 **Owner:** Agent 3
-**Status:** target re-verified 2026-09-21. The owner confirmed the canonical project and site are `tollshallows`; before this release the site served an older manifest generated 2026-09-11 with no release ID. The rollback section below was rehearsed on preview channel `p10-rehearsal` on 2026-09-20 against the installed CLI, which is how the two non-existent commands it used to name were found. The steps below are the standing procedure.
+**Status:** release `2026-09-21.1` deployed to `tollshallows.web.app` on 2026-09-21 after preview and production smoke checks. The owner confirmed the canonical project and site are `tollshallows`; before this release the site served an older manifest generated 2026-09-11 with no release ID. The rollback section below was rehearsed on preview channel `p10-rehearsal` on 2026-09-20 against the installed CLI, which is how the two non-existent commands it used to name were found. The steps below are the standing procedure.
 
 
 This runbook is the only approved path from a candidate build to `tollshallows.web.app`. Its purpose is that hosting never conceals an invalid data release: every step before a channel deploy is a gate, and a failed gate stops the run.

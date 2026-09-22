@@ -5,13 +5,13 @@ Stated plainly, ordered by how much they affect a reviewer's ability to trust or
 Figures below were read from release `2026-09-21.1` and its built bundle on **2026-09-21**, not carried
 forward from an earlier revision of this document.
 
-## 1. Validated locally, not deployed or independently reviewed
+## 1. Deployed, but not independently reviewed or monitored
 
-Release `2026-09-21.1` is the validated release under review and has **not** been deployed. The live
-site remains a previous deployment. Nobody outside this workstream has reviewed the new result, and
-there is no uptime or error monitoring. Deployment was explicitly excluded from this update.
+Release `2026-09-21.1` is live at <https://tollshallows.web.app>. Nobody outside this workstream has
+reviewed the new result, and there is no uptime or error monitoring.
 
-Rollback was rehearsed on a preview channel on 2026-09-20 (see
+Rollback was rehearsed on a preview channel on 2026-09-20, and this release passed its own preview
+channel before production promotion on 2026-09-21 (see
 `docs/deployment/HOSTING_PREVIEW_ROLLBACK_RUNBOOK.md`). That rehearsal found that the two commands the
 runbook used to document — `hosting:releases:list` and `hosting:channels:delete` — do not exist in
 firebase-tools 15.30, and that there is no CLI rollback command at all in that version: rolling the

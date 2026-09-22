@@ -7,7 +7,7 @@ which stated limits.
 **It does not publish a counterfactual, a causal policy estimate, a regulatory AQI claim,
 or a post-2025 health outcome.**
 
-**Live:** <https://tollshallows.web.app> · **Release candidate:** `2026-09-21.1`
+**Live:** <https://tollshallows.web.app> · **Live release:** `2026-09-21.1`
 
 ---
 

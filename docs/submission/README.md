@@ -1,9 +1,9 @@
 # Toll Shadow — Submission Evidence Package
 
-**Release under review:** `2026-09-21.1`
+**Live release:** `2026-09-21.1`
 **Application:** React + TypeScript + MapLibre SPA, static-first, hosted on Firebase Hosting
-**Deployment status:** not deployed. Release `2026-09-21.1` is validated locally; production remains
-on the previous deployment. This update deliberately performs no Firebase deployment.
+**Deployment status:** deployed to <https://tollshallows.web.app> on 2026-09-21 after preview and
+production smoke checks.
 
 
 This package exists so a reviewer can understand, run, inspect, and verify the product without undocumented context. It is written to be checkable, not persuasive: every number below is produced by a command whose output is quoted in `RELEASE_EVIDENCE.md`.

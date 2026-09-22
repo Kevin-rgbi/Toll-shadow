@@ -1,6 +1,6 @@
 # Release Evidence
 
-Release `2026-09-21.1` figures were produced locally on **2026-09-21**. It has not been deployed.
+Release `2026-09-21.1` figures were produced and deployed on **2026-09-21**.
 The earlier `2026-09-20.5` deployment record remains below as historical evidence.
 
 ## Release contents — `2026-09-21.1`
@@ -8,7 +8,7 @@ The earlier `2026-09-20.5` deployment record remains below as historical evidenc
 | Fact | Value |
 |---|---|
 | Schema / transform | `2.1.0` / `unified-air-traffic-2.0.0` |
-| Status | `validated`, not deployed |
+| Status | `validated`, live at <https://tollshallows.web.app> |
 | Release coverage | 2024-01-01 → 2026-09-21 |
 | Published assets | 8 |
 | Payload | 54,752,645 bytes (about 52.2 MiB) |
@@ -37,6 +37,23 @@ node pipeline/scripts/build-unified-release.mjs \
   --air-archive /path/to/nyccas-data-main.zip \
   --dot-input /path/to/Automated_Traffic_Volume_Counts_20260921.csv
 ```
+
+## Deployment verification — `2026-09-21.1`
+
+| Fact | Verified value |
+|---|---|
+| Git commit deployed | `ff01e4f` |
+| Firebase project / site | `tollshallows` / <https://tollshallows.web.app> |
+| Preview channel | `release-2026-09-21-1`, verified before promotion |
+| Live manifest | `release_id: 2026-09-21.1`, `status: validated`, 8 assets |
+| Browser smoke suite against production | 63 passed, 3 expected desktop skips |
+| Root and manifest cache | `no-cache, max-age=0, must-revalidate` |
+| Versioned data and hashed bundle cache | `max-age=31536000, immutable` |
+| Live hourly AIR checksum | `40c568146d1c6e41646654e4d8d108f67698e31008c2ea4490261aea0853d380` |
+
+The live root, manifest, hashed JavaScript, and hourly AIR asset returned HTTP 200 after promotion.
+The shell exposed the plural canonical URL, and the full desktop/mobile Playwright suite ran directly
+against production rather than only against the local build.
 
 ---
 
