@@ -1,0 +1,79 @@
+{
+  "release_id": "2026-09-22.1",
+  "status": "validated",
+  "source_quality": {
+    "workbook_rows": {
+      "EC": 7491,
+      "NOX": 7757,
+      "PM": 7555,
+      "O3": 1970
+    },
+    "westchester_square": {
+      "historical_sites_inside": 0,
+      "current_monitors_inside": 0
+    },
+    "retained_assets_with_verified_checksums": 8
+  },
+  "assets": [
+    {
+      "kind": "traffic_observations",
+      "path": "/data/releases/2026-09-22.1/traffic_observations.geojson",
+      "bytes": 1502491,
+      "sha256": "1bfe9baab01825e324bf237281ab9cbb865348c672e8bcda4e0f079bc958bb46"
+    },
+    {
+      "kind": "facility_crossings",
+      "path": "/data/releases/2026-09-22.1/facility_crossings.json",
+      "bytes": 4165865,
+      "sha256": "273e5258f301440c2fbc610a9966bf7ff6c21154a340325f5ec71a596f7edbff"
+    },
+    {
+      "kind": "crz_context",
+      "path": "/data/releases/2026-09-22.1/crz_entry_summary.json",
+      "bytes": 66535,
+      "sha256": "519dd2db1cff7e70b217d84b9ebb185621304df7351b0f205400a6f4dcd03fc6"
+    },
+    {
+      "kind": "air_measurements",
+      "path": "/data/releases/2026-09-22.1/nyccas_pm25_daily.csv",
+      "bytes": 1540151,
+      "sha256": "eeb32fafcb40a10d10bf7c3f18eff5508b9fea2ec70fb7e574fed6ebef49a2c3"
+    },
+    {
+      "kind": "air_measurements",
+      "path": "/data/releases/2026-09-22.1/nyccas_pm25_hourly.csv",
+      "bytes": 46933880,
+      "sha256": "40c568146d1c6e41646654e4d8d108f67698e31008c2ea4490261aea0853d380"
+    },
+    {
+      "kind": "historical_context",
+      "path": "/data/releases/2026-09-22.1/air_context.json",
+      "bytes": 34186,
+      "sha256": "51bd201f71dcad62a878a49c61432a6faffcac6f1a705f823c95d145813b8b97"
+    },
+    {
+      "kind": "health_context",
+      "path": "/data/releases/2026-09-22.1/health_context.json",
+      "bytes": 28287,
+      "sha256": "770554d942def23710a4de899f220ff221d5ff969a47a8013d815933bb022097"
+    },
+    {
+      "kind": "dac_context",
+      "path": "/data/releases/2026-09-22.1/equity_context.geojson",
+      "bytes": 481251,
+      "sha256": "e27c3f063511107c0b0a0ada77a7e31a1d0b98f97c7b066cd00157faadeba16e"
+    },
+    {
+      "kind": "air_quality_context",
+      "path": "/data/releases/2026-09-22.1/air_quality_context.json",
+      "bytes": 340942,
+      "sha256": "d52b2933fada593d331e13737918538f0ae39f9fde85131b39353e3c43aeee51"
+    },
+    {
+      "kind": "neighborhood_context",
+      "path": "/data/releases/2026-09-22.1/neighborhood_context.geojson",
+      "bytes": 12133,
+      "sha256": "804e27efd724c9f264f06adb522639d7812bff1bc04bfdacf6ea7b83c6292d13"
+    }
+  ]
+}

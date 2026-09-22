@@ -20,6 +20,8 @@ export const RELEASE_ASSET_LABELS: Record<ReleaseAssetKind, string> = {
   historical_context: 'modelled historical air surface',
   air_measurements: 'Preliminary NYCCAS PM2.5 monitor measurements',
   health_context: 'historical health context',
+  air_quality_context: 'NYCCAS data quality and coverage context',
+  neighborhood_context: 'Westchester Square neighborhood context',
 }
 
 /** Asset kind that backs each evidence module, or null when the module needs an approved method first. */

@@ -136,6 +136,40 @@ describe('parseReleaseManifest', () => {
     expect(getReleaseAssets(parseReleaseManifest(manifest), 'air_measurements')).toHaveLength(1)
   })
 
+  it('accepts quality JSON and EPSG:4326 neighborhood GeoJSON as separate assets', () => {
+    const manifest = validManifest()
+    manifest.assets.push({
+      kind: 'air_quality_context',
+      path: '/data/releases/2026-09-22.1/air_quality_context.json',
+      format: 'json',
+      sha256: sha,
+      coverage: { start: '2008-12-16', end: '2025-11-26' },
+      grain: 'one workbook pollutant summary plus site/post coverage metadata',
+      source_ids: ['nyccas_pm_year1_17_20260810'],
+      source_urls: ['https://example.test/nyccas'],
+      transform_version: 'quality-hotspots-1.0.0',
+      status: 'validated',
+      limitations: ['Coverage facts only; not a statistical confidence score.'],
+    }, {
+      kind: 'neighborhood_context',
+      path: '/data/releases/2026-09-22.1/neighborhood_context.geojson',
+      format: 'geojson',
+      geometry_crs: 'EPSG:4326',
+      sha256: sha,
+      coverage: { start: '2008-12-16', end: '2026-09-20' },
+      grain: 'one official boundary and two explicitly outside monitoring points',
+      source_ids: ['nyc_nta_westchester_square_2020_20260922'],
+      source_urls: ['https://example.test/nta'],
+      transform_version: 'quality-hotspots-1.0.0',
+      status: 'validated',
+      limitations: ['Outside sites are not Westchester Square measurements.'],
+    })
+
+    const parsed = parseReleaseManifest(manifest)
+    expect(getReleaseAssets(parsed, 'air_quality_context')).toHaveLength(1)
+    expect(getReleaseAssets(parsed, 'neighborhood_context')[0].geometry_crs).toBe('EPSG:4326')
+  })
+
   it('rejects a CSV path whose extension does not match its declared format', () => {
     const manifest = validManifest()
     manifest.assets.push({

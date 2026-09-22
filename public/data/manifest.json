@@ -1,9 +1,9 @@
 {
-  "release_id": "2026-09-21.1",
-  "schema_version": "2.1.0",
-  "generated_at": "2026-09-21T21:00:00.000Z",
+  "release_id": "2026-09-22.1",
+  "schema_version": "2.2.0",
+  "generated_at": "2026-09-22T20:00:00.000Z",
   "status": "validated",
-  "transform_version": "unified-air-traffic-2.0.0",
+  "transform_version": "quality-hotspots-1.0.0",
   "source_ids": [
     "dot_automated_traffic_counts_archive_20260915",
     "mta_hourly_crossings_archive_20260921",
@@ -11,7 +11,12 @@
     "nyccas_pm25_archive_20260921",
     "nyccas_air_context_derived_2016",
     "nys_asthma_context_derived_historical",
-    "nyc_dac_context_derived_2023"
+    "nyc_dac_context_derived_2023",
+    "nyccas_ec_year1_17_20260810",
+    "nyccas_nox_year1_17_20260810",
+    "nyccas_pm_year1_17_20260810",
+    "nyccas_o3_year1_17_20260810",
+    "nyc_nta_westchester_square_2020_20260922"
   ],
   "coverage": {
     "start": "2024-01-01",
@@ -20,12 +25,15 @@
   "limitations": [
     "Descriptive observations only; this release does not estimate a causal congestion-pricing effect.",
     "Preliminary NYCCAS PM2.5 monitor measurements; not a regulatory determination or causal health estimate.",
-    "Traffic, crossings, CRZ, measured air, historical air, health, and equity retain their own grains and are never combined into one inferred measure."
+    "Traffic, crossings, CRZ, measured air, historical air, health, and equity retain their own grains and are never combined into one inferred measure.",
+    "CONFIDENCE reports source data quality and coverage facts, not a statistical confidence score.",
+    "HOTSPOTS ranks sampled DOT observations and is not a pollution, displacement, or causal finding.",
+    "No supplied monitor is inside official Westchester Square NTA BX1001; outside sites are not neighborhood measurements."
   ],
   "assets": [
     {
       "kind": "traffic_observations",
-      "path": "/data/releases/2026-09-21.1/traffic_observations.geojson",
+      "path": "/data/releases/2026-09-22.1/traffic_observations.geojson",
       "format": "geojson",
       "sha256": "1bfe9baab01825e324bf237281ab9cbb865348c672e8bcda4e0f079bc958bb46",
       "bytes": 1502491,
@@ -50,7 +58,7 @@
     },
     {
       "kind": "facility_crossings",
-      "path": "/data/releases/2026-09-21.1/facility_crossings.json",
+      "path": "/data/releases/2026-09-22.1/facility_crossings.json",
       "format": "json",
       "sha256": "273e5258f301440c2fbc610a9966bf7ff6c21154a340325f5ec71a596f7edbff",
       "bytes": 4165865,
@@ -75,7 +83,7 @@
     },
     {
       "kind": "crz_context",
-      "path": "/data/releases/2026-09-21.1/crz_entry_summary.json",
+      "path": "/data/releases/2026-09-22.1/crz_entry_summary.json",
       "format": "json",
       "sha256": "519dd2db1cff7e70b217d84b9ebb185621304df7351b0f205400a6f4dcd03fc6",
       "bytes": 66535,
@@ -100,7 +108,7 @@
     },
     {
       "kind": "air_measurements",
-      "path": "/data/releases/2026-09-21.1/nyccas_pm25_daily.csv",
+      "path": "/data/releases/2026-09-22.1/nyccas_pm25_daily.csv",
       "format": "csv",
       "sha256": "eeb32fafcb40a10d10bf7c3f18eff5508b9fea2ec70fb7e574fed6ebef49a2c3",
       "bytes": 1540151,
@@ -126,7 +134,7 @@
     },
     {
       "kind": "air_measurements",
-      "path": "/data/releases/2026-09-21.1/nyccas_pm25_hourly.csv",
+      "path": "/data/releases/2026-09-22.1/nyccas_pm25_hourly.csv",
       "format": "csv",
       "sha256": "40c568146d1c6e41646654e4d8d108f67698e31008c2ea4490261aea0853d380",
       "bytes": 46933880,
@@ -152,7 +160,7 @@
     },
     {
       "kind": "historical_context",
-      "path": "/data/releases/2026-09-21.1/air_context.json",
+      "path": "/data/releases/2026-09-22.1/air_context.json",
       "format": "json",
       "sha256": "51bd201f71dcad62a878a49c61432a6faffcac6f1a705f823c95d145813b8b97",
       "bytes": 34186,
@@ -178,7 +186,7 @@
     },
     {
       "kind": "health_context",
-      "path": "/data/releases/2026-09-21.1/health_context.json",
+      "path": "/data/releases/2026-09-22.1/health_context.json",
       "format": "json",
       "sha256": "770554d942def23710a4de899f220ff221d5ff969a47a8013d815933bb022097",
       "bytes": 28287,
@@ -203,7 +211,7 @@
     },
     {
       "kind": "dac_context",
-      "path": "/data/releases/2026-09-21.1/equity_context.geojson",
+      "path": "/data/releases/2026-09-22.1/equity_context.geojson",
       "format": "geojson",
       "sha256": "e27c3f063511107c0b0a0ada77a7e31a1d0b98f97c7b066cd00157faadeba16e",
       "bytes": 481251,
@@ -224,6 +232,67 @@
         "the archived 2023 criteria, not the 2025 Version 2.0 revision",
         "a geography layer, not an estimate of individual risk or exposure",
         "published after the owner release decision recorded in the work log"
+      ],
+      "geometry_crs": "EPSG:4326"
+    },
+    {
+      "kind": "air_quality_context",
+      "path": "/data/releases/2026-09-22.1/air_quality_context.json",
+      "format": "json",
+      "sha256": "d52b2933fada593d331e13737918538f0ae39f9fde85131b39353e3c43aeee51",
+      "bytes": 340942,
+      "coverage": {
+        "start": "2008-12-16",
+        "end": "2025-11-26"
+      },
+      "grain": "one workbook-level pollutant summary plus one site/post coverage summary",
+      "source_ids": [
+        "nyccas_ec_year1_17_20260810",
+        "nyccas_nox_year1_17_20260810",
+        "nyccas_pm_year1_17_20260810",
+        "nyccas_o3_year1_17_20260810"
+      ],
+      "source_urls": [
+        "https://a816-dohbesp.nyc.gov/IndicatorPublic/data-explorer/air-quality/?id=2023#display=summary"
+      ],
+      "transform_version": "quality-hotspots-1.0.0",
+      "status": "validated",
+      "limitations": [
+        "Raw NYCCAS samples are not directly representative of the sampled time or place.",
+        "Temporal adjustment and modeling are required before describing pollution across New York City.",
+        "These sampling methods are not comparable to regulatory monitoring.",
+        "Counts describe source coverage and reported QA flags; they are not a statistical confidence score."
+      ]
+    },
+    {
+      "kind": "neighborhood_context",
+      "path": "/data/releases/2026-09-22.1/neighborhood_context.geojson",
+      "format": "geojson",
+      "sha256": "804e27efd724c9f264f06adb522639d7812bff1bc04bfdacf6ea7b83c6292d13",
+      "bytes": 12133,
+      "coverage": {
+        "start": "2008-12-16",
+        "end": "2026-09-20"
+      },
+      "grain": "one official NTA BX1001 boundary and the nearest historical and current outside monitoring points",
+      "source_ids": [
+        "nyc_nta_westchester_square_2020_20260922",
+        "nyccas_ec_year1_17_20260810",
+        "nyccas_nox_year1_17_20260810",
+        "nyccas_pm_year1_17_20260810",
+        "nyccas_o3_year1_17_20260810",
+        "nyccas_pm25_archive_20260921"
+      ],
+      "source_urls": [
+        "https://data.cityofnewyork.us/City-Government/2020-Neighborhood-Tabulation-Areas-NTAs-/9nt8-h7nd/about_data",
+        "https://a816-dohbesp.nyc.gov/IndicatorPublic/data-explorer/air-quality/?id=2023#display=summary",
+        "https://github.com/nychealth/nyccas-data"
+      ],
+      "transform_version": "quality-hotspots-1.0.0",
+      "status": "validated",
+      "limitations": [
+        "The official NTA is a statistical geography and may not definitively represent the neighborhood.",
+        "Nearest outside sites are not Westchester Square measurements and are not used to estimate a neighborhood value."
       ],
       "geometry_crs": "EPSG:4326"
     }

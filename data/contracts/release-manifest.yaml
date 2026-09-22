@@ -11,7 +11,7 @@ required_fields:
   - coverage
   - limitations
   - assets
-allowed_asset_kinds: [boundary_zone, traffic_observations, facility_crossings, crz_context, dac_context, historical_context, health_context, air_measurements]
+allowed_asset_kinds: [boundary_zone, traffic_observations, facility_crossings, crz_context, dac_context, historical_context, health_context, air_measurements, air_quality_context, neighborhood_context]
 allowed_asset_formats: [json, geojson, csv]
 asset_required_fields:
   - kind
