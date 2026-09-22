@@ -58,6 +58,23 @@ test.describe('published modules render published values', () => {
     })
   }
 
+  for (const mode of ['CONFIDENCE', 'HOTSPOTS']) {
+    test(`${mode} opens with the GPU map without a camera crash`, async ({ page }) => {
+      const pageErrors: string[] = []
+      page.on('pageerror', (error) => pageErrors.push(error.message))
+
+      await page.goto(`/?module=${mode}&map=gpu`)
+      const publishedContent = mode === 'CONFIDENCE'
+        ? page.locator('.quality-module .analysis-metrics').first()
+        : page.locator('.hotspot-ranking-list li').first()
+      await expect(publishedContent).toBeVisible()
+      await expect(page.locator('.map-renderer-note')).toContainText('GPU map')
+      await page.waitForTimeout(4_000)
+
+      expect(pageErrors).toEqual([])
+    })
+  }
+
   test('the equity module draws its published geography', async ({ page }) => {
     await page.goto('/?module=EQUITY')
     const tracts = page.locator('.equity-map-tract')

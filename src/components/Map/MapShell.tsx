@@ -359,8 +359,8 @@ export function MapShell({
 
     map.easeTo({
       center,
-      offset,
-      zoom,
+      ...(offset ? { offset } : {}),
+      ...(zoom === undefined ? {} : { zoom }),
       duration: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 780,
       essential: true,
     })
