@@ -1,6 +1,6 @@
 schema_version: 1.0.0
 catalog_name: Toll Shadow source register
-catalog_generated_at: '2026-09-16T02:50:00Z'
+catalog_generated_at: '2026-09-22T19:30:00Z'
 source_root: ../../data
 sources:
   - source_id: dot_automated_traffic_counts_archive_20260915
@@ -596,3 +596,142 @@ sources:
     forbidden_claims:
       - revenue, unique vehicles, inferred detector points, route displacement, or causal policy effect
     transformations: []
+
+  - source_id: nyccas_ec_year1_17_20260810
+    title: NYCCAS elemental carbon and black carbon raw data, years 1 through 17
+    role: raw_observation
+    approval_status: approved_for_pipeline
+    original_path: source-snapshots/2026-09-22/EC_raw_data_year1_17.xlsx
+    original_filename: EC_raw_data_year1_17.xlsx
+    sha256: 62883695a4892b5e290834eb60ce8c53ae261ed62667e4bd3be55fbde5b9a357
+    authoritative_url: https://a816-dohbesp.nyc.gov/IndicatorPublic/data-explorer/air-quality/?id=2023#display=summary
+    publisher: New York City Department of Health and Mental Hygiene, New York City Community Air Survey
+    license_status: source workbook does not state reuse terms; retain the supplied citation and public summary link
+    acquired_at: '2026-09-22'
+    temporal_coverage:
+      start: '2008-12-17'
+      end: '2025-11-26'
+    geographic_coverage: 177 source site IDs across New York City
+    geometry:
+      columns: [longitude, latitude]
+      crs: EPSG:4326
+    grain: one approximately two-week EC and/or BC sample per site, post, and sampling session
+    source_semantics: Raw samples require temporal adjustment and modeling before describing pollution across New York City and are not comparable to regulatory monitoring.
+    allowed_uses:
+      - direct row, missing-value, QA-flag, site, and time-coverage accounting
+      - source-location coverage context with raw concentrations withheld from browser assets
+    forbidden_claims:
+      - unadjusted neighborhood concentration, regulatory comparison, hotspot ranking, exposure, health outcome, or causal policy effect
+    transformations:
+      - script: pipeline/scripts/derive-nyccas-quality.py
+
+  - source_id: nyccas_nox_year1_17_20260810
+    title: NYCCAS nitrogen oxides raw data, years 1 through 17
+    role: raw_observation
+    approval_status: approved_for_pipeline
+    original_path: source-snapshots/2026-09-22/NOX_raw_data_year1_17.xlsx
+    original_filename: NOX_raw_data_year1_17.xlsx
+    sha256: feffd4c6d17f10e600def5f0832a688616a36544fcb1aaf515180fb6fb41ff2f
+    authoritative_url: https://a816-dohbesp.nyc.gov/IndicatorPublic/data-explorer/air-quality/?id=2023#display=summary
+    publisher: New York City Department of Health and Mental Hygiene, New York City Community Air Survey
+    license_status: source workbook does not state reuse terms; retain the supplied citation and public summary link
+    acquired_at: '2026-09-22'
+    temporal_coverage:
+      start: '2008-12-16'
+      end: '2025-11-24'
+    geographic_coverage: 177 source site IDs across New York City
+    geometry:
+      columns: [longitude, latitude]
+      crs: EPSG:4326
+    grain: one approximately two-week NO and NO2 sample per site, post, and sampling session
+    source_semantics: Raw samples require temporal adjustment and modeling before describing pollution across New York City and are not comparable to regulatory monitoring.
+    allowed_uses:
+      - direct row, missing-value, QA-flag, site, and time-coverage accounting
+      - source-location coverage context with raw concentrations withheld from browser assets
+    forbidden_claims:
+      - unadjusted neighborhood concentration, regulatory comparison, hotspot ranking, exposure, health outcome, or causal policy effect
+    transformations:
+      - script: pipeline/scripts/derive-nyccas-quality.py
+
+  - source_id: nyccas_pm_year1_17_20260810
+    title: NYCCAS PM2.5 raw data, years 1 through 17
+    role: raw_observation
+    approval_status: approved_for_pipeline
+    original_path: source-snapshots/2026-09-22/PM_raw_data_year1_17.xlsx
+    original_filename: PM_raw_data_year1_17.xlsx
+    sha256: f72c2864dd67332cbf4b5467f761a9b8c708309cfe890cd3663ea5bc7ca8ff78
+    authoritative_url: https://a816-dohbesp.nyc.gov/IndicatorPublic/data-explorer/air-quality/?id=2023#display=summary
+    publisher: New York City Department of Health and Mental Hygiene, New York City Community Air Survey
+    license_status: source workbook does not state reuse terms; retain the supplied citation and public summary link
+    acquired_at: '2026-09-22'
+    temporal_coverage:
+      start: '2008-12-17'
+      end: '2025-11-26'
+    geographic_coverage: 177 source site IDs across New York City
+    geometry:
+      columns: [longitude, latitude]
+      crs: EPSG:4326
+    grain: one approximately two-week PM2.5 sample per site, post, and sampling session
+    source_semantics: Raw samples require temporal adjustment and modeling before describing pollution across New York City and are not comparable to regulatory monitoring.
+    allowed_uses:
+      - direct row, missing-value, QA-flag, site, and time-coverage accounting
+      - source-location coverage context with raw concentrations withheld from browser assets
+    forbidden_claims:
+      - unadjusted neighborhood concentration, regulatory comparison, hotspot ranking, exposure, health outcome, or causal policy effect
+    transformations:
+      - script: pipeline/scripts/derive-nyccas-quality.py
+
+  - source_id: nyccas_o3_year1_17_20260810
+    title: NYCCAS ozone raw data, years 1 through 17
+    role: raw_observation
+    approval_status: approved_for_pipeline
+    original_path: source-snapshots/2026-09-22/O3_raw_data_year1_17.xlsx
+    original_filename: O3_raw_data_year1_17.xlsx
+    sha256: e180fb599e5b7e832707194c9d08c1e79c27fda88f4104aa9ee452340f9c04ef
+    authoritative_url: https://a816-dohbesp.nyc.gov/IndicatorPublic/data-explorer/air-quality/?id=2023#display=summary
+    publisher: New York City Department of Health and Mental Hygiene, New York City Community Air Survey
+    license_status: source workbook does not state reuse terms; retain the supplied citation and public summary link
+    acquired_at: '2026-09-22'
+    temporal_coverage:
+      start: '2009-06-02'
+      end: '2025-08-18'
+    geographic_coverage: 177 source site IDs across New York City
+    geometry:
+      columns: [longitude, latitude]
+      crs: EPSG:4326
+    grain: one approximately two-week summer ozone sample per site, post, and sampling session
+    source_semantics: Raw samples require temporal adjustment and modeling before describing pollution across New York City and are not comparable to regulatory monitoring.
+    allowed_uses:
+      - direct row, missing-value, QA-flag, site, and time-coverage accounting
+      - source-location coverage context with raw concentrations withheld from browser assets
+    forbidden_claims:
+      - unadjusted neighborhood concentration, regulatory comparison, hotspot ranking, exposure, health outcome, or causal policy effect
+    transformations:
+      - script: pipeline/scripts/derive-nyccas-quality.py
+
+  - source_id: nyc_nta_westchester_square_2020_20260922
+    title: 2020 Neighborhood Tabulation Area BX1001, Westchester Square
+    role: contextual_source
+    approval_status: approved_for_pipeline
+    original_path: source-snapshots/2026-09-22/westchester_square_nta.geojson
+    original_filename: westchester_square_nta.geojson
+    sha256: 0fbbc503c2f2d2847bac432aab6b73884658bfb9207548e820595e1ea6c2aa3f
+    authoritative_url: https://data.cityofnewyork.us/City-Government/2020-Neighborhood-Tabulation-Areas-NTAs-/9nt8-h7nd/about_data
+    publisher: New York City Department of City Planning
+    license_status: NYC Open Data public dataset; retain live source terms on refresh
+    acquired_at: '2026-09-22'
+    temporal_coverage:
+      start: '2020'
+      end: '2020'
+    geographic_coverage: Westchester Square, Bronx, New York City
+    geometry:
+      crs: EPSG:4326
+      feature_count: 1
+    grain: one official 2020 Neighborhood Tabulation Area feature
+    source_semantics: NTAs are statistical geographies and their names may not definitively represent neighborhoods.
+    allowed_uses:
+      - point-in-polygon coverage accounting and labeled map context for NTA BX1001
+    forbidden_claims:
+      - definitive neighborhood boundary, inferred air value, monitor attribution, exposure, or causal policy effect
+    transformations:
+      - script: pipeline/scripts/derive-nyccas-quality.py
