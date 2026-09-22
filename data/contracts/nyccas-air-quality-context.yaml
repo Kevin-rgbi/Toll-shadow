@@ -1,0 +1,17 @@
+schema_version: 1.0.0
+contract_id: nyccas-air-quality-context
+covers_asset_kinds: [air_quality_context]
+source_ids:
+  - nyccas_ec_year1_17_20260810
+  - nyccas_nox_year1_17_20260810
+  - nyccas_pm_year1_17_20260810
+  - nyccas_o3_year1_17_20260810
+grain: one workbook-level pollutant summary plus one site/post coverage summary
+required_fields: [schema_version, title, source_release_date, coverage, pollutants, limitations]
+rules:
+  - analytic fields publish present and missing counts, never raw concentration rows
+  - QA flags are counted as source disclosures and do not silently exclude rows
+  - site identity combines source site_id and post_no
+  - no composite confidence score or unadjusted neighborhood value is permitted
+claims:
+  prohibited: [statistical confidence score, pollution hotspot, regulatory comparison, exposure, health outcome, causal policy effect]

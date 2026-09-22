@@ -10,6 +10,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "pipeline:test": "vitest run pipeline/tests",
+    "pipeline:quality-test": "python3 -m unittest pipeline/tests/nyccas_quality_test.py -v",
     "pipeline:validate-catalog": "node pipeline/scripts/validate-source-catalog.mjs",
     "preview": "vite preview",
     "hosting:local": "npm run build && firebase emulators:start --only hosting",

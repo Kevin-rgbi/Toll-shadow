@@ -1,0 +1,44 @@
+schema_version: 1.1.0
+policy_reference:
+  date: '2025-01-05'
+  role: timeline marker only
+measures:
+  - measure_id: nyccas_source_quality_coverage
+    asset_kind: air_quality_context
+    source_ids: [nyccas_ec_year1_17_20260810, nyccas_nox_year1_17_20260810, nyccas_pm_year1_17_20260810, nyccas_o3_year1_17_20260810]
+    coverage: { start: '2008-12-16', end: '2025-11-26' }
+    grain: one workbook pollutant and analytic-field summary, with site/post coverage metadata
+    numerator: source rows with a present analytic value or reported QA flag, depending on the displayed count
+    denominator: all nonblank source rows for that pollutant workbook
+    aggregation: direct counts only; no rows are weighted, imputed, or silently excluded
+    dimensions: [pollutant, analytic_field, site_id, post_no]
+    limitations:
+      - raw samples require temporal adjustment and modeling before describing pollution across New York City
+      - counts are data quality and coverage facts, not a statistical confidence score
+    claim_policy: descriptive_only
+  - measure_id: westchester_square_monitor_coverage
+    asset_kind: neighborhood_context
+    source_ids: [nyc_nta_westchester_square_2020_20260922, nyccas_ec_year1_17_20260810, nyccas_nox_year1_17_20260810, nyccas_pm_year1_17_20260810, nyccas_o3_year1_17_20260810, nyccas_pm25_archive_20260921]
+    coverage: { start: '2008-12-16', end: '2026-09-20' }
+    grain: official NTA BX1001 boundary with source monitoring points classified inside or outside
+    numerator: distinct source site/post locations or current monitor locations inside the official polygon
+    denominator: all distinct locations in the corresponding source set
+    aggregation: hole-aware point-in-polygon count and nearest point-to-boundary distance
+    dimensions: [source_set, inside]
+    limitations:
+      - NTAs are statistical geographies and may not definitively represent neighborhoods
+      - outside sites are not Westchester Square measurements and support no neighborhood estimate
+    claim_policy: descriptive_only
+  - measure_id: dot_observed_segment_ranking
+    asset_kind: traffic_observations
+    source_ids: [dot_automated_traffic_counts_archive_20260915]
+    coverage: { start: '2024-01-01', end: '2026-02-03' }
+    grain: one published segment, direction, month, day type, and time-band aggregate
+    numerator: published mean or maximum observed 15-minute volume, or source observation count
+    denominator: not applicable; values are direct published row fields
+    aggregation: descending sort within the selected dimensions with stable source-key tie breaks
+    dimensions: [month, borough, day_type, time_band, direction]
+    limitations:
+      - DOT observations are sampled rather than continuous citywide traffic measurements
+      - rank position is not an exceedance, pollution hotspot, displacement finding, or causal policy effect
+    claim_policy: descriptive_only

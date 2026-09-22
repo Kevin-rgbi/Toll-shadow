@@ -1,0 +1,19 @@
+schema_version: 1.0.0
+contract_id: westchester-square-context
+covers_asset_kinds: [neighborhood_context]
+source_ids:
+  - nyc_nta_westchester_square_2020_20260922
+  - nyccas_ec_year1_17_20260810
+  - nyccas_nox_year1_17_20260810
+  - nyccas_pm_year1_17_20260810
+  - nyccas_o3_year1_17_20260810
+  - nyccas_pm25_archive_20260921
+grain: one official NTA boundary and the nearest historical and current outside monitoring points
+geometry_crs: EPSG:4326
+required_feature_kinds: [boundary, nearest_historical, nearest_current]
+rules:
+  - boundary feature must be official NTA BX1001
+  - outside points remain labeled outside and are not attributed to Westchester Square
+  - no point interpolation or neighborhood estimate is permitted
+claims:
+  prohibited: [definitive neighborhood boundary, neighborhood air measurement, exposure, health outcome, causal policy effect]
