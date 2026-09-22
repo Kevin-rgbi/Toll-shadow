@@ -2,14 +2,14 @@
 
 Stated plainly, ordered by how much they affect a reviewer's ability to trust or use the product.
 
-Figures below were read from release candidate `2026-09-22.1` and its built bundle on **2026-09-22**, not carried
+Figures below were read from release `2026-09-22.1` and its built bundle on **2026-09-22**, not carried
 forward from an earlier revision of this document.
 
 ## 1. Deployed, but not independently reviewed or monitored
 
-Release candidate `2026-09-22.1` is awaiting the preview and production deployment checks at
-<https://tollshallows.web.app>. Nobody outside this workstream has reviewed the new result, and there
-is no uptime or error monitoring.
+Release `2026-09-22.1` is live at <https://tollshallows.web.app> after preview and production smoke
+checks. Nobody outside this workstream has reviewed the new result, and there is no uptime or error
+monitoring.
 
 Rollback was rehearsed on a preview channel on 2026-09-20, and this release passed its own preview
 channel before production promotion on 2026-09-21 (see

@@ -1,15 +1,14 @@
 # Release Evidence
 
-Release candidate `2026-09-22.1` figures were produced on **2026-09-22**. Deployment evidence is
-recorded only after the preview and production checks complete. Earlier deployment records remain
-below as historical evidence.
+Release `2026-09-22.1` figures were produced and deployed on **2026-09-22**. Earlier deployment
+records remain below as historical evidence.
 
 ## Release contents — `2026-09-22.1`
 
 | Fact | Value |
 |---|---|
 | Schema / transform | `2.2.0` / `quality-hotspots-1.0.0` |
-| Status | `validated`, deployment pending |
+| Status | `validated`, live at <https://tollshallows.web.app> |
 | Release coverage | 2024-01-01 → 2026-09-21 |
 | Published assets | 10 |
 | Payload | 55,105,721 bytes (about 52.6 MiB) |
@@ -43,7 +42,7 @@ historical sites and zero current monitors. The nearest published points remain 
 observation count within the selected month/borough/day-type/time-band dimensions. It is not an air
 ranking, displacement finding, or causal policy estimate.
 
-## Candidate verification — `2026-09-22.1`
+## Verification — `2026-09-22.1`
 
 | Gate | Result |
 |---|---|
@@ -60,6 +59,25 @@ ranking, displacement finding, or causal policy estimate.
 The production build was also inspected at 1440x900 and 412x915. Both new panels had no horizontal
 overflow; the CONFIDENCE map showed the official boundary and outside context points, and the
 HOTSPOTS list/map selection used the same filtered traffic rows.
+
+## Deployment verification — `2026-09-22.1`
+
+| Fact | Verified value |
+|---|---|
+| Git commit deployed | `bfa100b` |
+| Firebase project / site | `tollshallows` / <https://tollshallows.web.app> |
+| Preview channel | <https://tollshallows--release-2026-09-22-1-2nyp0cdu.web.app>, expires 2026-09-29 |
+| Preview / production Firebase versions | `294d4deb4201c6e3` / `1d9517617b67a3f5` |
+| Live release time | 2026-09-22 16:21 EDT |
+| Live manifest | `release_id: 2026-09-22.1`, `status: validated`, 10 assets, no synthetic marker |
+| Preview browser smoke | 34 passed across desktop and mobile |
+| Production browser smoke | 28 passed across desktop and mobile |
+| Root / manifest cache | `no-cache, max-age=0, must-revalidate` |
+| Recovery route | `no-store, max-age=0`; `Clear-Site-Data: "cache", "storage"` |
+
+The production smoke covered all eight evidence tabs, every rendered provenance block, the running
+build stamp, and uncaught browser errors. The live quality and neighborhood checksums match the
+release manifest.
 
 Reproduction commands:
 
