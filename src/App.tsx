@@ -18,24 +18,13 @@ import {
   parseHealthContext,
   parseTrafficObservations,
 } from './lib/releaseData'
-import type { TrafficDayType, TrafficObservation } from './types/releaseData'
+import type { TrafficDayType } from './types/releaseData'
 import { getDevSyntheticTimelineBounds } from './lib/devSyntheticDataset'
 import { APP_MODES, useAppStore } from './state/appStore'
 import { buildSyntheticHotspotRankings, summarizeSyntheticConfidence } from './lib/analysis'
 import { getHeaderStatusLabel, getModuleUnavailableReason } from './lib/sourceMessaging'
 import { TrafficModule } from './features/traffic/TrafficModule'
-import {
-  filterTrafficByBorough,
-  filterTrafficByDayType,
-  filterTrafficByMonth,
-  filterTrafficByTimeBand,
-  listBoroughs,
-  listDayTypes,
-  listTimeBands,
-  listTrafficMonths,
-  monthFromIsoDate,
-  toTrafficFeatureCollection,
-} from './features/traffic/trafficSummary'
+import { useTrafficSelection } from './features/traffic/useTrafficSelection'
 import { CrossingsModule } from './features/crossings/CrossingsModule'
 import { CrzModule } from './features/crz/CrzModule'
 import { AirContextModule } from './features/air/AirContextModule'
@@ -45,41 +34,25 @@ import { QualityModule } from './features/quality/QualityModule'
 import {
   parseAirQualityContext,
   parseNeighborhoodContext,
+  toNeighborhoodMapLayers,
   type QualityPollutant,
 } from './features/quality/qualityData'
 import { HotspotsModule } from './features/hotspots/HotspotsModule'
-import {
-  rankTrafficHotspots,
-  trafficHotspotKey,
-  type HotspotRanking,
-} from './features/hotspots/hotspotRanking'
+import type { HotspotRanking } from './features/hotspots/hotspotRanking'
 import { crossingsDateBounds } from './features/crossings/crossingsSummary'
 import { readViewStateFromLocation } from './lib/viewState'
 import { BUILD_ID, isStaleBuild, readExpectedBuildIdFromLocation } from './lib/buildInfo'
 import { useShareableViewState } from './hooks/useShareableViewState'
-import {
-  formatDateLong,
-  formatDateShort,
-  isRenderableIsoDate,
-  isoToTimestamp,
-  timestampToIso,
-} from './lib/dateFormat'
+import { formatDateLong, formatDateShort, isRenderableIsoDate, isoToTimestamp, timestampToIso } from './lib/dateFormat'
 
 const MapShell = lazy(async () => {
   const module = await import('./components/Map/MapShell')
   return { default: module.MapShell }
 })
 
-/** Stable identity so memo dependencies do not churn before the release assets resolve. */
-const NO_OBSERVATIONS: TrafficObservation[] = []
-
 const MODULE_TITLES: Partial<Record<(typeof APP_MODES)[number], string>> = {
-  TRAFFIC: 'TRAFFIC OBSERVATIONS',
-  CROSSINGS: 'MTA FACILITY CROSSINGS',
-  CRZ: 'CRZ ENTRY CONTEXT',
-  AIR: 'MEASURED AIR CONTEXT',
-  EQUITY: 'EQUITY CONTEXT',
-  CONFIDENCE: 'DATA QUALITY AND COVERAGE',
+  TRAFFIC: 'TRAFFIC OBSERVATIONS', CROSSINGS: 'MTA FACILITY CROSSINGS', CRZ: 'CRZ ENTRY CONTEXT',
+  AIR: 'MEASURED AIR CONTEXT', EQUITY: 'EQUITY CONTEXT', CONFIDENCE: 'DATA QUALITY AND COVERAGE',
   HOTSPOTS: 'HOTSPOT RANKING',
 }
 
@@ -237,112 +210,15 @@ function App() {
 
   const selectedHotspot = syntheticHotspots?.find((hotspot) => hotspot.id === activeHotspotId) ?? null
 
-  // --- Released asset selection -------------------------------------------------------------
-  // The month comes from the shared timeline; the borough filter narrows it further. Both the map
-  // layer and the module summary read this one selection, so they cannot disagree.
-  const trafficObservations = trafficState.status === 'ready' ? trafficState.data : NO_OBSERVATIONS
-  const trafficMonths = useMemo(() => listTrafficMonths(trafficObservations), [trafficObservations])
-  const requestedDotMonth = monthFromIsoDate(currentDateIso || initialView.date || '')
-  const trafficMonth = trafficMonths.includes(requestedDotMonth) ? requestedDotMonth : trafficMonths.at(-1) ?? ''
-
-  const trafficForMonth = useMemo(
-    () => filterTrafficByMonth(trafficObservations, trafficMonth),
-    [trafficMonth, trafficObservations],
+  const traffic = useTrafficSelection({
+    state: trafficState, currentDateIso, initialDate: initialView.date,
+    borough: trafficBorough, dayType: trafficDayType, timeBand: trafficTimeBand,
+    ranking: hotspotRanking, selectedHotspotId,
+  })
+  const neighborhoodMap = useMemo(
+    () => neighborhoodState.status === 'ready' ? toNeighborhoodMapLayers(neighborhoodState.data) : { boundary: null, points: null },
+    [neighborhoodState],
   )
-
-  const trafficSelected = useMemo(
-    () => filterTrafficByTimeBand(
-      filterTrafficByDayType(
-        filterTrafficByBorough(trafficForMonth, trafficBorough),
-        trafficDayType,
-      ),
-      trafficTimeBand,
-    ),
-    [trafficBorough, trafficDayType, trafficForMonth, trafficTimeBand],
-  )
-
-  // Each filter's options are derived from the set narrowed by the *other* filters, so a control can
-  // never offer a value that would return nothing.
-  const trafficBoroughOptions = useMemo(
-    () => listBoroughs(filterTrafficByTimeBand(filterTrafficByDayType(trafficForMonth, trafficDayType), trafficTimeBand)),
-    [trafficDayType, trafficForMonth, trafficTimeBand],
-  )
-
-  const trafficDayTypeOptions = useMemo(
-    () => listDayTypes(filterTrafficByTimeBand(filterTrafficByBorough(trafficForMonth, trafficBorough), trafficTimeBand)),
-    [trafficBorough, trafficForMonth, trafficTimeBand],
-  )
-
-  const trafficTimeBandOptions = useMemo(
-    () => listTimeBands(filterTrafficByDayType(filterTrafficByBorough(trafficForMonth, trafficBorough), trafficDayType)),
-    [trafficBorough, trafficDayType, trafficForMonth],
-  )
-
-  /**
-   * The option lists a control offers, including the value it is currently set to.
-   *
-   * Cross-filtering can rule out the selected value: a borough carried on a shared link may not be
-   * published for the month the link opens on. When it is ruled out the control falls back to its
-   * "all" option and reads as if nothing were filtered, while the filter is still applied and the
-   * figures below it are still narrowed. Carrying the applied value keeps the control honest about
-   * the state it is in.
-   */
-  const withAppliedValue = <T extends string>(options: T[], applied: T | null): T[] => {
-    if (!applied || options.includes(applied)) return options
-    return [...options, applied].sort((left, right) => left.localeCompare(right))
-  }
-
-  const trafficBoroughSelectOptions = withAppliedValue(trafficBoroughOptions, trafficBorough)
-  const trafficDayTypeSelectOptions = withAppliedValue(trafficDayTypeOptions, trafficDayType)
-  const trafficTimeBandSelectOptions = withAppliedValue(trafficTimeBandOptions, trafficTimeBand)
-
-  const trafficFeatures = useMemo(
-    () => (trafficSelected.length > 0 ? toTrafficFeatureCollection(trafficSelected) : null),
-    [trafficSelected],
-  )
-
-  const rankedTrafficHotspots = useMemo(
-    () => rankTrafficHotspots(trafficSelected, hotspotRanking),
-    [hotspotRanking, trafficSelected],
-  )
-  const selectedTrafficHotspot = rankedTrafficHotspots.find((observation) => (
-    trafficHotspotKey(observation) === selectedHotspotId
-  )) ?? rankedTrafficHotspots[0] ?? null
-  const selectedTrafficHotspotKey = selectedTrafficHotspot ? trafficHotspotKey(selectedTrafficHotspot) : null
-
-  const neighborhoodMap = useMemo(() => {
-    if (neighborhoodState.status !== 'ready') return { boundary: null, points: null }
-    const source = neighborhoodState.data.featureCollection
-    const boundary = source.features.filter((feature) => feature.properties?.kind === 'boundary')
-    const points = source.features
-      .filter((feature) => feature.geometry.type === 'Point')
-      .map((feature) => {
-        const properties = feature.properties ?? {}
-        const distance = typeof properties.distance_to_boundary_km === 'number'
-          ? properties.distance_to_boundary_km
-          : null
-        const siteId = typeof properties.site_id === 'string' ? properties.site_id : 'monitor'
-        const siteName = typeof properties.site_name === 'string' ? properties.site_name : siteId
-        return {
-          ...feature,
-          properties: {
-            ...properties,
-            id: siteId,
-            name: siteName,
-            borough: 'Bronx · outside BX1001',
-            period: properties.kind === 'nearest_current' ? 'current monitor' : 'historical NYCCAS site',
-            coverage: distance === null ? 'outside boundary' : `${distance.toFixed(3)} km outside boundary`,
-            meanVolume: 50,
-            radius: properties.kind === 'nearest_current' ? 7 : 6,
-            color: properties.kind === 'nearest_current' ? '#c84b31' : '#1f4bd8',
-          },
-        }
-      })
-    return {
-      boundary: { type: 'FeatureCollection' as const, features: boundary },
-      points: { type: 'FeatureCollection' as const, features: points },
-    }
-  }, [neighborhoodState])
 
   const crossingsData = crossingsState.status === 'ready' ? crossingsState.data : null
   const crossingsBounds = useMemo(
@@ -411,8 +287,8 @@ function App() {
         <TrafficModule
           state={moduleAssetState(trafficState)}
           release={release}
-          month={trafficMonth}
-          monthOptions={trafficMonths}
+          month={traffic.month}
+          monthOptions={traffic.months}
           onMonthChange={(nextMonth) => {
             // The window is driven by the shared timeline, so choosing a month here moves the
             // timeline to that month rather than holding a second, independent selection.
@@ -424,11 +300,11 @@ function App() {
           onDayTypeChange={setTrafficDayType}
           timeBand={trafficTimeBand}
           onTimeBandChange={setTrafficTimeBand}
-          boroughOptions={trafficBoroughSelectOptions}
-          dayTypeOptions={trafficDayTypeSelectOptions}
-          timeBandOptions={trafficTimeBandSelectOptions}
-          monthTotal={trafficForMonth.length}
-          observations={trafficSelected}
+          boroughOptions={traffic.boroughOptions}
+          dayTypeOptions={traffic.dayTypeOptions}
+          timeBandOptions={traffic.timeBandOptions}
+          monthTotal={traffic.forMonth.length}
+          observations={traffic.selected}
         />
       )
     }
@@ -495,9 +371,9 @@ function App() {
           release={release}
           ranking={hotspotRanking}
           onRankingChange={setHotspotRanking}
-          observations={trafficSelected}
-          month={trafficMonth}
-          monthOptions={trafficMonths}
+          observations={traffic.selected}
+          month={traffic.month}
+          monthOptions={traffic.months}
           onMonthChange={(nextMonth) => {
             if (nextMonth) setCurrentDate(`${nextMonth}-01`)
           }}
@@ -507,10 +383,10 @@ function App() {
           onDayTypeChange={setTrafficDayType}
           timeBand={trafficTimeBand}
           onTimeBandChange={setTrafficTimeBand}
-          boroughOptions={trafficBoroughSelectOptions}
-          dayTypeOptions={trafficDayTypeSelectOptions}
-          timeBandOptions={trafficTimeBandSelectOptions}
-          selectedKey={selectedTrafficHotspotKey}
+          boroughOptions={traffic.boroughOptions}
+          dayTypeOptions={traffic.dayTypeOptions}
+          timeBandOptions={traffic.timeBandOptions}
+          selectedKey={traffic.selectedHotspotKey}
           onSelect={setSelectedHotspotId}
         />
       )
@@ -677,7 +553,7 @@ function App() {
                 ? neighborhoodMap.points
                 : measuredAirMode
                   ? measuredAir.features
-                  : mode === 'TRAFFIC' || mode === 'HOTSPOTS' ? trafficFeatures : null}
+                  : mode === 'TRAFFIC' || mode === 'HOTSPOTS' ? traffic.features : null}
               releaseFocus={mode === 'CONFIDENCE' && neighborhoodState.status === 'ready'
                 ? {
                     id: neighborhoodState.data.nearestHistorical.siteId,
@@ -685,8 +561,8 @@ function App() {
                   }
                 : measuredAirMode
                   ? measuredAir.releaseFocus
-                  : mode === 'HOTSPOTS' && selectedTrafficHotspot
-                    ? { id: selectedTrafficHotspotKey ?? '', coordinates: selectedTrafficHotspot.coordinates }
+                  : mode === 'HOTSPOTS' && traffic.selectedHotspot
+                    ? { id: traffic.selectedHotspotKey ?? '', coordinates: traffic.selectedHotspot.coordinates }
                     : null}
               onReleaseSelect={measuredAirMode ? measuredAir.onReleaseSelect : undefined}
               mapPreference={mapPreference}

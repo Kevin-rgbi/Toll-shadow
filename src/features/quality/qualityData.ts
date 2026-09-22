@@ -64,6 +64,36 @@ export interface NeighborhoodContext {
   limitations: string[]
 }
 
+export function toNeighborhoodMapLayers(context: NeighborhoodContext) {
+  const source = context.featureCollection
+  const boundary = source.features.filter((feature) => feature.properties?.kind === 'boundary')
+  const points = source.features.filter((feature) => feature.geometry.type === 'Point').map((feature) => {
+    const properties = feature.properties ?? {}
+    const distance = typeof properties.distance_to_boundary_km === 'number'
+      ? properties.distance_to_boundary_km
+      : null
+    const siteId = typeof properties.site_id === 'string' ? properties.site_id : 'monitor'
+    return {
+      ...feature,
+      properties: {
+        ...properties,
+        id: siteId,
+        name: typeof properties.site_name === 'string' ? properties.site_name : siteId,
+        borough: 'Bronx · outside BX1001',
+        period: properties.kind === 'nearest_current' ? 'current monitor' : 'historical NYCCAS site',
+        coverage: distance === null ? 'outside boundary' : `${distance.toFixed(3)} km outside boundary`,
+        meanVolume: 50,
+        radius: properties.kind === 'nearest_current' ? 7 : 6,
+        color: properties.kind === 'nearest_current' ? '#c84b31' : '#1f4bd8',
+      },
+    }
+  })
+  return {
+    boundary: { type: 'FeatureCollection' as const, features: boundary },
+    points: { type: 'FeatureCollection' as const, features: points },
+  }
+}
+
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/
 const EXPECTED_FIELDS: Record<QualityPollutant, string[]> = {
   EC: ['bc_conc', 'ec_abs_iso'],
