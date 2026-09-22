@@ -19,6 +19,9 @@ describe('view state in the URL', () => {
       airTime: null,
       build: null,
       map: null,
+      hotspotRanking: null,
+      qualityPollutant: null,
+      qualitySite: null,
     })
   })
 
@@ -51,6 +54,9 @@ describe('view state in the URL', () => {
       airTime: null,
       build: null,
       map: null,
+      hotspotRanking: null,
+      qualityPollutant: null,
+      qualitySite: null,
     })
   })
 
@@ -111,6 +117,9 @@ describe('view state in the URL', () => {
       airTime: null,
       build: null,
       map: null,
+      hotspotRanking: null,
+      qualityPollutant: null,
+      qualitySite: null,
     })
   })
 
@@ -132,6 +141,35 @@ describe('view state in the URL', () => {
       mode: 'AIR',
       airGranularity: 'hourly',
       airTime: '2026-09-08T23:00:00.000Z',
+    })
+  })
+
+  it('round-trips quality and hotspot selections and rejects unknown values', () => {
+    const query = buildViewStateQuery({
+      mode: 'CONFIDENCE',
+      date: null,
+      borough: null,
+      dayType: null,
+      timeBand: null,
+      crossingsStart: null,
+      crossingsEnd: null,
+      airGranularity: null,
+      airTime: null,
+      build: null,
+      map: null,
+      hotspotRanking: 'maximum',
+      qualityPollutant: 'NOX',
+      qualitySite: '12528-EJ:1',
+    })
+
+    expect(readViewState(query)).toMatchObject({
+      hotspotRanking: 'maximum',
+      qualityPollutant: 'NOX',
+      qualitySite: '12528-EJ:1',
+    })
+    expect(readViewState('?rank=causal&pollutant=CO')).toMatchObject({
+      hotspotRanking: null,
+      qualityPollutant: null,
     })
   })
 })

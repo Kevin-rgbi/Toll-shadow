@@ -39,7 +39,7 @@ const buildId = (): string => {
  * never ship demo effects or demo geometry.
  */
 const releaseIdForIndex = (): string => {
-  const spec = readFileSync(resolve(process.cwd(), 'pipeline/methods/unified-release-2026-09-21.yaml'), 'utf8')
+  const spec = readFileSync(resolve(process.cwd(), 'pipeline/methods/confidence-hotspots-2026-09-22.yaml'), 'utf8')
   const match = /^release_id:\s*(\S+)/m.exec(spec)
   if (!match) throw new Error('the unified release method declares no release_id')
   return match[1]

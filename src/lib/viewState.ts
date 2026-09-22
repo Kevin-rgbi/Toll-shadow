@@ -15,6 +15,10 @@ import type { AppMode } from '../state/appStore'
 import { TRAFFIC_DAY_TYPES, TRAFFIC_TIME_BANDS } from '../types/releaseData'
 import type { TrafficDayType } from '../types/releaseData'
 import type { AirGranularity } from '../types/air'
+import { HOTSPOT_RANKINGS } from '../features/hotspots/hotspotRanking'
+import type { HotspotRanking } from '../features/hotspots/hotspotRanking'
+import { QUALITY_POLLUTANTS } from '../features/quality/qualityData'
+import type { QualityPollutant } from '../features/quality/qualityData'
 import { readMapPreference } from './mapPreference'
 import type { MapPreference } from './mapPreference'
 
@@ -35,6 +39,9 @@ export interface ViewState {
   build: string | null
   /** Renderer choice. Carried in the URL so it survives the address-bar rewrite on first paint. */
   map: MapPreference | null
+  hotspotRanking?: HotspotRanking | null
+  qualityPollutant?: QualityPollutant | null
+  qualitySite?: string | null
 }
 
 export const EMPTY_VIEW_STATE: ViewState = {
@@ -49,6 +56,9 @@ export const EMPTY_VIEW_STATE: ViewState = {
   airTime: null,
   build: null,
   map: null,
+  hotspotRanking: null,
+  qualityPollutant: null,
+  qualitySite: null,
 }
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/
@@ -85,6 +95,14 @@ const asTimeBand = (value: string | null): string | null => {
   return (TRAFFIC_TIME_BANDS as readonly string[]).includes(text) ? text : null
 }
 
+const asHotspotRanking = (value: string | null): HotspotRanking | null => (
+  value && (HOTSPOT_RANKINGS as readonly string[]).includes(value) ? value as HotspotRanking : null
+)
+
+const asQualityPollutant = (value: string | null): QualityPollutant | null => (
+  value && (QUALITY_POLLUTANTS as readonly string[]).includes(value) ? value as QualityPollutant : null
+)
+
 export const readViewState = (search: string): ViewState => {
   const params = new URLSearchParams(search)
 
@@ -103,6 +121,9 @@ export const readViewState = (search: string): ViewState => {
     airTime: asAirTime(params.get('airTime')),
     build: asText(params.get('v')),
     map: readMapPreference(search),
+    hotspotRanking: asHotspotRanking(params.get('rank')),
+    qualityPollutant: asQualityPollutant(params.get('pollutant')),
+    qualitySite: asText(params.get('qualitySite')),
   }
 }
 
@@ -130,6 +151,9 @@ export const buildViewStateQuery = (state: ViewState): string => {
   if (state.airTime) params.set('airTime', state.airTime)
   if (state.build) params.set('v', state.build)
   if (state.map) params.set('map', state.map)
+  if (state.hotspotRanking && state.hotspotRanking !== 'mean') params.set('rank', state.hotspotRanking)
+  if (state.qualityPollutant && state.qualityPollutant !== 'PM') params.set('pollutant', state.qualityPollutant)
+  if (state.qualitySite) params.set('qualitySite', state.qualitySite)
   if (state.comparisonSelection) writeComparison(params, state.comparisonSelection)
 
   const query = params.toString()

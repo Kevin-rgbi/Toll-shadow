@@ -3,7 +3,7 @@ import { AssetProvenance } from '../../components/Detail/AssetProvenance'
 import type { ReleaseAssetState } from '../../hooks/useReleaseAsset'
 import { getReleaseAssets } from '../../lib/releaseManifest'
 import type { ReleaseManifest } from '../../lib/releaseManifest'
-import type { TrafficObservation } from '../../types/releaseData'
+import type { TrafficDayType, TrafficObservation } from '../../types/releaseData'
 import { describeSegment } from '../traffic/trafficSummary'
 import {
   rankTrafficHotspots,
@@ -17,6 +17,18 @@ interface HotspotsModuleProps {
   ranking: HotspotRanking
   onRankingChange: (ranking: HotspotRanking) => void
   observations: TrafficObservation[]
+  month: string
+  monthOptions: string[]
+  onMonthChange: (month: string) => void
+  borough: string | null
+  onBoroughChange: (borough: string | null) => void
+  dayType: TrafficDayType | null
+  onDayTypeChange: (dayType: TrafficDayType | null) => void
+  timeBand: string | null
+  onTimeBandChange: (timeBand: string | null) => void
+  boroughOptions: string[]
+  dayTypeOptions: TrafficDayType[]
+  timeBandOptions: string[]
   selectedKey: string | null
   onSelect: (key: string) => void
 }
@@ -39,6 +51,18 @@ export function HotspotsModule({
   ranking,
   onRankingChange,
   observations,
+  month,
+  monthOptions,
+  onMonthChange,
+  borough,
+  onBoroughChange,
+  dayType,
+  onDayTypeChange,
+  timeBand,
+  onTimeBandChange,
+  boroughOptions,
+  dayTypeOptions,
+  timeBandOptions,
   selectedKey,
   onSelect,
 }: HotspotsModuleProps) {
@@ -62,6 +86,34 @@ export function HotspotsModule({
         <>
           <div className="module-filter-row">
             <label>
+              <span>Month</span>
+              <select value={month} onChange={(event) => onMonthChange(event.target.value)}>
+                {monthOptions.length === 0 && <option value="">No published months</option>}
+                {monthOptions.map((option) => <option key={option} value={option}>{option}</option>)}
+              </select>
+            </label>
+            <label>
+              <span>Borough</span>
+              <select value={borough ?? ''} onChange={(event) => onBoroughChange(event.target.value || null)}>
+                <option value="">All published boroughs</option>
+                {boroughOptions.map((option) => <option key={option} value={option}>{option}</option>)}
+              </select>
+            </label>
+            <label>
+              <span>Day type</span>
+              <select value={dayType ?? ''} onChange={(event) => onDayTypeChange(event.target.value ? event.target.value as TrafficDayType : null)}>
+                <option value="">Weekday and weekend</option>
+                {dayTypeOptions.map((option) => <option key={option} value={option}>{option}</option>)}
+              </select>
+            </label>
+            <label>
+              <span>Time band</span>
+              <select value={timeBand ?? ''} onChange={(event) => onTimeBandChange(event.target.value || null)}>
+                <option value="">All bands</option>
+                {timeBandOptions.map((option) => <option key={option} value={option}>{option}</option>)}
+              </select>
+            </label>
+            <label>
               <span>Ranking</span>
               <select value={ranking} onChange={(event) => onRankingChange(event.target.value as HotspotRanking)}>
                 {Object.entries(rankingLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
@@ -77,12 +129,12 @@ export function HotspotsModule({
             <p className="module-empty">No published traffic observation matches this selection.</p>
           ) : (
             <ol className="module-rows hotspot-ranking-list">
-              {ranked.map((observation) => {
+              {ranked.map((observation, index) => {
                 const key = trafficHotspotKey(observation)
                 return (
                   <li key={key}>
                     <button type="button" aria-pressed={selectedKey === key} onClick={() => onSelect(key)}>
-                      <span className="module-row-main">{describeSegment(observation)}</span>
+                      <span className="module-row-main">#{index + 1} · {describeSegment(observation)}</span>
                       <span className="module-row-meta">
                         {observation.borough} · {observation.direction} · {observation.dayType} · {observation.timeBand}
                       </span>

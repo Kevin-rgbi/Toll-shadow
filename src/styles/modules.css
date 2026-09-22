@@ -54,6 +54,7 @@
 
 .module-filter-row select,
 .module-filter-row input[type="date"],
+.module-filter-row input[type="search"],
 .module-filter-row output {
   /* A <select> sizes to its longest option by default, which forced the grid track wider than a
      phone viewport. Grid items also default to min-width:auto, so both must be overridden. */
@@ -144,6 +145,23 @@
   gap: 3px;
   padding: 10px 0;
   border-bottom: 1px solid var(--hairline);
+}
+
+.module-rows button {
+  display: grid;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.module-rows button:hover .module-row-main,
+.module-rows button:focus-visible .module-row-main,
+.module-rows button[aria-pressed="true"] .module-row-main {
+  color: var(--accent);
 }
 
 .module-row-main {

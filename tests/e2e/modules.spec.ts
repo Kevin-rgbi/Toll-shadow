@@ -19,15 +19,17 @@ const FAILURE_TEXT = [
 ]
 
 test.describe('published modules render published values', () => {
-  const cases: { mode: string; metric: string }[] = [
+  const cases: { mode: string; metric: string; metricValues?: boolean }[] = [
     { mode: 'TRAFFIC', metric: '.analysis-metrics' },
     { mode: 'CROSSINGS', metric: '.analysis-metrics' },
     { mode: 'CRZ', metric: '.analysis-metrics' },
     { mode: 'AIR', metric: '.air-current-row' },
     { mode: 'EQUITY', metric: '.analysis-metrics' },
+    { mode: 'CONFIDENCE', metric: '.analysis-metrics' },
+    { mode: 'HOTSPOTS', metric: '.module-rows', metricValues: false },
   ]
 
-  for (const { mode, metric } of cases) {
+  for (const { mode, metric, metricValues = true } of cases) {
     test(`${mode} renders its published values`, async ({ page }) => {
       await page.goto(`/?module=${mode}`)
 
@@ -42,13 +44,16 @@ test.describe('published modules render published values', () => {
 
       // A parsed figure, not an empty frame. The provenance block carries a metrics list of its
       // own, so read the module's first list, which is the one the module populates from the asset.
-      if (mode !== 'AIR') {
+      if (mode !== 'AIR' && metricValues) {
         const values = await card.locator('.analysis-metrics').first().locator('dd').allInnerTexts()
         expect(values.length, `${mode} publishes no metric values`).toBeGreaterThan(0)
         expect(
           values.some((value) => /\d/.test(value)),
           `${mode} publishes metric labels with no figures behind them`,
         ).toBe(true)
+      }
+      if (mode === 'HOTSPOTS') {
+        await expect(card.locator('.hotspot-ranking-list li').first()).toContainText(/source observations/)
       }
     })
   }
@@ -78,7 +83,7 @@ test.describe('published modules render published values', () => {
   })
 
   test('every module attributes its values to the published release', async ({ page }) => {
-    for (const mode of ['TRAFFIC', 'CROSSINGS', 'CRZ', 'AIR', 'EQUITY']) {
+    for (const mode of ['TRAFFIC', 'CROSSINGS', 'CRZ', 'AIR', 'EQUITY', 'CONFIDENCE', 'HOTSPOTS']) {
       await page.goto(`/?module=${mode}`)
       // The asset is fetched after the shell paints, so wait for the module to be populated before
       // counting what it renders.
@@ -101,7 +106,7 @@ test.describe('published modules render published values', () => {
         for (const field of ['Coverage', 'Grain', 'Transform', 'Checksum', 'Source register']) {
           await expect(block, `${mode} provenance is missing ${field}`).toContainText(field)
         }
-        await expect(block).toContainText(/pipeline-release-|unified-air-traffic-/)
+        await expect(block).toContainText(/pipeline-release-|unified-air-traffic-|quality-hotspots-/)
         await expect(block).toContainText('sha256')
         await expect(block).toContainText('Limitations of this asset')
 

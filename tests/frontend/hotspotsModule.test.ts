@@ -58,6 +58,18 @@ const render = (observations: TrafficObservation[] = [row]) => renderToStaticMar
   ranking: 'mean',
   onRankingChange: () => undefined,
   observations,
+  month: '2026-09',
+  monthOptions: ['2026-09'],
+  onMonthChange: () => undefined,
+  borough: null,
+  onBoroughChange: () => undefined,
+  dayType: null,
+  onDayTypeChange: () => undefined,
+  timeBand: null,
+  onTimeBandChange: () => undefined,
+  boroughOptions: ['Bronx'],
+  dayTypeOptions: ['Weekday'],
+  timeBandOptions: ['AM peak (06-09)'],
   selectedKey: null,
   onSelect: () => undefined,
 }))
@@ -67,6 +79,8 @@ describe('hotspots module', () => {
     const markup = render()
 
     expect(markup).toContain('Observed traffic hotspots')
+    expect(markup).toContain('All published boroughs')
+    expect(markup).toContain('Weekday and weekend')
     expect(markup).toContain('WESTCHESTER AVENUE')
     expect(markup).toContain('42.9 mean')
     expect(markup).toContain('864 source observations')

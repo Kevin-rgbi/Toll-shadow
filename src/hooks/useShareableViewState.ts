@@ -5,6 +5,8 @@ import type { AppMode } from '../state/appStore'
 import type { MapPreference } from '../lib/mapPreference'
 import { BUILD_ID } from '../lib/buildInfo'
 import { buildViewStateQuery } from '../lib/viewState'
+import type { HotspotRanking } from '../features/hotspots/hotspotRanking'
+import type { QualityPollutant } from '../features/quality/qualityData'
 
 interface ShareableViewStateOptions {
   enabled: boolean
@@ -18,6 +20,9 @@ interface ShareableViewStateOptions {
   airGranularity: AirGranularity | null
   airTimestamp: number
   map: MapPreference | null
+  hotspotRanking: HotspotRanking
+  qualityPollutant: QualityPollutant
+  qualitySite: string | null
 }
 
 export function useShareableViewState(options: ShareableViewStateOptions) {
@@ -35,6 +40,9 @@ export function useShareableViewState(options: ShareableViewStateOptions) {
       airTime: options.airTimestamp > 0 ? new Date(options.airTimestamp).toISOString() : null,
       build: BUILD_ID,
       map: options.map,
+      hotspotRanking: options.hotspotRanking,
+      qualityPollutant: options.qualityPollutant,
+      qualitySite: options.qualitySite,
     })
     window.history.replaceState(null, '', `${window.location.pathname}${query}`)
   }, [options])

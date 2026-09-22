@@ -12,6 +12,9 @@ import { SourcesPanel } from '../../src/components/Detail/SourcesPanel'
 import { NarrativeOverlay } from '../../src/components/Story/NarrativeOverlay'
 import { DataRibbon } from '../../src/components/Status/DataRibbon'
 import { ModuleUnavailable } from '../../src/components/Detail/ModuleUnavailable'
+import { QualityModule } from '../../src/features/quality/QualityModule'
+import { HotspotsModule } from '../../src/features/hotspots/HotspotsModule'
+import type { AirQualityContext, NeighborhoodContext } from '../../src/features/quality/qualityData'
 import type { ReleaseManifest, ReleaseAsset } from '../../src/lib/releaseManifest'
 import type { ReleaseManifestState } from '../../src/hooks/useReleaseManifest'
 import type { CrzEntrySummary, FacilityCrossing, TrafficObservation } from '../../src/types/releaseData'
@@ -212,6 +215,79 @@ const surfaces: Array<{ name: string, element: ReturnType<typeof createElement> 
         },
       },
       release,
+    }),
+  },
+  {
+    name: 'quality and neighborhood context with published data',
+    element: createElement(QualityModule, {
+      quality: {
+        status: 'ready',
+        data: {
+          title: 'NYCCAS source quality',
+          sourceReleaseDate: '2026-08-10',
+          coverage: { start: '2008-12-16', end: '2025-11-26' },
+          pollutants: {
+            PM: {
+              sourceId: 'nyccas_pm_year1_17_20260810',
+              label: 'PM2.5',
+              sourceRows: 7555,
+              distinctSiteIds: 1,
+              distinctSitePosts: 1,
+              coverage: { start: '2008-12-16', end: '2025-11-26' },
+              analyticFields: { blk_corr_pm_ugm3: { unit: 'ug/m3', present: 7500, missing: 55 } },
+              qa: { flag1: 5, flag2: 4, eitherFlag: 7, neitherFlag: 7548 },
+              sitePosts: [{
+                siteId: '12528-EJ', postNo: '1', latitude: 40.84, longitude: -73.84,
+                referenceValues: ['0'], coreValues: ['1'], sourceRows: 7555, qaRows: 7,
+                coverage: { start: '2008-12-16', end: '2025-11-26' },
+              }],
+            },
+          },
+          limitations: ['Not a statistical confidence score.'],
+        } as unknown as AirQualityContext,
+      },
+      neighborhood: {
+        status: 'ready',
+        data: {
+          area: { id: 'BX1001', name: 'Westchester Square', borough: 'Bronx' },
+          coverage: { historicalSitesInside: 0, currentMonitorsInside: 0 },
+          nearestHistorical: { siteId: '12528-EJ', siteName: null, inside: false, distanceKm: 0.188, coordinates: [-73.84, 40.84], pollutants: ['PM'] },
+          nearestCurrent: { siteId: '36005NY11790', siteName: 'Hunts Point', inside: false, distanceKm: 3.314, coordinates: [-73.88, 40.81], pollutants: ['PM'] },
+          featureCollection: { type: 'FeatureCollection', features: [] },
+          limitations: ['Outside points are not neighborhood measurements.'],
+        } as NeighborhoodContext,
+      },
+      release,
+      pollutant: 'PM',
+      onPollutantChange: () => undefined,
+      siteSearch: '',
+      onSiteSearchChange: () => undefined,
+      selectedSiteKey: null,
+      onSelectSite: () => undefined,
+    }),
+  },
+  {
+    name: 'observed traffic hotspot ranking',
+    element: createElement(HotspotsModule, {
+      state: { status: 'ready', data: [observation] },
+      release,
+      ranking: 'mean',
+      onRankingChange: () => undefined,
+      observations: [observation],
+      month: '2024-01',
+      monthOptions: ['2024-01'],
+      onMonthChange: () => undefined,
+      borough: null,
+      onBoroughChange: () => undefined,
+      dayType: null,
+      onDayTypeChange: () => undefined,
+      timeBand: null,
+      onTimeBandChange: () => undefined,
+      boroughOptions: ['Brooklyn'],
+      dayTypeOptions: ['Weekday'],
+      timeBandOptions: ['AM peak (06-09)'],
+      selectedKey: null,
+      onSelect: () => undefined,
     }),
   },
   { name: 'sources panel', element: createElement(SourcesPanel, { state: releaseState }) },

@@ -41,6 +41,18 @@ import { CrzModule } from './features/crz/CrzModule'
 import { AirContextModule } from './features/air/AirContextModule'
 import { useMeasuredAirExperience } from './features/air/measuredAirExperience'
 import { EquityContextModule } from './features/equity/EquityContextModule'
+import { QualityModule } from './features/quality/QualityModule'
+import {
+  parseAirQualityContext,
+  parseNeighborhoodContext,
+  type QualityPollutant,
+} from './features/quality/qualityData'
+import { HotspotsModule } from './features/hotspots/HotspotsModule'
+import {
+  rankTrafficHotspots,
+  trafficHotspotKey,
+  type HotspotRanking,
+} from './features/hotspots/hotspotRanking'
 import { crossingsDateBounds } from './features/crossings/crossingsSummary'
 import { readViewStateFromLocation } from './lib/viewState'
 import { BUILD_ID, isStaleBuild, readExpectedBuildIdFromLocation } from './lib/buildInfo'
@@ -67,7 +79,7 @@ const MODULE_TITLES: Partial<Record<(typeof APP_MODES)[number], string>> = {
   CRZ: 'CRZ ENTRY CONTEXT',
   AIR: 'MEASURED AIR CONTEXT',
   EQUITY: 'EQUITY CONTEXT',
-  CONFIDENCE: 'CONFIDENCE CHECK',
+  CONFIDENCE: 'DATA QUALITY AND COVERAGE',
   HOTSPOTS: 'HOTSPOT RANKING',
 }
 
@@ -97,7 +109,7 @@ function App() {
   const releaseState = useReleaseManifest()
   const { release, isDevSynthetic, devSynthetic, status, reason } = releaseState
   const boundaryState = useReleaseBoundary(release)
-  const trafficState = useReleaseAsset(release, 'traffic_observations', parseTrafficObservations, mode === 'TRAFFIC')
+  const trafficState = useReleaseAsset(release, 'traffic_observations', parseTrafficObservations, mode === 'TRAFFIC' || mode === 'HOTSPOTS')
   const crossingsState = useReleaseAsset(release, 'facility_crossings', parseFacilityCrossings, mode === 'CROSSINGS')
   const crzState = useReleaseAsset(release, 'crz_context', parseCrzEntries, mode === 'CRZ')
   const hasAirMeasurements = release?.assets.some((asset) => asset.kind === 'air_measurements') ?? false
@@ -112,6 +124,8 @@ function App() {
   const airState = useReleaseAsset(release, 'historical_context', parseAirContext, mode === 'AIR')
   const healthState = useReleaseAsset(release, 'health_context', parseHealthContext, mode === 'AIR')
   const equityState = useReleaseAsset(release, 'dac_context', parseEquityContext, mode === 'EQUITY')
+  const qualityState = useReleaseAsset(release, 'air_quality_context', parseAirQualityContext, mode === 'CONFIDENCE')
+  const neighborhoodState = useReleaseAsset(release, 'neighborhood_context', parseNeighborhoodContext, mode === 'CONFIDENCE')
   // A shared link seeds the filters once, at mount. Later edits go through the store and the URL
   // writer below; the URL is never re-read, so user interaction cannot be overwritten by history.
   const [expectedBuildId] = useState(readExpectedBuildIdFromLocation)
@@ -120,6 +134,10 @@ function App() {
   const [trafficBorough, setTrafficBorough] = useState<string | null>(initialView.borough)
   const [trafficDayType, setTrafficDayType] = useState<TrafficDayType | null>(initialView.dayType)
   const [trafficTimeBand, setTrafficTimeBand] = useState<string | null>(initialView.timeBand)
+  const [hotspotRanking, setHotspotRanking] = useState<HotspotRanking>(initialView.hotspotRanking ?? 'mean')
+  const [qualityPollutant, setQualityPollutant] = useState<QualityPollutant>(initialView.qualityPollutant ?? 'PM')
+  const [qualitySiteSearch, setQualitySiteSearch] = useState('')
+  const [qualitySelectedSite, setQualitySelectedSite] = useState<string | null>(initialView.qualitySite ?? null)
   const [crossingsRangeOverride, setCrossingsRangeOverride] = useState<{ start: string, end: string } | null>(
     initialView.crossingsStart && initialView.crossingsEnd
       ? { start: initialView.crossingsStart, end: initialView.crossingsEnd }
@@ -283,6 +301,49 @@ function App() {
     [trafficSelected],
   )
 
+  const rankedTrafficHotspots = useMemo(
+    () => rankTrafficHotspots(trafficSelected, hotspotRanking),
+    [hotspotRanking, trafficSelected],
+  )
+  const selectedTrafficHotspot = rankedTrafficHotspots.find((observation) => (
+    trafficHotspotKey(observation) === selectedHotspotId
+  )) ?? rankedTrafficHotspots[0] ?? null
+  const selectedTrafficHotspotKey = selectedTrafficHotspot ? trafficHotspotKey(selectedTrafficHotspot) : null
+
+  const neighborhoodMap = useMemo(() => {
+    if (neighborhoodState.status !== 'ready') return { boundary: null, points: null }
+    const source = neighborhoodState.data.featureCollection
+    const boundary = source.features.filter((feature) => feature.properties?.kind === 'boundary')
+    const points = source.features
+      .filter((feature) => feature.geometry.type === 'Point')
+      .map((feature) => {
+        const properties = feature.properties ?? {}
+        const distance = typeof properties.distance_to_boundary_km === 'number'
+          ? properties.distance_to_boundary_km
+          : null
+        const siteId = typeof properties.site_id === 'string' ? properties.site_id : 'monitor'
+        const siteName = typeof properties.site_name === 'string' ? properties.site_name : siteId
+        return {
+          ...feature,
+          properties: {
+            ...properties,
+            id: siteId,
+            name: siteName,
+            borough: 'Bronx · outside BX1001',
+            period: properties.kind === 'nearest_current' ? 'current monitor' : 'historical NYCCAS site',
+            coverage: distance === null ? 'outside boundary' : `${distance.toFixed(3)} km outside boundary`,
+            meanVolume: 50,
+            radius: properties.kind === 'nearest_current' ? 7 : 6,
+            color: properties.kind === 'nearest_current' ? '#c84b31' : '#1f4bd8',
+          },
+        }
+      })
+    return {
+      boundary: { type: 'FeatureCollection' as const, features: boundary },
+      points: { type: 'FeatureCollection' as const, features: points },
+    }
+  }, [neighborhoodState])
+
   const crossingsData = crossingsState.status === 'ready' ? crossingsState.data : null
   const crossingsBounds = useMemo(
     () => (crossingsData ? crossingsDateBounds(crossingsData) : null),
@@ -302,10 +363,15 @@ function App() {
     airGranularity: hasAirMeasurements ? airGranularity : null,
     airTimestamp: hasAirMeasurements ? airTimestamp : 0,
     map: mapPreference,
+    hotspotRanking,
+    qualityPollutant,
+    qualitySite: qualitySelectedSite,
   })
 
   const statusLabel = getHeaderStatusLabel(releaseState)
-  const dataError = status === 'error' || boundaryState.error !== null
+  const dataError = status === 'error'
+    || boundaryState.error !== null
+    || (mode === 'CONFIDENCE' && (qualityState.status === 'error' || neighborhoodState.status === 'error'))
   const hasTimeline = timeline !== null
 
   /**
@@ -404,6 +470,50 @@ function App() {
 
     if (mode === 'CRZ') {
       return <CrzModule state={moduleAssetState(crzState)} release={release} />
+    }
+
+    if (mode === 'CONFIDENCE' && !isDevSynthetic) {
+      return (
+        <QualityModule
+          quality={moduleAssetState(qualityState)}
+          neighborhood={moduleAssetState(neighborhoodState)}
+          release={release}
+          pollutant={qualityPollutant}
+          onPollutantChange={setQualityPollutant}
+          siteSearch={qualitySiteSearch}
+          onSiteSearchChange={setQualitySiteSearch}
+          selectedSiteKey={qualitySelectedSite}
+          onSelectSite={setQualitySelectedSite}
+        />
+      )
+    }
+
+    if (mode === 'HOTSPOTS' && !isDevSynthetic) {
+      return (
+        <HotspotsModule
+          state={moduleAssetState(trafficState)}
+          release={release}
+          ranking={hotspotRanking}
+          onRankingChange={setHotspotRanking}
+          observations={trafficSelected}
+          month={trafficMonth}
+          monthOptions={trafficMonths}
+          onMonthChange={(nextMonth) => {
+            if (nextMonth) setCurrentDate(`${nextMonth}-01`)
+          }}
+          borough={trafficBorough}
+          onBoroughChange={setTrafficBorough}
+          dayType={trafficDayType}
+          onDayTypeChange={setTrafficDayType}
+          timeBand={trafficTimeBand}
+          onTimeBandChange={setTrafficTimeBand}
+          boroughOptions={trafficBoroughSelectOptions}
+          dayTypeOptions={trafficDayTypeSelectOptions}
+          timeBandOptions={trafficTimeBandSelectOptions}
+          selectedKey={selectedTrafficHotspotKey}
+          onSelect={setSelectedHotspotId}
+        />
+      )
     }
 
     if (mode === 'STORY') {
@@ -560,9 +670,24 @@ function App() {
             )}
           >
             <MapShell
-              boundary={measuredAirMode ? (measuredAir.boundaryVisible ? boundaryState.boundary : null) : boundaryState.boundary}
-              releaseTraffic={measuredAirMode ? measuredAir.features : trafficFeatures}
-              releaseFocus={measuredAirMode ? measuredAir.releaseFocus : null}
+              boundary={mode === 'CONFIDENCE' && !isDevSynthetic
+                ? neighborhoodMap.boundary
+                : measuredAirMode ? (measuredAir.boundaryVisible ? boundaryState.boundary : null) : boundaryState.boundary}
+              releaseTraffic={mode === 'CONFIDENCE' && !isDevSynthetic
+                ? neighborhoodMap.points
+                : measuredAirMode
+                  ? measuredAir.features
+                  : mode === 'TRAFFIC' || mode === 'HOTSPOTS' ? trafficFeatures : null}
+              releaseFocus={mode === 'CONFIDENCE' && neighborhoodState.status === 'ready'
+                ? {
+                    id: neighborhoodState.data.nearestHistorical.siteId,
+                    coordinates: neighborhoodState.data.nearestHistorical.coordinates,
+                  }
+                : measuredAirMode
+                  ? measuredAir.releaseFocus
+                  : mode === 'HOTSPOTS' && selectedTrafficHotspot
+                    ? { id: selectedTrafficHotspotKey ?? '', coordinates: selectedTrafficHotspot.coordinates }
+                    : null}
               onReleaseSelect={measuredAirMode ? measuredAir.onReleaseSelect : undefined}
               mapPreference={mapPreference}
               syntheticDataset={devSynthetic}
@@ -570,8 +695,8 @@ function App() {
               activeMode={mode}
               compareMode={isDevSynthetic ? compareMode : 'off'}
               compareRenderMode={compareRenderMode}
-              focusedHotspotId={mode === 'HOTSPOTS' ? activeHotspotId : null}
-              focusedHotspotKind={mode === 'HOTSPOTS' ? (selectedHotspot?.kind ?? null) : null}
+              focusedHotspotId={mode === 'HOTSPOTS' && isDevSynthetic ? activeHotspotId : null}
+              focusedHotspotKind={mode === 'HOTSPOTS' && isDevSynthetic ? (selectedHotspot?.kind ?? null) : null}
               dataError={dataError}
             />
           </Suspense>
