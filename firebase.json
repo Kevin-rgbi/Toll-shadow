@@ -65,6 +65,19 @@
         ]
       },
       {
+        "source": "/reset.html",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-store, max-age=0"
+          },
+          {
+            "key": "Clear-Site-Data",
+            "value": "\"cache\", \"storage\""
+          }
+        ]
+      },
+      {
         "source": "/data/manifest.json",
         "headers": [
           {

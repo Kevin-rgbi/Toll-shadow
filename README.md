@@ -234,7 +234,7 @@ so a mistyped or superseded asset path returns 404 instead of a 200 carrying an 
 ## Verification
 
 ```bash
-npm run test                              # 228 tests, including accessibility and claim gates
+npm run test                              # 229 tests, including accessibility and claim gates
 npm run pipeline:test                     # 43 pipeline tests, includes the contract enforcement
 npm run test:e2e                          # 66 browser tests, desktop and phone viewports
 python3 scripts/release_acceptance.py     # 66 checks, blocks a bad deploy
