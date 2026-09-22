@@ -32,7 +32,7 @@ export const MODULE_ASSET_KIND: Record<AppMode, ReleaseAssetKind | null> = {
   CRZ: 'crz_context',
   AIR: 'historical_context',
   EQUITY: 'dac_context',
-  CONFIDENCE: null,
+  CONFIDENCE: 'air_quality_context',
   HOTSPOTS: null,
   SOURCES: null,
 }

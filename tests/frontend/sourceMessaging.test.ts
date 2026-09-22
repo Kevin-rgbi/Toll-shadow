@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { ReleaseManifestState } from '../../src/hooks/useReleaseManifest'
-import { getHeaderStatusLabel, getModuleUnavailableReason } from '../../src/lib/sourceMessaging'
+import { MODULE_ASSET_KIND, getHeaderStatusLabel, getModuleUnavailableReason } from '../../src/lib/sourceMessaging'
 
 const releaseState = (overrides: Partial<ReleaseManifestState>): ReleaseManifestState => ({
   status: 'ready',
@@ -68,5 +68,12 @@ describe('module availability reasons', () => {
   it('requires an approved measure specification for unbacked module views', () => {
     const reason = getModuleUnavailableReason(releaseState({ release: manifest }), 'HOTSPOTS')
     expect(reason).toMatch(/approved measure specification/)
+  })
+
+  it('routes confidence to its approved quality asset contract', () => {
+    expect(MODULE_ASSET_KIND.CONFIDENCE).toBe('air_quality_context')
+    const reason = getModuleUnavailableReason(releaseState({ release: manifest }), 'CONFIDENCE')
+    expect(reason).toMatch(/does not publish.*data quality/i)
+    expect(reason).not.toMatch(/approved measure specification/)
   })
 })
