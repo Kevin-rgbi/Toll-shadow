@@ -1,4 +1,4 @@
-# Toll Shadow: https://tollshallow.web.app
+# Toll Shadow: https://tollshallows.web.app
 # A single-page evidence explorer. Module and filter state live in query strings,
 # so those variants are views of one page and are deliberately not listed separately.
 
@@ -8,4 +8,4 @@ Allow: /
 # The published data assets are meant to be fetched by the app, not crawled.
 Disallow: /data/releases/
 
-Sitemap: https://tollshallow.web.app/sitemap.xml
+Sitemap: https://tollshallows.web.app/sitemap.xml

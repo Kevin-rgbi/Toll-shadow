@@ -33,8 +33,8 @@ import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-EXPECTED_PROJECT = "tollshallow"
-EXPECTED_PROJECT_NUMBER = "1094344081770"
+EXPECTED_PROJECT = "tollshallows"
+EXPECTED_PROJECT_NUMBER = "406249496898"
 
 # Browser-asset budget for dist/data. The merged branch keeps compatibility with the on-demand
 # NYCCAS hourly CSV candidate, so the gate uses a 64 MiB ceiling and still reports the exact payload.
@@ -425,7 +425,7 @@ def gate(repo_root: Path, dist: Path, budget_bytes: int, dist_overridden: bool =
             if dataset is not None:
                 declared = dataset.get("distribution", [])
                 asset_paths = {entry.get("path") or entry.get("url") for entry in collect_asset_entries(manifest)}
-                linked = {entry.get("contentUrl", "").replace("https://tollshallow.web.app", "") for entry in declared}
+                linked = {entry.get("contentUrl", "").replace("https://tollshallows.web.app", "") for entry in declared}
                 result.check(
                     "structured data links every published asset",
                     asset_paths == linked,

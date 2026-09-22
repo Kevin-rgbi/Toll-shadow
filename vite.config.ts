@@ -124,7 +124,7 @@ const injectDatasetJsonLd = (releaseId: string): Plugin => {
         if (manifest.release_id !== releaseId) {
           throw new Error(`index.html would describe ${releaseId} but the published manifest is ${manifest.release_id}`);
         }
-        const origin = 'https://tollshallow.web.app';
+        const origin = 'https://tollshallows.web.app';
         const dataset = {
           '@type': 'Dataset',
           '@id': `${origin}/#dataset`,

@@ -68,7 +68,7 @@ npm run build
 npx playwright test
 
 # delivery
-firebase hosting:channel:deploy <channel> --project tollshallow
+firebase hosting:channel:deploy <channel> --project tollshallows
 curl -fsS <preview-url>/data/manifest.json
 ```
 

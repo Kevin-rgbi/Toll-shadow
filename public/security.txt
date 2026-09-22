@@ -4,4 +4,4 @@
 Contact: https://github.com/Kevin-rgbi/Toll-shadow/issues
 Expires: 2027-09-16T00:00:00.000Z
 Preferred-Languages: en
-Canonical: https://tollshallow.web.app/security.txt
+Canonical: https://tollshallows.web.app/security.txt
