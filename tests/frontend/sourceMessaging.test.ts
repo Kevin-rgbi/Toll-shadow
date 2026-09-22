@@ -65,15 +65,17 @@ describe('module availability reasons', () => {
     expect(reason).toMatch(/does not render it yet/)
   })
 
-  it('requires an approved measure specification for unbacked module views', () => {
-    const reason = getModuleUnavailableReason(releaseState({ release: manifest }), 'HOTSPOTS')
-    expect(reason).toMatch(/approved measure specification/)
-  })
-
   it('routes confidence to its approved quality asset contract', () => {
     expect(MODULE_ASSET_KIND.CONFIDENCE).toBe('air_quality_context')
     const reason = getModuleUnavailableReason(releaseState({ release: manifest }), 'CONFIDENCE')
     expect(reason).toMatch(/does not publish.*data quality/i)
+    expect(reason).not.toMatch(/approved measure specification/)
+  })
+
+  it('routes hotspots to the published traffic observations', () => {
+    expect(MODULE_ASSET_KIND.HOTSPOTS).toBe('traffic_observations')
+    const reason = getModuleUnavailableReason(releaseState({ release: { ...manifest, assets: [] } }), 'HOTSPOTS')
+    expect(reason).toMatch(/does not publish.*traffic/i)
     expect(reason).not.toMatch(/approved measure specification/)
   })
 })
