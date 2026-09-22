@@ -53,7 +53,7 @@ for (const id of EXPECTED_SOURCE_IDS) expect(ids.has(id)).toBe(true);
 
 - [ ] **Step 2: Run the test and verify it fails**
 
-Run: `npm run pipeline:test -- pipeline/tests/source-catalog.test.mjs`  
+Run: `npm run pipeline:test -- pipeline/tests/source-catalog.test.mjs`
 Expected: FAIL because the five source entries and files do not exist.
 
 - [ ] **Step 3: Pin the inputs and hashes**
@@ -76,7 +76,7 @@ Add `python -m pip install -r pipeline/requirements.txt` after Python setup in `
 
 - [ ] **Step 6: Re-run catalog validation**
 
-Run: `npm run pipeline:test -- pipeline/tests/source-catalog.test.mjs && npm run pipeline:validate-catalog`  
+Run: `npm run pipeline:test -- pipeline/tests/source-catalog.test.mjs && npm run pipeline:validate-catalog`
 Expected: PASS with 25 registered sources and matching file hashes.
 
 - [ ] **Step 7: Commit the source boundary**
@@ -117,7 +117,7 @@ def test_null_and_flags_are_counted_without_exclusion(tmp_path):
 
 - [ ] **Step 2: Run tests and verify they fail**
 
-Run: `python3 -m unittest pipeline/tests/nyccas_quality_test.py -v`  
+Run: `python3 -m unittest pipeline/tests/nyccas_quality_test.py -v`
 Expected: FAIL because `pipeline.src.nyccas_quality` does not exist.
 
 - [ ] **Step 3: Implement strict workbook parsing**
@@ -150,7 +150,7 @@ Add `pipeline:quality-test` to `package.json`:
 
 - [ ] **Step 7: Run focused tests**
 
-Run: `npm run pipeline:quality-test && npm run pipeline:test -- pipeline/tests/measure-spec.test.mjs pipeline/tests/contracts.test.mjs`  
+Run: `npm run pipeline:quality-test && npm run pipeline:test -- pipeline/tests/measure-spec.test.mjs pipeline/tests/contracts.test.mjs`
 Expected: PASS.
 
 - [ ] **Step 8: Commit the derivation unit**
@@ -187,7 +187,7 @@ Assert both new kinds parse, undeclared kinds still fail, neighborhood GeoJSON r
 
 - [ ] **Step 2: Run the focused tests and verify failure**
 
-Run: `npm run test -- tests/frontend/releaseManifest.test.ts && npm run pipeline:test -- pipeline/tests/contracts.test.mjs pipeline/tests/release.test.mjs`  
+Run: `npm run test -- tests/frontend/releaseManifest.test.ts && npm run pipeline:test -- pipeline/tests/contracts.test.mjs pipeline/tests/release.test.mjs`
 Expected: FAIL because the kinds and release do not exist.
 
 - [ ] **Step 3: Extend the manifest contract**
@@ -208,7 +208,7 @@ Run the builder with pinned repository paths, including the prior release's chec
 
 - [ ] **Step 6: Re-run contracts and release tests**
 
-Run: `npm run pipeline:test -- pipeline/tests/contracts.test.mjs pipeline/tests/release.test.mjs && npm run test -- tests/frontend/releaseManifest.test.ts`  
+Run: `npm run pipeline:test -- pipeline/tests/contracts.test.mjs pipeline/tests/release.test.mjs && npm run test -- tests/frontend/releaseManifest.test.ts`
 Expected: PASS.
 
 - [ ] **Step 7: Commit the release boundary**
@@ -238,7 +238,7 @@ Assert schema/version, known pollutant fields, nonnegative integer counts, `pres
 
 - [ ] **Step 2: Run tests and verify failure**
 
-Run: `npm run test -- tests/frontend/qualityData.test.ts tests/frontend/qualityModule.test.ts`  
+Run: `npm run test -- tests/frontend/qualityData.test.ts tests/frontend/qualityModule.test.ts`
 Expected: FAIL because the module does not exist.
 
 - [ ] **Step 3: Implement strict parsers and selectors**
@@ -255,7 +255,7 @@ Tests must reject `high confidence`, `medium confidence`, `low confidence`, `% c
 
 - [ ] **Step 6: Run focused tests and lint**
 
-Run: `npm run test -- tests/frontend/qualityData.test.ts tests/frontend/qualityModule.test.ts tests/frontend/sourceMessaging.test.ts && npm run lint`  
+Run: `npm run test -- tests/frontend/qualityData.test.ts tests/frontend/qualityModule.test.ts tests/frontend/sourceMessaging.test.ts && npm run lint`
 Expected: PASS.
 
 - [ ] **Step 7: Commit the module**
@@ -290,7 +290,7 @@ expect(rows).toEqual(originalRows)
 
 - [ ] **Step 2: Run tests and verify failure**
 
-Run: `npm run test -- tests/frontend/hotspotRanking.test.ts tests/frontend/hotspotsModule.test.ts`  
+Run: `npm run test -- tests/frontend/hotspotRanking.test.ts tests/frontend/hotspotsModule.test.ts`
 Expected: FAIL because the ranking module does not exist.
 
 - [ ] **Step 3: Implement direct rankings**
@@ -307,7 +307,7 @@ Require `observational`, `sampled`, and `not evidence that congestion pricing ca
 
 - [ ] **Step 6: Run focused tests and lint**
 
-Run: `npm run test -- tests/frontend/hotspotRanking.test.ts tests/frontend/hotspotsModule.test.ts tests/frontend/trafficSummary.test.ts && npm run lint`  
+Run: `npm run test -- tests/frontend/hotspotRanking.test.ts tests/frontend/hotspotsModule.test.ts tests/frontend/trafficSummary.test.ts && npm run lint`
 Expected: PASS.
 
 - [ ] **Step 7: Commit the module**
@@ -341,7 +341,7 @@ Add CONFIDENCE and HOTSPOTS to the published-module matrix. Require populated nu
 
 - [ ] **Step 2: Run focused frontend tests and verify failure**
 
-Run: `npm run test -- tests/frontend/appRender.test.ts tests/frontend/viewState.test.ts tests/frontend/sourceMessaging.test.ts`  
+Run: `npm run test -- tests/frontend/appRender.test.ts tests/frontend/viewState.test.ts tests/frontend/sourceMessaging.test.ts`
 Expected: FAIL because App still routes both modes to unavailable/synthetic-only branches.
 
 - [ ] **Step 3: Load release assets only for active modes**
@@ -358,7 +358,7 @@ HOTSPOTS uses the same filtered traffic FeatureCollection and selected published
 
 - [ ] **Step 6: Run unit, accessibility, and module E2E tests**
 
-Run: `npm run test && npm run test:e2e -- tests/e2e/modules.spec.ts tests/e2e/shell.spec.ts tests/e2e/accessibility.spec.ts`  
+Run: `npm run test && npm run test:e2e -- tests/e2e/modules.spec.ts tests/e2e/shell.spec.ts tests/e2e/accessibility.spec.ts`
 Expected: PASS, with all published tabs populated and synthetic dev panels absent.
 
 - [ ] **Step 7: Commit integration**
@@ -414,7 +414,7 @@ git commit -m "docs(release): record confidence and hotspots evidence"
 
 - [ ] **Step 5: Push normally**
 
-Run: `git push origin main`  
+Run: `git push origin main`
 Expected: fast-forward push with no force option.
 
 - [ ] **Step 6: Rebuild after the final commit and deploy preview**
