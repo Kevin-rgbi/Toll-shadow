@@ -45,7 +45,7 @@ async function loadCatalog(catalogPath) {
   return new Map(catalog.sources.map((source) => [source.source_id, source]));
 }
 
-async function collectTraffic({ filePath, coverage }) {
+export async function collectTraffic({ filePath, coverage }) {
   const groups = new Map();
   const quality = { total_rows: 0, valid_rows: 0, included_rows: 0, invalid_rows: 0, invalid_examples: [] };
   let rowNumber = 1;

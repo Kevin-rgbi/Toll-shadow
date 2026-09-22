@@ -39,9 +39,9 @@ const buildId = (): string => {
  * never ship demo effects or demo geometry.
  */
 const releaseIdForIndex = (): string => {
-  const spec = readFileSync(resolve(process.cwd(), 'pipeline/methods/release-1.yaml'), 'utf8')
+  const spec = readFileSync(resolve(process.cwd(), 'pipeline/methods/unified-release-2026-09-21.yaml'), 'utf8')
   const match = /^release_id:\s*(\S+)/m.exec(spec)
-  if (!match) throw new Error('pipeline/methods/release-1.yaml declares no release_id')
+  if (!match) throw new Error('the unified release method declares no release_id')
   return match[1]
 }
 
@@ -98,16 +98,17 @@ const emitMapLibreWorker = (stamp: string): Plugin => ({
  *
  * It used to be hand-written in `index.html`, and it went stale exactly as hand-written metadata does:
  * it named a superseded release and advertised two distribution URLs that had since been removed, so a
- * crawler following them got 404s while the page described two of six assets. Generating it from the
+ * crawler following them got 404s while the page described only part of the release. Generating it from the
  * published manifest removes the drift, and the deployment gate asserts the result matches the manifest.
  */
 const KIND_MEASURES: Record<string, string> = {
   traffic_observations: 'Mean observed 15-minute traffic volume, by segment and period',
-  facility_crossings: 'Daily E-ZPass and VToll vehicles, by toll plaza and direction',
+  facility_crossings: 'Daily E-ZPass and Tolls by Mail vehicles, by MTA facility and full direction',
   crz_context: 'Monthly CRZ vehicle entries, by detection group',
   historical_context: 'Modelled historical air surface, published as a relative field',
   health_context: 'Historical asthma hospitalisations and ED visits, by borough',
   dac_context: 'Archived 2023 disadvantaged-communities criteria, by census tract',
+  air_measurements: 'Preliminary NYCCAS hourly and New York local-day PM2.5 monitor measurements',
 };
 
 const injectDatasetJsonLd = (releaseId: string): Plugin => {
@@ -129,7 +130,7 @@ const injectDatasetJsonLd = (releaseId: string): Plugin => {
           '@id': `${origin}/#dataset`,
           name: `Toll Shadow Release ${manifest.release_id}`,
           description:
-            `Descriptive aggregates published from six registered sources, covering `
+            `Descriptive observations published as ${manifest.assets.length} verified assets, covering `
             + `${manifest.coverage.start} through ${manifest.coverage.end}. `
             + 'No causal or counterfactual estimate is published.',
           url: `${origin}/`,

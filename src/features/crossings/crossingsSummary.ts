@@ -21,18 +21,18 @@ export interface PlazaSummary {
   publishedDays: number
   totalVehicles: number
   ezpassVehicles: number
-  vtollVehicles: number
+  tollsByMailVehicles: number
   /** Share recomputed from summed published components, not averaged from daily shares. */
-  ezpassSharePct: number
+  ezpassSharePct: number | null
   firstObservedOn: string
   lastObservedOn: string
 }
 
 export interface DirectionSummary {
-  direction: 'I' | 'O'
+  direction: string
   publishedDays: number
   totalVehicles: number
-  ezpassSharePct: number
+  ezpassSharePct: number | null
 }
 
 export interface CrossingsWindow {
@@ -92,8 +92,8 @@ export const summarizeCrossingsByPlaza = (crossings: FacilityCrossing[]): PlazaS
 
   return [...byPlaza.entries()]
     .map(([plazaId, rows]) => {
-      const ezpassVehicles = rows.reduce((total, row) => total + row.ezpassVehicles, 0)
-      const vtollVehicles = rows.reduce((total, row) => total + row.vtollVehicles, 0)
+      const ezpassVehicles = rows.reduce((total, row) => total + (row.ezpassVehicles ?? 0), 0)
+      const tollsByMailVehicles = rows.reduce((total, row) => total + (row.tollsByMailVehicles ?? 0), 0)
       const totalVehicles = rows.reduce((total, row) => total + row.totalVehicles, 0)
       const dates = rows.map((row) => row.observedOn).sort()
 
@@ -104,8 +104,8 @@ export const summarizeCrossingsByPlaza = (crossings: FacilityCrossing[]): PlazaS
         publishedDays: rows.length,
         totalVehicles,
         ezpassVehicles,
-        vtollVehicles,
-        ezpassSharePct: totalVehicles > 0 ? (ezpassVehicles / totalVehicles) * 100 : 0,
+        tollsByMailVehicles,
+        ezpassSharePct: rows.every((row) => row.paymentCoverageComplete) && totalVehicles > 0 ? (ezpassVehicles / totalVehicles) * 100 : null,
         firstObservedOn: dates[0],
         lastObservedOn: dates[dates.length - 1],
       }
@@ -114,24 +114,26 @@ export const summarizeCrossingsByPlaza = (crossings: FacilityCrossing[]): PlazaS
 }
 
 export const summarizeCrossingsByDirection = (crossings: FacilityCrossing[]): DirectionSummary[] => {
-  const directions: Array<'I' | 'O'> = ['I', 'O']
+  const directions = [...new Set(crossings.map((crossing) => crossing.direction))]
 
   return directions
     .map((direction) => {
       const rows = crossings.filter((crossing) => crossing.direction === direction)
-      const ezpassVehicles = rows.reduce((total, row) => total + row.ezpassVehicles, 0)
+      const ezpassVehicles = rows.reduce((total, row) => total + (row.ezpassVehicles ?? 0), 0)
       const totalVehicles = rows.reduce((total, row) => total + row.totalVehicles, 0)
 
       return {
         direction,
         publishedDays: rows.length,
         totalVehicles,
-        ezpassSharePct: totalVehicles > 0 ? (ezpassVehicles / totalVehicles) * 100 : 0,
+        ezpassSharePct: rows.every((row) => row.paymentCoverageComplete) && totalVehicles > 0 ? (ezpassVehicles / totalVehicles) * 100 : null,
       }
     })
     .filter((summary) => summary.publishedDays > 0)
 }
 
-export const directionLabel = (direction: 'I' | 'O'): string => {
-  return direction === 'I' ? 'Inbound (I)' : 'Outbound (O)'
+export const directionLabel = (direction: string): string => {
+  if (direction === 'I') return 'Inbound (I)'
+  if (direction === 'O') return 'Outbound (O)'
+  return direction
 }

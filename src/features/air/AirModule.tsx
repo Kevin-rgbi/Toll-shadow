@@ -10,6 +10,9 @@ import {
   formatAirValue,
 } from './airData'
 import type { AirCoverageSummary, AirDailyReading, AirGranularity, AirHourlyReading, AirLoadState } from '../../types/air'
+import { AssetProvenance } from '../../components/Detail/AssetProvenance'
+import { getReleaseAssets } from '../../lib/releaseManifest'
+import type { ReleaseManifest } from '../../lib/releaseManifest'
 
 interface AirModuleProps {
   state: AirLoadState
@@ -28,6 +31,8 @@ interface AirModuleProps {
   onComparisonChange: (open: boolean) => void
   includePartial: boolean
   onIncludePartialChange: (include: boolean) => void
+  rangeNotice: string | null
+  release: ReleaseManifest | null
 }
 
 type AirReading = AirDailyReading | AirHourlyReading
@@ -89,7 +94,7 @@ function MonitorChart({
           <p className="air-chart-kicker">SELECTED MONITOR · {AIR_UNITS}</p>
           <h4>{formatAirValue(readingValue(cursorReading), cursorReading !== null && cursorReading.pm25 !== null && cursorReading.pm25 > 50)}</h4>
         </div>
-        <p className="sources-note">{granularity === 'daily' ? 'Daily mean · 18-hour minimum coverage' : 'Hourly record · missing hours remain missing'}</p>
+        <p className="sources-note">{granularity === 'daily' ? 'Daily mean · 75% of the local day required' : 'Hourly record · missing hours remain missing'}</p>
       </div>
       <svg
         viewBox={`0 0 ${width} ${height}`}
@@ -142,11 +147,11 @@ function CoverageMetrics({ summary }: { summary: AirCoverageSummary | null }) {
   if (!summary) return <p className="sources-note">Coverage summary is not available.</p>
   return (
     <dl className="analysis-metrics">
-      <div><dt>UTC coverage</dt><dd>{summary.daily.startDate} → {summary.daily.endDate}</dd></div>
+      <div><dt>New York day coverage</dt><dd>{summary.daily.startDate} → {summary.daily.endDate}</dd></div>
       <div><dt>Monitors</dt><dd>{summary.daily.monitors}</dd></div>
       <div><dt>Qualifying site-days</dt><dd>{summary.daily.qualifyingSiteDays.toLocaleString('en-US')}</dd></div>
       <div><dt>No-data site-days</dt><dd>{summary.daily.noDataSiteDays.toLocaleString('en-US')}</dd></div>
-      <div><dt>Under 18 hours</dt><dd>{summary.daily.insufficientHoursSiteDays.toLocaleString('en-US')}</dd></div>
+      <div><dt>Below local-day threshold</dt><dd>{summary.daily.insufficientHoursSiteDays.toLocaleString('en-US')}</dd></div>
       {summary.hourly && <div><dt>Hourly records</dt><dd>{summary.hourly.presentRecords.toLocaleString('en-US')} present · {summary.hourly.missingRecords.toLocaleString('en-US')} missing</dd></div>}
     </dl>
   )
@@ -206,6 +211,8 @@ export function AirModule({
   onComparisonChange,
   includePartial,
   onIncludePartialChange,
+  rangeNotice,
+  release,
 }: AirModuleProps) {
   const dataset = state.dataset
   const [chartCursor, setChartCursor] = useState<number | null>(null)
@@ -233,6 +240,7 @@ export function AirModule({
 
   const summary = useMemo(() => dataset ? buildAirCoverageSummary(dataset) : null, [dataset])
   const currentPeriod = formatAirPeriod(timestamp, granularity)
+  const assets = release ? getReleaseAssets(release, 'air_measurements') : []
 
   useEffect(() => {
     if (!selectedSiteId || siteOptions.some((station) => station.id === selectedSiteId) || !siteOptions[0]) return
@@ -245,7 +253,8 @@ export function AirModule({
       <h3>Measured PM2.5, with the gaps left visible</h3>
       <p className="sources-note">{AIR_ASSET_LABEL}</p>
       <p className="sources-note">{AIR_CLAIM_GUARDRAIL}</p>
-      <p className="sources-note">Point measurements from the supplied NYCCAS Kepler derivatives. Values are concentrations in {AIR_UNITS}, not an AQI, modeled surface, health outcome, or causal estimate.</p>
+      <p className="sources-note">Official hourly NYCCAS monitor observations derived reproducibly from the pinned archive. Values are concentrations in {AIR_UNITS}, not an AQI, modeled surface, health outcome, or causal estimate.</p>
+      {rangeNotice && <p className="sources-note sources-note-alert" role="status">{rangeNotice}</p>}
 
       {state.status === 'unavailable' && <p className="sources-note sources-note-alert">AIR data unavailable: {state.reason}</p>}
       {state.status === 'loading' && <p className="sources-note">{granularity === 'hourly' && dataset?.hourly === null ? 'Loading the hourly PM2.5 CSV…' : 'Reading the daily PM2.5 CSV…'}</p>}
@@ -262,7 +271,7 @@ export function AirModule({
           <div className="air-current-row">
             <div><span className="air-chart-kicker">CURRENT STEP</span><strong>{currentPeriod}</strong></div>
             <div><span className="air-chart-kicker">SELECTED VALUE</span><strong>{formatAirValue(currentReading?.pm25 ?? null, currentReading !== null && currentReading.pm25 !== null && currentReading.pm25 > 50)}</strong></div>
-            <div><span className="air-chart-kicker">COVERAGE</span><strong>{granularity === 'daily' ? `${currentReading ? (currentReading as AirDailyReading).coverageHours : 0}/24 h` : currentReading ? '1 hourly record' : 'No record'}</strong></div>
+            <div><span className="air-chart-kicker">COVERAGE</span><strong>{granularity === 'daily' ? `${currentReading ? (currentReading as AirDailyReading).coverageHours : 0}/${currentReading ? (currentReading as AirDailyReading).expectedHours : 24} h` : currentReading ? '1 hourly record' : 'No record'}</strong></div>
           </div>
 
           <MonitorChart entries={chartEntries} granularity={granularity} timestamp={chartCursor ?? timestamp} onCursor={setChartCursor} />
@@ -281,25 +290,17 @@ export function AirModule({
           {selectedStation && (
             <section className="air-monitor-detail">
               <h4>{selectedStation.name}</h4>
-              <p className="sources-note">{selectedStation.borough} · {selectedStation.coordinates[1].toFixed(5)}, {selectedStation.coordinates[0].toFixed(5)}{selectedStation.locationHistoryFlag ? ' · location history differs from the supplied current coordinates' : ''}</p>
+              <p className="sources-note">{selectedStation.borough} · {(currentReading?.coordinates ?? selectedStation.coordinates)[1].toFixed(5)}, {(currentReading?.coordinates ?? selectedStation.coordinates)[0].toFixed(5)}{selectedStation.locationHistoryFlag ? ' · coordinates follow the timestamped location history' : ''}</p>
             </section>
           )}
 
-          <section className="module-provenance">
-            <h4>Source and limits</h4>
-            <dl className="analysis-metrics">
-              <div><dt>Daily file</dt><dd>{dataset.sourceFiles[0] ?? 'unavailable'} · {dataset.dailyBytes.toLocaleString('en-US')} bytes</dd></div>
-              {dataset.hourlyBytes !== null && <div><dt>Hourly file</dt><dd>{dataset.sourceFiles[1] ?? 'unavailable'} · {dataset.hourlyBytes.toLocaleString('en-US')} bytes</dd></div>}
-              <div><dt>Source register</dt><dd><a href="https://data.cityofnewyork.us/Environment/NYCCAS-Air-Pollution-Rasters/q68s-8qxv/about_data" target="_blank" rel="noreferrer">NYCCAS air-pollution raster archive · q68s-8qxv</a></dd></div>
-              <div><dt>Quality</dt><dd>Preliminary; subject to revision</dd></div>
-            </dl>
-            <ul className="sources-list sources-list-compact">
-              <li>Daily values require at least 18 valid hours; missing and low-coverage records are not coerced to zero.</li>
-              <li>Hourly mode loads the larger CSV on demand and never carries a prior reading forward.</li>
-              <li>Monitor coordinates are approximate supplied locations. Midtown West has a location-history caveat.</li>
-              <li>These observations do not establish a congestion-pricing effect, a current regulatory exceedance, or a health outcome.</li>
-            </ul>
-          </section>
+          {assets.map((asset) => (
+            <AssetProvenance
+              key={asset.path}
+              asset={asset}
+              measureId={asset.grain.includes('calendar day') ? 'nyccas_pm25_local_daily' : 'nyccas_pm25_hourly'}
+            />
+          ))}
         </>
       )}
     </aside>

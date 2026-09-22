@@ -14,6 +14,7 @@ import { APP_MODES } from '../state/appStore'
 import type { AppMode } from '../state/appStore'
 import { TRAFFIC_DAY_TYPES, TRAFFIC_TIME_BANDS } from '../types/releaseData'
 import type { TrafficDayType } from '../types/releaseData'
+import type { AirGranularity } from '../types/air'
 import { readMapPreference } from './mapPreference'
 import type { MapPreference } from './mapPreference'
 
@@ -27,6 +28,9 @@ export interface ViewState {
   timeBand: string | null
   crossingsStart: string | null
   crossingsEnd: string | null
+  airGranularity: AirGranularity | null
+  /** Selected measured-air timestamp. Daily links may use a YYYY-MM-DD date. */
+  airTime: string | null
   /** Build identity the link was generated from. Written on save, never read as view state. */
   build: string | null
   /** Renderer choice. Carried in the URL so it survives the address-bar rewrite on first paint. */
@@ -41,6 +45,8 @@ export const EMPTY_VIEW_STATE: ViewState = {
   timeBand: null,
   crossingsStart: null,
   crossingsEnd: null,
+  airGranularity: null,
+  airTime: null,
   build: null,
   map: null,
 }
@@ -49,6 +55,11 @@ const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/
 
 const asIsoDate = (value: string | null): string | null => {
   return value && ISO_DATE.test(value) ? value : null
+}
+
+const asAirTime = (value: string | null): string | null => {
+  if (!value) return null
+  return ISO_DATE.test(value) || Number.isFinite(Date.parse(value)) ? value : null
 }
 
 const asMode = (value: string | null): AppMode | null => {
@@ -86,6 +97,10 @@ export const readViewState = (search: string): ViewState => {
     timeBand: asTimeBand(params.get('band')),
     crossingsStart: asIsoDate(params.get('crossingsFrom')),
     crossingsEnd: asIsoDate(params.get('crossingsTo')),
+    airGranularity: params.get('air') === 'daily' || params.get('air') === 'hourly'
+      ? params.get('air') as AirGranularity
+      : null,
+    airTime: asAirTime(params.get('airTime')),
     build: asText(params.get('v')),
     map: readMapPreference(search),
   }
@@ -111,6 +126,8 @@ export const buildViewStateQuery = (state: ViewState): string => {
   if (state.timeBand) params.set('band', state.timeBand)
   if (state.crossingsStart) params.set('crossingsFrom', state.crossingsStart)
   if (state.crossingsEnd) params.set('crossingsTo', state.crossingsEnd)
+  if (state.airGranularity && state.airGranularity !== 'daily') params.set('air', state.airGranularity)
+  if (state.airTime) params.set('airTime', state.airTime)
   if (state.build) params.set('v', state.build)
   if (state.map) params.set('map', state.map)
   if (state.comparisonSelection) writeComparison(params, state.comparisonSelection)

@@ -1,5 +1,6 @@
 import { formatAirPeriod } from './airData'
 import type { AirGranularity } from '../../types/air'
+import { AIR_PLAYBACK_RATES } from './airPlaybackRates'
 
 interface AirTimelineProps {
   granularity: AirGranularity
@@ -19,8 +20,6 @@ interface AirTimelineProps {
   onScrubStart: () => void
   onScrubEnd: () => void
 }
-
-const RATES = [0.5, 1, 2, 4, 8]
 
 export function AirTimeline({
   granularity,
@@ -55,7 +54,7 @@ export function AirTimeline({
         <label className="air-rate-control">
           <span>Speed</span>
           <select value={playbackRate} onChange={(event) => onRateChange(Number(event.target.value))}>
-            {RATES.map((rate) => <option key={rate} value={rate}>{rate}×</option>)}
+            {AIR_PLAYBACK_RATES.map((rate) => <option key={rate} value={rate}>{rate}×</option>)}
           </select>
         </label>
         <label className="air-loop-control">

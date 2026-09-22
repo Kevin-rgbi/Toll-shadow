@@ -1,8 +1,9 @@
 # Toll Shadow — Submission Evidence Package
 
-**Release under review:** `2026-09-20.5`
+**Release under review:** `2026-09-21.1`
 **Application:** React + TypeScript + MapLibre SPA, static-first, hosted on Firebase Hosting
-**Deployment status:** deployed. Production `https://tollshallow.web.app` serves this release, verified live against its manifest (six assets, `status: validated`, each with its source URL). No preview channel is currently live; the rollback rehearsal's channel was deleted on 2026-09-20 and its record is in the runbook.
+**Deployment status:** not deployed. Release `2026-09-21.1` is validated locally; production remains
+on the previous deployment. This update deliberately performs no Firebase deployment.
 
 
 This package exists so a reviewer can understand, run, inspect, and verify the product without undocumented context. It is written to be checkable, not persuasive: every number below is produced by a command whose output is quoted in `RELEASE_EVIDENCE.md`.
@@ -30,9 +31,8 @@ The claim boundary is enforced in code, not only in copy:
 
 ## Where the work lives
 
-The application repository is this Git checkout. The merge that produced this package keeps the
-local `2026-09-18.1` AIR candidate and the newer `origin/main` release, CI, CRZ, traffic,
-accessibility, and documentation work together.
+The application repository is this Git checkout. Release `2026-09-21.1` integrates the local
+AIR/PM2.5 work with the mainline CI, CRZ, traffic, accessibility, release, and documentation work.
 
 ```text
 pipeline/            # source adapters, contract validation, release builder

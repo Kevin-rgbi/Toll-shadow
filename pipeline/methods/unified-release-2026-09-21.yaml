@@ -1,0 +1,25 @@
+schema_version: 1.0.0
+release_id: 2026-09-21.1
+transform_version: unified-air-traffic-2.0.0
+policy_reference_date: '2025-01-05'
+measures:
+  - measure_id: dot_monthly_sampled_traffic_volume
+    source_ids: [dot_automated_traffic_counts_archive_20260915]
+    coverage: { start: '2024-01-01', end: '2026-02-03' }
+    claim_policy: descriptive_only
+  - measure_id: mta_daily_facility_crossings_from_hourly
+    source_ids: [mta_hourly_crossings_archive_20260921]
+    coverage: { start: '2025-01-01', end: '2026-09-08' }
+    claim_policy: descriptive_only
+  - measure_id: crz_monthly_detection_group_entries
+    source_ids: [mta_crz_entries_archive_20260921]
+    coverage: { start: '2025-01-05', end: '2026-09-12' }
+    claim_policy: descriptive_only
+  - measure_id: nyccas_pm25_hourly_and_local_daily
+    source_ids: [nyccas_pm25_archive_20260921]
+    coverage: { start: '2025-01-01', end: '2026-09-21' }
+    claim_policy: descriptive_only
+context:
+  - historical_context
+  - health_context
+  - dac_context

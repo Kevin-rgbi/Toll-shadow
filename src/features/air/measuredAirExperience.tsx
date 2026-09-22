@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { AirModule } from './AirModule'
 import { AirTimeline } from './AirTimeline'
 import { buildAirMapPoints } from './airData'
 import { useAirDataset } from '../../hooks/useAirDataset'
 import { useAppStore } from '../../state/appStore'
 import type { ReleaseManifest } from '../../lib/releaseManifest'
+import type { AirGranularity } from '../../types/air'
 
 type ReleaseStatus = 'loading' | 'ready' | 'empty' | 'error'
 
@@ -13,6 +14,8 @@ interface MeasuredAirExperienceOptions {
   release: ReleaseManifest | null
   releaseStatus: ReleaseStatus
   releaseReason: string | null
+  initialGranularity?: AirGranularity | null
+  initialTime?: string | null
 }
 
 export function useMeasuredAirExperience({
@@ -20,6 +23,8 @@ export function useMeasuredAirExperience({
   release,
   releaseStatus,
   releaseReason,
+  initialGranularity,
+  initialTime,
 }: MeasuredAirExperienceOptions) {
   const airGranularity = useAppStore((state) => state.airGranularity)
   const airTimestamp = useAppStore((state) => state.airTimestamp)
@@ -43,14 +48,46 @@ export function useMeasuredAirExperience({
   const [boundaryVisible, setBoundaryVisible] = useState(false)
   const [comparisonOpen, setComparisonOpen] = useState(false)
   const [includePartial, setIncludePartial] = useState(false)
+  const initialTimeApplied = useRef(false)
+  const awaitingInitialGranularity = enabled && Boolean(initialGranularity) && airGranularity !== initialGranularity
+
+  useEffect(() => {
+    if (!enabled || !initialGranularity) return
+    setAirGranularity(initialGranularity)
+  }, [enabled, initialGranularity, setAirGranularity])
 
   const state = useAirDataset(enabled, airGranularity, release, releaseStatus, releaseReason)
   const dataset = state.status === 'error' ? null : state.dataset
 
   useEffect(() => {
-    if (!enabled || state.granularity !== airGranularity) return
+    if (!enabled || awaitingInitialGranularity || state.granularity !== airGranularity) return
     setAirTimeline(dataset, airGranularity)
-  }, [airGranularity, dataset, enabled, setAirTimeline, state.granularity])
+  }, [airGranularity, awaitingInitialGranularity, dataset, enabled, setAirTimeline, state.granularity])
+
+  useEffect(() => {
+    if (!enabled || initialTimeApplied.current || airSteps.length === 0 || !initialTime) return
+    const requested = /^\d{4}-\d{2}-\d{2}$/.test(initialTime)
+      ? Date.parse(`${initialTime}T00:00:00Z`)
+      : Date.parse(initialTime)
+    if (!Number.isFinite(requested)) return
+    const minimum = airSteps[0]
+    const maximum = airSteps.at(-1) ?? minimum
+    const clamped = Math.max(minimum, Math.min(requested, maximum))
+    setAirTimestamp(clamped)
+    initialTimeApplied.current = true
+  }, [airSteps, enabled, initialTime, setAirTimestamp])
+
+  const rangeNotice = useMemo(() => {
+    if (!initialTime || airSteps.length === 0) return null
+    const requested = /^\d{4}-\d{2}-\d{2}$/.test(initialTime)
+      ? Date.parse(`${initialTime}T00:00:00Z`)
+      : Date.parse(initialTime)
+    const minimum = airSteps[0]
+    const maximum = airSteps.at(-1) ?? minimum
+    if (!Number.isFinite(requested) || (requested >= minimum && requested <= maximum)) return null
+    const clamped = Math.max(minimum, Math.min(requested, maximum))
+    return `Requested AIR time is outside published coverage and was moved to ${new Date(clamped).toISOString()}.`
+  }, [airSteps, initialTime])
 
   useEffect(() => {
     if (!enabled || !airIsPlaying) return
@@ -94,8 +131,6 @@ export function useMeasuredAirExperience({
     return dataset.hourly?.minTimestamp ?? 0
   }, [airGranularity, airSteps, airTimestamp, dataset])
 
-  const selectedStation = dataset?.daily.stations.find((station) => station.id === selectedSiteId) ?? null
-  const releaseFocus = selectedStation ? { id: selectedStation.id, coordinates: selectedStation.coordinates } : null
   const features = useMemo(
     () => buildAirMapPoints(dataset, airGranularity, timestamp, {
       borough,
@@ -104,6 +139,10 @@ export function useMeasuredAirExperience({
     }),
     [airGranularity, borough, dataset, selectedSiteId, siteFilter, timestamp],
   )
+  const selectedFeature = features.features.find((feature) => feature.id === selectedSiteId)
+  const releaseFocus = selectedFeature?.geometry.type === 'Point'
+    ? { id: String(selectedSiteId), coordinates: selectedFeature.geometry.coordinates as [number, number] }
+    : null
 
   const onReleaseSelect = useCallback((id: string | null) => {
     setSelectedSiteId(id)
@@ -127,6 +166,8 @@ export function useMeasuredAirExperience({
       onComparisonChange={setComparisonOpen}
       includePartial={includePartial}
       onIncludePartialChange={setIncludePartial}
+      rangeNotice={rangeNotice}
+      release={release}
     />
   )
 
@@ -164,5 +205,7 @@ export function useMeasuredAirExperience({
     onReleaseSelect,
     module,
     timeline,
+    granularity: airGranularity,
+    timestamp,
   }
 }

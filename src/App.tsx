@@ -42,8 +42,9 @@ import { AirContextModule } from './features/air/AirContextModule'
 import { useMeasuredAirExperience } from './features/air/measuredAirExperience'
 import { EquityContextModule } from './features/equity/EquityContextModule'
 import { crossingsDateBounds } from './features/crossings/crossingsSummary'
-import { buildViewStateQuery, readViewStateFromLocation } from './lib/viewState'
+import { readViewStateFromLocation } from './lib/viewState'
 import { BUILD_ID, isStaleBuild, readExpectedBuildIdFromLocation } from './lib/buildInfo'
+import { useShareableViewState } from './hooks/useShareableViewState'
 import {
   formatDateLong,
   formatDateShort,
@@ -72,6 +73,7 @@ const MODULE_TITLES: Partial<Record<(typeof APP_MODES)[number], string>> = {
 
 function App() {
   const [methodologyOpen, setMethodologyOpen] = useState(false)
+  const [initialView] = useState(readViewStateFromLocation)
   // On phones the data rail becomes a bottom sheet; this is its collapsed/expanded state.
   const [railExpanded, setRailExpanded] = useState(false)
   const [selectedHotspotId, setSelectedHotspotId] = useState<string | null>(null)
@@ -89,6 +91,8 @@ function App() {
   const tickPlayback = useAppStore((state) => state.tickPlayback)
   const toggleCompareMode = useAppStore((state) => state.toggleCompareMode)
   const setCompareRenderMode = useAppStore((state) => state.setCompareRenderMode)
+  const airGranularity = useAppStore((state) => state.airGranularity)
+  const airTimestamp = useAppStore((state) => state.airTimestamp)
 
   const releaseState = useReleaseManifest()
   const { release, isDevSynthetic, devSynthetic, status, reason } = releaseState
@@ -98,17 +102,18 @@ function App() {
   const crzState = useReleaseAsset(release, 'crz_context', parseCrzEntries, mode === 'CRZ')
   const hasAirMeasurements = release?.assets.some((asset) => asset.kind === 'air_measurements') ?? false
   const measuredAir = useMeasuredAirExperience({
-    enabled: mode === 'AIR' && hasAirMeasurements,
+    enabled: (mode === 'AIR' || mode === 'STORY') && hasAirMeasurements,
     release,
     releaseStatus: status,
     releaseReason: reason,
+    initialGranularity: initialView.airGranularity,
+    initialTime: initialView.airTime ?? initialView.date,
   })
-  const airState = useReleaseAsset(release, 'historical_context', parseAirContext, mode === 'AIR' && !hasAirMeasurements)
-  const healthState = useReleaseAsset(release, 'health_context', parseHealthContext, mode === 'AIR' && !hasAirMeasurements)
+  const airState = useReleaseAsset(release, 'historical_context', parseAirContext, mode === 'AIR')
+  const healthState = useReleaseAsset(release, 'health_context', parseHealthContext, mode === 'AIR')
   const equityState = useReleaseAsset(release, 'dac_context', parseEquityContext, mode === 'EQUITY')
   // A shared link seeds the filters once, at mount. Later edits go through the store and the URL
   // writer below; the URL is never re-read, so user interaction cannot be overwritten by history.
-  const [initialView] = useState(readViewStateFromLocation)
   const [expectedBuildId] = useState(readExpectedBuildIdFromLocation)
   const [mapPreference] = useState(initialView.map)
   const staleBuild = isStaleBuild(expectedBuildId)
@@ -285,36 +290,19 @@ function App() {
   )
   const crossingsRange = crossingsRangeOverride ?? crossingsBounds
 
-  // Keep the address bar in step with the selected view so the current state is shareable.
-  useEffect(() => {
-    if (typeof window === 'undefined' || !release) return
-
-    // `v` always carries the build this tab is actually running, so the address bar stays a truthful
-    // record of it even when a stale bundle answered the request.
-    const query = buildViewStateQuery({
-      mode,
-      date: currentDateIso || null,
-      borough: trafficBorough,
-      dayType: trafficDayType,
-      timeBand: trafficTimeBand,
-      crossingsStart: crossingsRange?.start ?? null,
-      crossingsEnd: crossingsRange?.end ?? null,
-      build: BUILD_ID,
-      map: mapPreference,
-    })
-
-    window.history.replaceState(null, '', `${window.location.pathname}${query}`)
-  }, [
-    crossingsRange?.end,
-    crossingsRange?.start,
-    currentDateIso,
-    mapPreference,
+  useShareableViewState({
+    enabled: release !== null,
     mode,
-    release,
-    trafficBorough,
-    trafficDayType,
-    trafficTimeBand,
-  ])
+    date: currentDateIso || null,
+    borough: trafficBorough,
+    dayType: trafficDayType,
+    timeBand: trafficTimeBand,
+    crossingsStart: crossingsRange?.start ?? null,
+    crossingsEnd: crossingsRange?.end ?? null,
+    airGranularity: hasAirMeasurements ? airGranularity : null,
+    airTimestamp: hasAirMeasurements ? airTimestamp : 0,
+    map: mapPreference,
+  })
 
   const statusLabel = getHeaderStatusLabel(releaseState)
   const dataError = status === 'error' || boundaryState.error !== null
@@ -345,7 +333,7 @@ function App() {
     release === null && assetState.status === 'unavailable'
       ? { status: 'error', reason: unavailableReason }
       : assetState
-  const measuredAirMode = mode === 'AIR' && hasAirMeasurements
+  const measuredAirMode = (mode === 'AIR' || mode === 'STORY') && hasAirMeasurements
 
   const renderModule = () => {
     if (mode === 'SOURCES') {
@@ -392,7 +380,17 @@ function App() {
     }
 
     if (mode === 'AIR') {
-      if (hasAirMeasurements) return measuredAir.module
+      if (hasAirMeasurements) return <>
+        {measuredAir.module}
+        <details className="module-context-disclosure">
+          <summary>Historical 2016 air and asthma context</summary>
+          <AirContextModule
+            airState={moduleAssetState(airState)}
+            healthState={moduleAssetState(healthState)}
+            release={release}
+          />
+        </details>
+      </>
       return <AirContextModule
             airState={moduleAssetState(airState)}
             healthState={moduleAssetState(healthState)}

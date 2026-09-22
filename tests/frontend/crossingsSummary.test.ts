@@ -18,9 +18,10 @@ const crossing = (overrides: Partial<FacilityCrossing> = {}): FacilityCrossing =
   facilityName: 'Robert F. Kennedy Bridge (Bronx and Queens plazas)',
   direction: 'I',
   ezpassVehicles: 90,
-  vtollVehicles: 10,
+  tollsByMailVehicles: 10,
   totalVehicles: 100,
   ezpassSharePct: 90,
+  paymentCoverageComplete: true,
   ...overrides,
 })
 
@@ -61,8 +62,8 @@ describe('crossings summary', () => {
 
   it('recomputes the E-ZPass share from summed components rather than averaging daily shares', () => {
     const [summary] = summarizeCrossingsByPlaza([
-      crossing({ ezpassVehicles: 90, vtollVehicles: 10, totalVehicles: 100, ezpassSharePct: 90 }),
-      crossing({ ezpassVehicles: 10, vtollVehicles: 90, totalVehicles: 100, ezpassSharePct: 10 }),
+      crossing({ ezpassVehicles: 90, tollsByMailVehicles: 10, totalVehicles: 100, ezpassSharePct: 90 }),
+      crossing({ ezpassVehicles: 10, tollsByMailVehicles: 90, totalVehicles: 100, ezpassSharePct: 10 }),
     ])
 
     expect(summary.totalVehicles).toBe(200)
@@ -72,8 +73,8 @@ describe('crossings summary', () => {
 
   it('orders plazas by counted vehicles and groups them separately', () => {
     const summaries = summarizeCrossingsByPlaza([
-      crossing({ plazaId: 22, totalVehicles: 500, ezpassVehicles: 500, vtollVehicles: 0, ezpassSharePct: 100 }),
-      crossing({ plazaId: 21, totalVehicles: 100, ezpassVehicles: 100, vtollVehicles: 0, ezpassSharePct: 100 }),
+      crossing({ plazaId: 22, totalVehicles: 500, ezpassVehicles: 500, tollsByMailVehicles: 0, ezpassSharePct: 100 }),
+      crossing({ plazaId: 21, totalVehicles: 100, ezpassVehicles: 100, tollsByMailVehicles: 0, ezpassSharePct: 100 }),
     ])
 
     expect(summaries.map((summary) => summary.plazaId)).toEqual([22, 21])

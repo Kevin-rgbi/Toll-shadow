@@ -10,7 +10,7 @@ npm run preview      # serves the built release bundle
 
 ## 1. The product states its boundary before showing data
 
-Open `/`. The landing story view names the release window (`NYC · 2024-01-01 → 2025-12-31`) and the status strip reads the current release ID and `· VALIDATED`. The summary ribbon reports the release ID, coverage window, published asset count, and source-register count — release facts, not modelled metrics.
+Open `/`. The landing story view names the release window (`NYC · 2024-01-01 → 2026-09-21`) and the status strip reads release `2026-09-21.1` and `· VALIDATED`. The summary ribbon reports the release ID, coverage window, published asset count, and source-register count — release facts, not modelled metrics.
 
 
 Open **METHODS** for the claim guardrail and the release limitations.
@@ -38,19 +38,19 @@ Pick a borough, then read the URL:
 Open **CROSSINGS**. The monthly comparison panel reads `facility_crossings` and `crz_entries`, not
 the traffic asset.
 
-- Set the window with the two date inputs (defaults to the asset's own published bounds, 2024-01-01 → 2025-04-12).
-- The summary reports published daily rows, plazas in the window, total counted vehicles, and the window itself.
+- Set the window with the two date inputs (defaults to the asset's own published bounds, 2025-01-01 → 2026-09-08).
+- The summary reports published daily rows, facilities in the window, total counted vehicles, and the window itself.
 - **By direction** and **By plaza** aggregate the published daily counts. The E-ZPass share is recomputed from summed components, not averaged across daily shares.
-- Plazas appear as **named facilities** resolved from the source register's `facility_ids` mapping, alongside their published identifier. An unmapped plaza fails the build rather than rendering nameless.
-- The provenance block repeats the asset's own limitations, including that the source is a daily aggregate and cannot support hourly analysis.
+- Facilities retain the official source identifier, name, and full direction label.
+- The provenance block repeats the asset's own limitations, including the one source group whose missing Tolls by Mail component and E-ZPass share remain null.
 
 
 ```text
 ?module=CROSSINGS&baseline=2025&comparison=2026&months=2,3,4,5,6,7,8
 ```
 
-Open **CRZ** for the newer dedicated CRZ summary panel. It normalizes the published monthly entry
-asset to detection-group totals and labels the points as approximate supplied context markers.
+Open **CRZ** for the dedicated CRZ summary panel. It normalizes the published monthly entry asset to
+detection-group totals. Detection groups are areas, so the release does not invent point coordinates.
 
 Share either URL: both restore module, timeline date, and filters on load.
 
@@ -85,23 +85,23 @@ Restore both files (or rebuild) afterwards.
 
 ```bash
 cd source/github-repo
-python3 scripts/release_acceptance.py        # 60 checks, 0 failed
+python3 scripts/release_acceptance.py        # 66 checks, 0 failed
 
 ```
 
-The release itself is rebuilt from registered inputs by the monthly release builder:
+The release itself is rebuilt from the registered snapshots and supplied source archives by the
+unified release builder:
 
 ```bash
-node pipeline/scripts/build-release.mjs \
-  --release-id 2026-09-20.5 \
-  --generated-at 2026-09-21T02:49:09.000Z
+node pipeline/scripts/build-unified-release.mjs \
+  --air-archive /path/to/nyccas-data-main.zip \
+  --dot-input /path/to/Automated_Traffic_Volume_Counts_20260921.csv
 ```
 
-This rewrites `public/data/manifest.json` and `data/releases/<id>/`. The builder refuses a release ID
-that disagrees with `pipeline/methods/release-1.yaml` and refuses to overwrite an existing release
-directory, so a rebuild either matches the declared release or fails. Reproducibility was checked by
-building a scratch ID from the same inputs and timestamp and comparing the payloads: **6 of 6 assets
-byte-identical** (see `RELEASE_EVIDENCE.md`, "Determinism").
+This writes `public/data/manifest.json` and both copies of `data/releases/2026-09-21.1/`. The builder
+refuses to overwrite an existing release directory. The source archive checksums are recorded in the
+release README, exact Socrata queries and source counts are recorded in the dated retrieval snapshot,
+and `quality.json` records derivation counts without leaking machine-local paths.
 
 The Kepler artifact is separate and source-side only:
 

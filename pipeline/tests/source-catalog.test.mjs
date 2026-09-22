@@ -11,6 +11,6 @@ describe('source catalog', () => {
       catalogFile: path.join(repositoryRoot, 'data/catalog/sources.yaml'),
       root: path.join(repositoryRoot, 'data'),
       requireInputs: false,
-    })).resolves.toMatchObject({ sourceCount: 17 });
+    })).resolves.toMatchObject({ sourceCount: 20 });
   });
 });

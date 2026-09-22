@@ -207,7 +207,7 @@ export function MapShell({
       const readout = pointsReadoutRef.current
       if (!readout) return
       if (!map.getLayer('release-traffic-circles')) {
-        readout.textContent = activeMode === 'AIR' ? 'air layer not added' : 'traffic layer not added'
+        readout.textContent = activeMode === 'AIR' || activeMode === 'STORY' ? 'air layer not added' : 'traffic layer not added'
         return
       }
       const drawn = map.queryRenderedFeatures({ layers: ['release-traffic-circles'] }).length
@@ -272,7 +272,7 @@ export function MapShell({
 
   useEffect(() => {
     const map = mapRef.current
-    if (!map || !mapReady || activeMode !== 'AIR') return
+    if (!map || !mapReady || (activeMode !== 'AIR' && activeMode !== 'STORY')) return
 
     const pointAt = (event: maplibregl.MapMouseEvent) => {
       if (!map.getLayer('release-traffic-circles')) return null
@@ -433,7 +433,7 @@ export function MapShell({
           The published data release could not be loaded. Only the base map is shown.
         </div>
       )}
-      {activeMode === 'AIR' && (hoveredReleasePoint ?? selectedReleasePoint) && !mapFallbackMessage && (
+      {(activeMode === 'AIR' || activeMode === 'STORY') && (hoveredReleasePoint ?? selectedReleasePoint) && !mapFallbackMessage && (
         <aside className="map-selection-card" aria-live="polite">
           <p className="map-selection-kicker">PM2.5 · {(hoveredReleasePoint ?? selectedReleasePoint)?.coverageStatus === 'qualifying' ? 'QUALIFYING' : 'GAP VISIBLE'}</p>
           <h3>{(hoveredReleasePoint ?? selectedReleasePoint)?.name}</h3>
@@ -444,14 +444,13 @@ export function MapShell({
           <p className="sources-note">Preliminary sensor data; gaps are not zero.</p>
         </aside>
       )}
-      {selectedTarget && activeMode !== 'AIR' && !mapFallbackMessage && (
+      {selectedTarget && activeMode !== 'AIR' && activeMode !== 'STORY' && !mapFallbackMessage && (
         <aside
           className={[
             'map-selection-card',
             (activeMode === 'CONFIDENCE' || activeMode === 'EQUITY' || activeMode === 'HOTSPOTS')
               ? 'map-selection-card-left'
               : '',
-            activeMode === 'STORY' ? 'map-selection-card-story' : '',
           ].filter(Boolean).join(' ')}
           aria-live="polite"
         >

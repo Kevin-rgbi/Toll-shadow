@@ -143,7 +143,7 @@ describe('parseFacilityCrossings', () => {
   it('rejects a total that does not equal its own components', () => {
     expect(() => parseFacilityCrossings(
       crossingsPayload([crossingRecord({ total_vehicles: 112059 })]),
-    )).toThrow(/must equal ezpass_vehicles \+ vtoll_vehicles/)
+    )).toThrow(/must equal the published payment components/)
   })
 
   it('rejects a share that does not reproduce its numerator and denominator', () => {
@@ -160,10 +160,27 @@ describe('parseFacilityCrossings', () => {
     expect(crossing.totalVehicles).toBe(0)
   })
 
-  it('rejects an unknown direction', () => {
-    expect(() => parseFacilityCrossings(
-      crossingsPayload([crossingRecord({ direction: 'X' })]),
-    )).toThrow(/direction must be "I" or "O"/)
+  it('preserves a full official direction and a missing payment component', () => {
+    const [crossing] = parseFacilityCrossings(crossingsPayload([crossingRecord({
+      direction: 'Southbound to Brooklyn',
+      ezpass_vehicles: 1,
+      vtoll_vehicles: undefined,
+      tolls_by_mail_vehicles: null,
+      total_vehicles: 1,
+      ezpass_share_pct: null,
+    })]))
+    expect(crossing.direction).toBe('Southbound to Brooklyn')
+    expect(crossing.tollsByMailVehicles).toBeNull()
+    expect(crossing.paymentCoverageComplete).toBe(false)
+  })
+
+  it('rejects a payment share when one payment component is missing', () => {
+    expect(() => parseFacilityCrossings(crossingsPayload([crossingRecord({
+      vtoll_vehicles: undefined,
+      tolls_by_mail_vehicles: null,
+      total_vehicles: 93274,
+      ezpass_share_pct: 100,
+    })]))).toThrow(/must be null when payment coverage is incomplete/)
   })
 
   it('rejects a plaza id of zero', () => {

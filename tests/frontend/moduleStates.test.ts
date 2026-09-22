@@ -79,9 +79,10 @@ const crossing: FacilityCrossing = {
   facilityName: 'Robert F. Kennedy Bridge (Bronx and Queens plazas)',
   direction: 'I',
   ezpassVehicles: 90,
-  vtollVehicles: 10,
+  tollsByMailVehicles: 10,
   totalVehicles: 100,
   ezpassSharePct: 90,
+  paymentCoverageComplete: true,
 }
 
 const renderTraffic = (

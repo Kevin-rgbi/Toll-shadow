@@ -515,3 +515,84 @@ sources:
       - toll revenue, payment behaviour, route displacement, or a causal policy effect
       - hourly analysis from a monthly aggregate
     transformations: []
+
+  - source_id: nyccas_pm25_archive_20260921
+    title: NYCCAS real-time PM2.5 monitor archive, pinned 2026-09-21
+    role: raw_observation
+    approval_status: approved_for_pipeline
+    original_path: external/nyccas-data-main.zip
+    original_filename: nyccas-data-main.zip
+    sha256: c51fd1127ac71d23125c0e19a368de1747f7564d321ba8066e59becdfed76e04
+    authoritative_url: https://github.com/nychealth/nyccas-data
+    publisher: New York City Department of Health and Mental Hygiene, New York City Community Air Survey
+    license_status: GPL-3.0 archive; retain the public-use citation specified in the archive README
+    acquired_at: '2026-09-21'
+    temporal_coverage:
+      start: '2025-01-01T00:00:00Z'
+      end: '2026-09-21T00:00:00Z'
+    geographic_coverage: 15 observed New York City monitor sites
+    geometry:
+      source: hist/csv/location.csv timestamped location episodes
+      crs: EPSG:4326
+    grain: one corrected hourly PM2.5 observation per monitor and UTC hour
+    source_semantics: Preliminary TSI DustTrak hourly averages corrected toward federal regulatory sensors; values are micrograms per cubic meter and may be revised.
+    recipe:
+      script: pipeline/scripts/derive-air-measurements.py
+      note: Daily values use America/New_York calendar boundaries and require 75 percent of expected DST-aware hours.
+    allowed_uses:
+      - observed hourly and qualifying daily PM2.5 visualization with gaps and location history preserved
+    forbidden_claims:
+      - regulatory exceedance, individual exposure, health outcome, or causal congestion-pricing effect
+    transformations: []
+
+  - source_id: mta_hourly_crossings_archive_20260921
+    title: MTA Bridges and Tunnels hourly crossings, official daily aggregate snapshot
+    role: raw_observation
+    approval_status: approved_for_pipeline
+    original_path: source-snapshots/2026-09-21/crossings_by_day_facility_direction_payment.json
+    original_filename: crossings_by_day_facility_direction_payment.json
+    sha256: ce7bab87a92148d06c857bb231ecadaf18cd8b813bc8f755be89f4a4fb6d7f67
+    authoritative_url: https://data.ny.gov/Transportation/MTA-Bridges-and-Tunnels-Hourly-Crossings-Beginning/ebfx-2m7v/about_data
+    publisher: Metropolitan Transportation Authority
+    license_status: public_open_data catalog; retain live source terms on refresh
+    acquired_at: '2026-09-21'
+    temporal_coverage:
+      start: '2025-01-01T00:00:00Z'
+      end: '2026-09-08T23:00:00Z'
+    geographic_coverage: ten MTA bridge and tunnel facility IDs; no coordinates published
+    geometry: null
+    grain: one server-side daily aggregate per facility, full direction, and payment method from 2939033 hourly source rows
+    recipe:
+      script: pipeline/scripts/fetch-official-traffic-snapshots.mjs
+      page_size: 50000
+    allowed_uses:
+      - descriptive daily facility, direction, and payment-method counts
+    forbidden_claims:
+      - addition to CRZ entries, inferred facility coordinates, or causal policy effect
+    transformations: []
+
+  - source_id: mta_crz_entries_archive_20260921
+    title: MTA CRZ entries, official detection-group month aggregate snapshot
+    role: raw_observation
+    approval_status: approved_for_pipeline
+    original_path: source-snapshots/2026-09-21/crz_by_group_month.json
+    original_filename: crz_by_group_month.json
+    sha256: 0044e2fd42ff02010490814833d464298d7a75c10afc213691c9c8f91b6b5da4
+    authoritative_url: https://data.ny.gov/Transportation/MTA-Congestion-Relief-Zone-Vehicle-Entries-Beginni/t6yz-b64h/about_data
+    publisher: Metropolitan Transportation Authority
+    license_status: public_open_data catalog; retain live source terms on refresh
+    acquired_at: '2026-09-21'
+    temporal_coverage:
+      start: '2025-01-05T00:00:00Z'
+      end: '2026-09-12T23:50:00Z'
+    geographic_coverage: twelve CRZ detection groups; no detector coordinates published
+    geometry: null
+    grain: one server-side calendar-month aggregate per detection group from 6386688 ten-minute source rows
+    recipe:
+      script: pipeline/scripts/fetch-official-traffic-snapshots.mjs
+      page_size: 50000
+    allowed_uses:
+      - descriptive CRZ and excluded-roadway entry totals retained as separate fields
+    forbidden_claims:
+      - revenue, unique vehicles, inferred detector points, route displacement, or causal policy effect
+    transformations: []

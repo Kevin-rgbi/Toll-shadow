@@ -23,7 +23,7 @@ test.describe('published modules render published values', () => {
     { mode: 'TRAFFIC', metric: '.analysis-metrics' },
     { mode: 'CROSSINGS', metric: '.analysis-metrics' },
     { mode: 'CRZ', metric: '.analysis-metrics' },
-    { mode: 'AIR', metric: '.air-surface-canvas' },
+    { mode: 'AIR', metric: '.air-current-row' },
     { mode: 'EQUITY', metric: '.analysis-metrics' },
   ]
 
@@ -31,7 +31,7 @@ test.describe('published modules render published values', () => {
     test(`${mode} renders its published values`, async ({ page }) => {
       await page.goto(`/?module=${mode}`)
 
-      const card = page.locator('.module-card')
+      const card = page.locator('.module-card').first()
       await expect(card.locator(metric).first()).toBeVisible()
 
       const text = (await card.innerText()).replace(/\s+/g, ' ')
@@ -87,7 +87,9 @@ test.describe('published modules render published values', () => {
 
       // A module can publish more than one asset and so carries one block per asset; every block has
       // to stand on its own.
-      const provenance = page.locator('.module-card .module-provenance')
+      const provenance = mode === 'AIR'
+        ? page.locator('.air-module .module-provenance')
+        : page.locator('.module-card .module-provenance')
       expect(await provenance.count(), `${mode} publishes a value with no source and method block`)
         .toBeGreaterThan(0)
 
@@ -99,7 +101,7 @@ test.describe('published modules render published values', () => {
         for (const field of ['Coverage', 'Grain', 'Transform', 'Checksum', 'Source register']) {
           await expect(block, `${mode} provenance is missing ${field}`).toContainText(field)
         }
-        await expect(block).toContainText('pipeline-release-')
+        await expect(block).toContainText(/pipeline-release-|unified-air-traffic-/)
         await expect(block).toContainText('sha256')
         await expect(block).toContainText('Limitations of this asset')
 

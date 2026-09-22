@@ -1,0 +1,20 @@
+schema_version: 1.0.0
+contract_id: mta-hourly-crossing-daily-aggregate
+source_ids: [mta_hourly_crossings_archive_20260921]
+input:
+  authoritative_grain: one hour, facility, direction, payment method, and vehicle class
+  source_rows_2025_2026: 2939033
+output:
+  grain: one calendar day, facility, full source direction, with payment components
+  fields:
+    ezpass_vehicles: non-negative integer or null when the aggregate is absent
+    tolls_by_mail_vehicles: non-negative integer or null when the aggregate is absent
+    total_vehicles: sum of published non-null payment components
+quality:
+  rules:
+    - retain official facility IDs, names, and full direction labels
+    - do not invent facility coordinates
+    - do not add crossing totals to CRZ entries
+    - preserve an absent payment aggregate as null rather than zero
+claims:
+  prohibited: [CRZ total, inferred route displacement, causal policy effect]

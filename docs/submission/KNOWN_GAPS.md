@@ -2,16 +2,14 @@
 
 Stated plainly, ordered by how much they affect a reviewer's ability to trust or use the product.
 
-Figures below were read from the built release and the built bundle on **2026-09-20**, not carried
+Figures below were read from release `2026-09-21.1` and its built bundle on **2026-09-21**, not carried
 forward from an earlier revision of this document.
 
-## 1. Deployed to production, but unreviewed
+## 1. Validated locally, not deployed or independently reviewed
 
-`https://tollshallow.web.app` serves release `2026-09-20.5`, verified live: HTTP 200, `release_id` and
-`status: validated` in the manifest, six assets at their published checksums, and the modules render
-published figures. Nobody outside this workstream has reviewed the deployed result, and there is no
-uptime or error monitoring, so nothing outside a reader's browser reports that the site stopped
-working. Both are recorded owner decisions rather than oversights.
+Release `2026-09-21.1` is the validated release under review and has **not** been deployed. The live
+site remains a previous deployment. Nobody outside this workstream has reviewed the new result, and
+there is no uptime or error monitoring. Deployment was explicitly excluded from this update.
 
 Rollback was rehearsed on a preview channel on 2026-09-20 (see
 `docs/deployment/HOSTING_PREVIEW_ROLLBACK_RUNBOOK.md`). That rehearsal found that the two commands the
@@ -26,16 +24,16 @@ now records the working commands and the observed behaviour.
 `CONFIDENCE` and `HOTSPOTS` render under the development flag only, because a confidence composition
 and a hotspot ranking both imply an inference the published data does not support. `AIR` and `EQUITY`
 used to be in this group and no longer are: release `2026-09-20.5` publishes a modelled historical air
-surface and the archived 2023 disadvantaged-communities geography, each with its vintage and a
-non-causal label.
+surface, current measured PM2.5, and the archived 2023 disadvantaged-communities geography, each with
+its vintage and a non-causal label.
 
-## 3. The air surface carries no units
+## 3. The optional historical air surface carries no units
 
-The NYCCAS archive this project can reach carries no unit codebook, so the surface is published as a
+The historical raster archive carries no unit codebook, so that optional 2016 surface is published as a
 field normalised to itself: `relative 0-1 within this surface; absolute units are not established`.
 Pollutant and period labels are inferred from the source filename and the panel says so. The module
 therefore shows where the modelled surface was higher *within itself* and deliberately shows no
-concentration. A reviewer must not read it as a measurement.
+concentration. It is not a substitute for the separately published 2025-2026 PM2.5 monitor data.
 
 
 ## 4. Traffic coverage is thin and has gaps
@@ -58,7 +56,8 @@ criteria; the 2025 revision means it cannot be presented as a current designatio
 
 `npm run build` emits a >500 kB warning for the lazy-loaded MapLibre chunk: **1,065 kB raw / 292 kB
 gzip**. The main bundle is 325 kB raw / 100 kB gzip and the stylesheet 110 kB. The data payload is
-**6.02 MiB of the gate's 64 MiB merged ceiling** across six assets.
+**about 52.2 MiB of the gate's 64 MiB merged ceiling** across eight assets. The hourly PM2.5 CSV is
+the dominant asset and is fetched only when hourly mode is selected.
 
 
 Each asset is now fetched only while the module that reads it is open, so the entry does not carry the
@@ -81,17 +80,11 @@ wires every surface together. The 1,612-line stylesheet that used to be the wors
 nine files under `src/styles/`, none larger than 326 lines.
 
 
-## 8. The map is view-only for published points, and the selection card cannot open
+## 8. Published traffic points remain view-only
 
-The click-to-inspect card on the map is reachable only in the development build. `hitTargetsRef` is
-written by exactly one place, the prototype overlay frame, and that frame returns no targets in a
-release build because a production bundle never loads a synthetic dataset. Clicking a published point
-therefore finds no hit, clears the selection, and no card appears.
-
-This is not a regression from the recent map split — the behaviour is byte-identical before and after
-it — but it means the published traffic layer is decoration rather than an interactive surface, and
-the synthetic-mode strings still in that card's markup are unreachable in production. Making published
-points selectable is unbuilt work, and it should come with the same claim discipline the modules have.
+PM2.5 monitor points are selectable in AIR and STORY and expose their period, value, coverage, and
+missing state. The generic published traffic layer still has no equivalent inspection card, so those
+points remain a visual index into the TRAFFIC module rather than direct map records.
 
 ## 9. Development-labelled strings remain in components that ship
 
@@ -113,9 +106,9 @@ undocumented. Kepler is a source-side reproducibility artifact and is not part o
 ## 11. The deployment gate's data budget is a working figure
 
 The gate's 64 MiB ceiling for `dist/data` is a merged-branch compatibility number, not a surveyed
-ideal; release `2026-09-20.5` itself is 6.02 MiB, and the extra headroom exists because the repository
-retains the `2026-09-18.1` AIR/PM2.5 candidate path with its large hourly CSV. The entry and map-chunk
-budgets have numbers in `docs/DATA_STRATEGY.md` and the gate measures both.
+ideal; release `2026-09-21.1` is about 52.2 MiB because it publishes the explicit 217,872-row hourly
+station grid. The entry and map-chunk budgets have numbers in `docs/DATA_STRATEGY.md` and the gate
+measures both.
 
 ## 12. The initial-request budget is documented but not enforced
 
@@ -125,11 +118,11 @@ design target with nothing measuring it, because counting requests "to first ren
 browser run and a definition of first render that does not flap. It is labelled unenforced in the
 budget table rather than left to look gated.
 
-## 13. The derivation recipes still cannot be re-run on this machine
+## 13. Two historical-context recipes still cannot be re-run on this machine
 
-Unchanged from the earlier revision: `rasterio` and `shapely` are installed in no interpreter here, so
-the published derivatives under `data/derived/` remain the only copy of that step's output. The
-recipes are recorded and reviewable; they are not executable here.
+`rasterio` and `shapely` are installed in no interpreter here, so the historical raster and equity
+derivatives remain the retained copies of those steps. The new PM2.5 and traffic derivations were
+executed successfully here and require only Python's standard library and Node.
 
 ## 14. The work is unreviewed by a second person
 

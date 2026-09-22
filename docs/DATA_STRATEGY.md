@@ -100,7 +100,7 @@ PRD success metric unverifiable.
 |---|---:|---|
 | Entry bundle, gzipped (JS + CSS) | 130 kB | The shell must paint before the map chunk is requested. |
 | Lazy map chunk, gzipped | 330 kB | MapLibre dominates this and is loaded only when a map view opens. |
-| Total published data assets in one release | 64 MiB | The browser-facing `2026-09-20.5` release ships six context/observation assets at 6.02 MiB, while the repository also retains the `2026-09-18.1` AIR/PM2.5 candidate whose hourly CSV requires the larger ceiling. Re-derive this if the PM2.5 release path is retired. |
+| Total published data assets in one release | 64 MiB | Release `2026-09-21.1` ships eight assets at about 52.2 MiB. The 46.9 MB hourly PM2.5 CSV is the dominant asset and loads only when hourly mode is selected. |
 | Initial requests to first render | 12 | Fonts, shell, styles, manifest. **Not machine-checked.** The other three budgets are measured by the gate; this one is a design target, because counting requests "to first render" reliably needs a browser run and a definition of first render that does not flap. It is recorded as unenforced rather than implied to be gated. |
 
 

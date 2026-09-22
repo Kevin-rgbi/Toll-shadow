@@ -1,0 +1,21 @@
+schema_version: 1.0.0
+contract_id: nyccas-pm25-measurements
+covers_asset_kinds: [air_measurements]
+source_ids: [nyccas_pm25_archive_20260921]
+hourly:
+  grain: one active monitor and UTC hour
+  required_fields: [timestamp_utc, timestamp_nyc, site_id, site_name, borough, latitude, longitude, pm25_ugm3, quality_status, location_note]
+  rules:
+    - use the timestamped location episode active at timestamp_utc
+    - publish an explicit null value for an active-monitor hour with no observation
+    - never carry a prior observation forward
+daily:
+  grain: one active monitor and America/New_York calendar day
+  required_fields: [timestamp_utc, date_nyc, site_id, latitude, longitude, pm25_daily_mean_ugm3, valid_hours, expected_hours, coverage_pct, coverage_status]
+  rules:
+    - expected_hours is 23, 24, or 25 from local-midnight UTC boundaries
+    - qualifying requires ceil(0.75 * expected_hours) valid observations
+    - missing and insufficient values are null, never zero
+    - a day spanning more than one location episode is monitor_relocated and has a null daily mean
+claims:
+  prohibited: [causal policy effect, regulatory exceedance, individual exposure, health outcome]

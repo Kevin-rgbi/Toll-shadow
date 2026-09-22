@@ -206,31 +206,32 @@ export const parseFacilityCrossings = (
     const record = requireRecord(entry, assetLabel, field)
 
     const direction = requireString(record.direction, assetLabel, `${field}.direction`)
-    if (direction !== 'I' && direction !== 'O') {
-      malformed(assetLabel, `${field}.direction must be "I" or "O" (got "${direction}")`)
-    }
 
     const plazaId = requireCount(record.plaza_id, assetLabel, `${field}.plaza_id`)
     if (plazaId === 0) malformed(assetLabel, `${field}.plaza_id must be a positive plaza identifier`)
 
-    const ezpassVehicles = requireCount(record.ezpass_vehicles, assetLabel, `${field}.ezpass_vehicles`)
-    const vtollVehicles = requireCount(record.vtoll_vehicles, assetLabel, `${field}.vtoll_vehicles`)
+    const ezpassVehicles = record.ezpass_vehicles === null ? null
+      : requireCount(record.ezpass_vehicles, assetLabel, `${field}.ezpass_vehicles`)
+    const tollsByMailValue = 'tolls_by_mail_vehicles' in record ? record.tolls_by_mail_vehicles : record.vtoll_vehicles
+    const tollsByMailVehicles = tollsByMailValue === null
+      ? null
+      : requireCount(tollsByMailValue, assetLabel, `${field}.tolls_by_mail_vehicles`)
     const totalVehicles = requireCount(record.total_vehicles, assetLabel, `${field}.total_vehicles`)
 
-    if (totalVehicles !== ezpassVehicles + vtollVehicles) {
+    if (totalVehicles !== (ezpassVehicles ?? 0) + (tollsByMailVehicles ?? 0)) {
       malformed(
         assetLabel,
-        `${field}.total_vehicles (${totalVehicles}) must equal ezpass_vehicles + vtoll_vehicles `
-        + `(${ezpassVehicles} + ${vtollVehicles})`,
+        `${field}.total_vehicles (${totalVehicles}) must equal the published payment components`,
       )
     }
 
-    const ezpassSharePct = requireNonNegativeNumber(record.ezpass_share_pct, assetLabel, `${field}.ezpass_share_pct`)
-    if (ezpassSharePct > 100) {
+    const ezpassSharePct = record.ezpass_share_pct === null ? null : requireNonNegativeNumber(record.ezpass_share_pct, assetLabel, `${field}.ezpass_share_pct`)
+    if (ezpassSharePct !== null && ezpassSharePct > 100) {
       malformed(assetLabel, `${field}.ezpass_share_pct must be a percentage (got ${ezpassSharePct})`)
     }
+    if ((ezpassVehicles === null || tollsByMailVehicles === null) && ezpassSharePct !== null) malformed(assetLabel, `${field}.ezpass_share_pct must be null when payment coverage is incomplete`)
 
-    if (totalVehicles > 0) {
+    if (totalVehicles > 0 && ezpassVehicles !== null && ezpassSharePct !== null) {
       const expectedShare = (ezpassVehicles / totalVehicles) * 100
       if (Math.abs(expectedShare - ezpassSharePct) > SHARE_TOLERANCE_PCT) {
         malformed(
@@ -250,9 +251,10 @@ export const parseFacilityCrossings = (
       facilityName: requireString(record.facility_name, assetLabel, `${field}.facility_name`),
       direction,
       ezpassVehicles,
-      vtollVehicles,
+      tollsByMailVehicles,
       totalVehicles,
       ezpassSharePct,
+      paymentCoverageComplete: ezpassVehicles !== null && tollsByMailVehicles !== null,
     }
   })
 }

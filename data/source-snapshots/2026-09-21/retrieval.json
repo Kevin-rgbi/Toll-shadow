@@ -1,0 +1,39 @@
+{
+  "retrieved_at": "2026-09-22T00:49:37.697Z",
+  "source_counts": {
+    "crz": {
+      "count": "6386688",
+      "min_time": "2025-01-05T00:00:00.000",
+      "max_time": "2026-09-12T23:50:00.000"
+    },
+    "crossings_2025_2026": {
+      "count": "2939033",
+      "min_time": "2025-01-01T00:00:00.000",
+      "max_time": "2026-09-08T23:00:00.000"
+    }
+  },
+  "queries": {
+    "crz": [
+      "https://data.ny.gov/resource/t6yz-b64h.json?%24select=detection_group%2Cdetection_region%2Cdate_trunc_ym%28toll_date%29+as+month%2Csum%28crz_entries%29+as+crz_entries%2Csum%28excluded_roadway_entries%29+as+excluded_roadway_entries&%24group=detection_group%2Cdetection_region%2Cmonth&%24order=detection_group%2Cmonth&%24limit=50000&%24offset=0"
+    ],
+    "crossings": [
+      "https://data.ny.gov/resource/ebfx-2m7v.json?%24select=date%2Cfacility_id%2Cfacility%2Cdirection%2Cpayment_method%2Csum%28traffic_count%29+as+traffic_count&%24where=date+%3E%3D+%222025-01-01T00%3A00%3A00.000%22&%24group=date%2Cfacility_id%2Cfacility%2Cdirection%2Cpayment_method&%24order=date%2Cfacility_id%2Cdirection%2Cpayment_method&%24limit=50000&%24offset=0"
+    ],
+    "crz_count": "https://data.ny.gov/resource/t6yz-b64h.json?%24select=count%28*%29+as+count%2Cmin%28toll_10_minute_block%29+as+min_time%2Cmax%28toll_10_minute_block%29+as+max_time",
+    "crossings_count": "https://data.ny.gov/resource/ebfx-2m7v.json?%24select=count%28*%29+as+count%2Cmin%28transit_timestamp%29+as+min_time%2Cmax%28transit_timestamp%29+as+max_time&%24where=date+%3E%3D+%222025-01-01T00%3A00%3A00.000%22"
+  },
+  "files": [
+    {
+      "filename": "crz_by_group_month.json",
+      "rows": 252,
+      "bytes": 49947,
+      "sha256": "0044e2fd42ff02010490814833d464298d7a75c10afc213691c9c8f91b6b5da4"
+    },
+    {
+      "filename": "crossings_by_day_facility_direction_payment.json",
+      "rows": 23397,
+      "bytes": 5207848,
+      "sha256": "ce7bab87a92148d06c857bb231ecadaf18cd8b813bc8f755be89f4a4fb6d7f67"
+    }
+  ]
+}

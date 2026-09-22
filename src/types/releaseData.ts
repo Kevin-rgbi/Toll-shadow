@@ -61,11 +61,13 @@ export interface FacilityCrossing {
   facilityCode: string
   /** Register facility name. A crossing the register cannot name is never published. */
   facilityName: string
-  direction: 'I' | 'O'
-  ezpassVehicles: number
-  vtollVehicles: number
+  /** Full official direction label in current releases; I/O only in retained legacy releases. */
+  direction: string
+  ezpassVehicles: number | null
+  tollsByMailVehicles: number | null
   totalVehicles: number
-  ezpassSharePct: number
+  ezpassSharePct: number | null
+  paymentCoverageComplete: boolean
 }
 
 /**

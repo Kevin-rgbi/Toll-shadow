@@ -7,7 +7,7 @@ which stated limits.
 **It does not publish a counterfactual, a causal policy estimate, a regulatory AQI claim,
 or a post-2025 health outcome.**
 
-**Live:** <https://tollshallow.web.app> · **Release under review:** `2026-09-20.5`
+**Live:** <https://tollshallow.web.app> (previous deployment) · **Release under review:** `2026-09-21.1` (not deployed)
 
 ---
 
@@ -17,9 +17,9 @@ This build does what Release 1 asked for and states what it still does not do. R
 
 **Shipped, with published data and a link to the source for every figure:**
 
-- Six published assets from six registered sources, served by the app: traffic observations, MTA
-  facility crossings, CRZ entry aggregates, a modelled historical air surface, historical asthma
-  context, and archived equity geography.
+- Eight published assets from seven registered sources, served by the app: sampled traffic
+  observations, MTA facility crossings, CRZ entry aggregates, daily and hourly NYCCAS PM2.5,
+  a modelled historical air surface, historical asthma context, and archived equity geography.
 - Six evidence modules: **TRAFFIC**, **CROSSINGS**, **CRZ**, **AIR**, **EQUITY**, and **SOURCES**.
   Every module shows source URL, coverage window, grain, transform version, checksum, and the asset's
   own limitations.
@@ -37,15 +37,16 @@ This build does what Release 1 asked for and states what it still does not do. R
 - **MTA facility points and the CRZ detection points** are blocked on a provenance decision, not on
   code: their coordinates exist only in a legacy derivative whose transformation recipe was never
   recorded.
-- **The map is view-only for published points.** The click-to-inspect card can only open in a
-  development build, because the hit targets come from the synthetic prototype frame and a production
-  bundle never loads one. Making published points selectable is unbuilt work.
+- **Published traffic points remain view-only.** PM2.5 monitor points in AIR and STORY are selectable
+  and expose the recorded value, coverage, and missing state; the generic traffic layer does not yet
+  have an equivalent inspection card.
 - **`CONFIDENCE` and `HOTSPOTS`** render only under the development flag: a confidence composition and
   a hotspot ranking both imply an inference this data cannot support.
 - **No uptime or error monitoring**, and **no independent human review** of the code or the data. Both
   are recorded owner decisions.
-- **The two derivation recipes cannot be re-run here** (`rasterio` and `shapely` are not installed),
-  so the published derivatives are currently the only copy of that step's output.
+- **The historical raster/equity derivations cannot be re-run here** (`rasterio` and `shapely` are not
+  installed). The new measured-air and traffic recipes do run here using Python's standard library
+  and Node.
 - Development-labelled strings remain in components that ship, in development-guarded branches. The
   prototype modules themselves are absent from the production bundle; the strings are not.
 - Nothing here is a final visual brand direction; the interface is a deliberate editorial pass.
@@ -59,16 +60,17 @@ proves it.
 **Raw source files are not in this repository.** They total ~321 MB. Every source is registered with
 its authoritative URL, SHA-256, coverage, grain, CRS, and its allowed and forbidden uses:
 
-- `data/catalog/sources.yaml` — the source register (17 sources)
+- `data/catalog/sources.yaml` — the source register (20 sources)
 - `data/README.md` — how to obtain the raw files and reproduce the release
 
-Six of those entries feed the published release:
+Seven of those entries feed the published release:
 
 | Source | Publisher | Published as | Coverage | Window |
 |---|---|---|---|---|
-| `dot_automated_traffic_counts_archive_20260915` | NYC DOT (`7ym2-wayt`) | `traffic_observations` | 2024-01-01 → 2025-12-31 | 2,561 segment aggregates |
-| `mta_daily_bridge_tunnel_traffic_archive_20260915` | MTA (`fcbp-umit`) | `facility_crossings` | 2024-01-01 → 2025-04-12 | 8,352 daily rows |
-| `mta_crz_entries_archive_20260920` | MTA (`t6yz-b64h`, derived here) | `crz_context` | 2025-01-01 → 2026-09-30 | 252 monthly aggregates |
+| `dot_automated_traffic_counts_archive_20260915` | NYC DOT (`7ym2-wayt`) | `traffic_observations` | 2024-01-01 → 2026-02-03 | 186,691 included observations |
+| `mta_hourly_crossings_archive_20260921` | MTA (`ebfx-2m7v`) | `facility_crossings` | 2025-01-01 → 2026-09-08 | 11,699 daily facility/direction rows |
+| `mta_crz_entries_archive_20260921` | MTA (`t6yz-b64h`) | `crz_context` | 2025-01-05 → 2026-09-12 | 252 monthly aggregates |
+| `nyccas_pm25_archive_20260921` | NYC DOHMH / NYCCAS | `air_measurements` | 2025-01-01 00:00 UTC → 2026-09-21 00:00 UTC | 198,205 observed hours plus explicit gaps |
 | `nyccas_air_context_derived_2016` | NYC Community Air Survey (derived here) | `historical_context` | 2016 | 78×78 relative grid |
 | `nys_asthma_context_derived_historical` | NYS Department of Health (archived) | `health_context` | 2000 → 2019 | 132 records |
 | `nyc_dac_context_derived_2023` | NYS Climate Justice WG / NYSERDA (archived) | `dac_context` | 2023 | 958 census tracts |
@@ -80,13 +82,15 @@ anything in the repository, which is why they are no longer release inputs.
 Published release outputs **are** committed, so the data actually shipped can be inspected directly:
 
 ```
-data/releases/2026-09-20.5/
+data/releases/2026-09-21.1/
   manifest.json                 assets, checksums, source URLs, coverage, grain, limitations
   quality.json                  rows inspected / included / rejected per source
   README.md                     human-readable changelog with a source URL per asset
-  traffic_observations.geojson  2,082,788 bytes, EPSG:4326
-  facility_crossings.json       3,596,098 bytes
-  crz_entry_summary.json           85,191 bytes
+  traffic_observations.geojson  1,502,491 bytes, EPSG:4326
+  facility_crossings.json       4,165,864 bytes
+  crz_entry_summary.json           66,535 bytes
+  nyccas_pm25_daily.csv         1,540,151 bytes
+  nyccas_pm25_hourly.csv       46,933,880 bytes, loaded on demand
   air_context.json                 34,186 bytes
   health_context.json              28,287 bytes
   equity_context.geojson          481,251 bytes
@@ -94,25 +98,24 @@ public/data/manifest.json       the pointer the app fetches, generated by the bu
 public/data/releases/...        the browser-facing copy of the above
 ```
 
-The repository also retains the local `2026-09-18.1` AIR/PM2.5 candidate assets and parser/module
-support for manifests that publish `air_measurements`. Canonical copies of past releases stay under
-`data/releases/`; the production build prunes browser-facing release directories except the one named
-by the `2026-09-20.5` pointer.
+Canonical copies of past releases stay under `data/releases/`; the production build prunes
+browser-facing release directories except the one named by the `2026-09-21.1` pointer.
 
 What the pipeline actually did with the raw files:
 
 | Source | Inspected | Included | Rejected | Result |
 |---|---:|---:|---:|---|
-| NYC DOT automated traffic counts | 1,875,154 | 177,571 | 1 | 2,561 aggregates |
-| MTA daily bridge and tunnel traffic | 98,053 | 8,352 | 0 | 8,352 daily rows |
-| MTA CRZ entry aggregates | 252 | 252 | 0 | 252 monthly rows |
+| NYC DOT automated traffic counts | 1,875,154 | 186,691 | 1 | sampled segment/month aggregates |
+| MTA hourly bridge and tunnel traffic | 2,939,033 | 2,939,033 | 0 | 11,699 daily facility/direction rows |
+| MTA CRZ ten-minute entries | 6,386,688 | 6,386,688 | 0 | 252 monthly group rows |
+| NYCCAS PM2.5 observations | 198,205 | 198,205 | 0 duplicates | 217,872 station-hours including 19,667 null gaps |
 | NYCCAS modelled surface | 2,607 | 2,607 | 0 | 78×78 grid |
 | NYS asthma context | 132 | 132 | 0 | 132 records |
 | NYC disadvantaged-communities context | 958 | 958 | 0 | 958 tracts |
 
 The single rejected DOT row is the archived negative-volume sentinel (`Vol = -1`); it is rejected and
-reported, never coerced to zero. Rows outside the 2024-2025 window are excluded by the declared
-coverage, which is why 1.87M source rows produce 177,571 included rows.
+reported, never coerced to zero. Rows outside the 2024-01-01 through 2026-02-03 publication window are
+excluded by the declared coverage, which is why 1.87M source rows produce 186,691 included rows.
 
 ## Pipeline
 
@@ -122,7 +125,8 @@ raw CSV / archive -> contract validation -> aggregation or derivation -> release
 
 - `pipeline/src/` — CSV contract reader, traffic, MTA, CRZ and context adapters, geospatial transform
   (EPSG:2263 to EPSG:4326), measure-spec validation, context validators, release builder
-- `pipeline/scripts/` — the recorded derivation recipes for the air, health, and equity context sources
+- `pipeline/scripts/` — reproducible measured-air derivation, paginated MTA snapshot retrieval, and
+  the recorded historical air, health, and equity recipes
 - `pipeline/methods/release-1.yaml` — the approved measure spec: six descriptive measures with their
   numerators, denominators, aggregation, inclusion and exclusion rules, and the one excluded asset kind
   with its reason
@@ -133,12 +137,13 @@ raw CSV / archive -> contract validation -> aggregation or derivation -> release
 - `scripts/release_acceptance.py` — the deployment gate for checksums, provenance, payloads, metadata,
   security headers, caching, and release isolation
 
-Reproduce the release (raw files must be placed under `../../data/raw/` first; see `data/README.md`):
+Reproduce the release (see `data/README.md` for source checksums):
 
 ```bash
-node pipeline/scripts/build-release.mjs \
-  --release-id 2026-09-20.5 \
-  --generated-at 2026-09-20T00:00:00.000Z
+node pipeline/scripts/fetch-official-traffic-snapshots.mjs
+node pipeline/scripts/build-unified-release.mjs \
+  --air-archive /path/to/nyccas-data-main.zip \
+  --dot-input /path/to/Automated_Traffic_Volume_Counts_20260921.csv
 python3 scripts/release_acceptance.py
 ```
 
@@ -190,6 +195,7 @@ Useful URL parameters:
 | `?date=2025-03-31` | timeline date |
 | `?borough=Queens&day=Weekday&band=AM%20peak%20(06-09)` | traffic filters |
 | `?crossingsFrom=2024-01-01&crossingsTo=2024-06-30` | crossings window |
+| `?module=AIR&air=hourly&airTime=2026-09-08T23:00:00.000Z` | measured-air resolution and timestamp |
 | `?map=software` / `?map=gpu` | force the renderer |
 | `?v=<build>` | build identity; a mismatch with the running build shows a stale-build banner |
 
@@ -228,10 +234,10 @@ so a mistyped or superseded asset path returns 404 instead of a 200 carrying an 
 ## Verification
 
 ```bash
-npm run test                              # 220 tests, including accessibility and claim gates
-npm run pipeline:test                     # 38 pipeline tests, includes the contract enforcement
-npm run test:e2e                          # 59 browser tests, desktop and phone viewports
-python3 scripts/release_acceptance.py     # 60 checks, blocks a bad deploy
+npm run test                              # 228 tests, including accessibility and claim gates
+npm run pipeline:test                     # 43 pipeline tests, includes the contract enforcement
+npm run test:e2e                          # 66 browser tests, desktop and phone viewports
+python3 scripts/release_acceptance.py     # 66 checks, blocks a bad deploy
 python3 visualization/kepler/validate_kepler_export.py   # 34 checks
 ```
 

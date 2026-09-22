@@ -1,0 +1,115 @@
+{
+  "release_id": "2026-09-21.1",
+  "status": "validated",
+  "source_quality": {
+    "dot": {
+      "total_rows": 1875154,
+      "valid_rows": 1875153,
+      "included_rows": 186691,
+      "invalid_rows": 1,
+      "invalid_examples": [
+        "row 1367021: Vol must be an integer >= 0"
+      ]
+    },
+    "crz": {
+      "raw_source": {
+        "count": "6386688",
+        "min_time": "2025-01-05T00:00:00.000",
+        "max_time": "2026-09-12T23:50:00.000"
+      },
+      "aggregate_rows": 252
+    },
+    "crossings": {
+      "raw_source": {
+        "count": "2939033",
+        "min_time": "2025-01-01T00:00:00.000",
+        "max_time": "2026-09-08T23:00:00.000"
+      },
+      "aggregate_rows": 23397,
+      "published_groups": 11699,
+      "incomplete_payment_groups": 1
+    },
+    "air": {
+      "archive": "nyccas-data-main.zip",
+      "raw_rows": 198205,
+      "duplicate_site_hours": 0,
+      "sites": 15,
+      "coverage": {
+        "start_utc": "2025-01-01T00:00:00Z",
+        "end_utc": "2026-09-21T00:00:00Z"
+      },
+      "hourly": {
+        "rows": 217872,
+        "observed": 198205,
+        "missing": 19667
+      },
+      "daily": {
+        "rows": 9093,
+        "statuses": {
+          "insufficient_hours": 72,
+          "no_data": 783,
+          "qualifying": 8237,
+          "monitor_relocated": 1
+        },
+        "relocation_days": 1,
+        "expected_hour_counts": {
+          "23": 29,
+          "24": 9050,
+          "25": 14
+        }
+      },
+      "coverage_rule": "At least 75% of expected America/New_York local-day hours (18/23, 18/24, or 19/25)."
+    },
+    "context_assets_reused_with_verified_checksums": 3
+  },
+  "assets": [
+    {
+      "kind": "traffic_observations",
+      "path": "/data/releases/2026-09-21.1/traffic_observations.geojson",
+      "bytes": 1502491,
+      "sha256": "1bfe9baab01825e324bf237281ab9cbb865348c672e8bcda4e0f079bc958bb46"
+    },
+    {
+      "kind": "facility_crossings",
+      "path": "/data/releases/2026-09-21.1/facility_crossings.json",
+      "bytes": 4165865,
+      "sha256": "273e5258f301440c2fbc610a9966bf7ff6c21154a340325f5ec71a596f7edbff"
+    },
+    {
+      "kind": "crz_context",
+      "path": "/data/releases/2026-09-21.1/crz_entry_summary.json",
+      "bytes": 66535,
+      "sha256": "519dd2db1cff7e70b217d84b9ebb185621304df7351b0f205400a6f4dcd03fc6"
+    },
+    {
+      "kind": "air_measurements",
+      "path": "/data/releases/2026-09-21.1/nyccas_pm25_daily.csv",
+      "bytes": 1540151,
+      "sha256": "eeb32fafcb40a10d10bf7c3f18eff5508b9fea2ec70fb7e574fed6ebef49a2c3"
+    },
+    {
+      "kind": "air_measurements",
+      "path": "/data/releases/2026-09-21.1/nyccas_pm25_hourly.csv",
+      "bytes": 46933880,
+      "sha256": "40c568146d1c6e41646654e4d8d108f67698e31008c2ea4490261aea0853d380"
+    },
+    {
+      "kind": "historical_context",
+      "path": "/data/releases/2026-09-21.1/air_context.json",
+      "bytes": 34186,
+      "sha256": "51bd201f71dcad62a878a49c61432a6faffcac6f1a705f823c95d145813b8b97"
+    },
+    {
+      "kind": "health_context",
+      "path": "/data/releases/2026-09-21.1/health_context.json",
+      "bytes": 28287,
+      "sha256": "770554d942def23710a4de899f220ff221d5ff969a47a8013d815933bb022097"
+    },
+    {
+      "kind": "dac_context",
+      "path": "/data/releases/2026-09-21.1/equity_context.geojson",
+      "bytes": 481251,
+      "sha256": "e27c3f063511107c0b0a0ada77a7e31a1d0b98f97c7b066cd00157faadeba16e"
+    }
+  ]
+}

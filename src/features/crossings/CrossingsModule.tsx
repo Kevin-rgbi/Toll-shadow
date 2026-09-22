@@ -28,7 +28,7 @@ interface CrossingsModuleProps {
 }
 
 const formatVehicles = (value: number): string => value.toLocaleString('en-US')
-const formatShare = (value: number): string => `${value.toFixed(1)}%`
+const formatShare = (value: number | null): string => value === null ? 'Incomplete payment coverage' : `${value.toFixed(1)}% E-ZPass`
 
 /**
  * MTA facility-crossing module (PRD FR-04).
@@ -132,7 +132,7 @@ export function CrossingsModule({ state, release, start, end, onRangeChange }: C
                       <span className="module-row-main">{directionLabel(summary.direction)}</span>
                       <span className="module-row-meta">
                         {formatVehicles(summary.totalVehicles)} vehicles ·{' '}
-                        {formatShare(summary.ezpassSharePct)} E-ZPass ·{' '}
+                        {formatShare(summary.ezpassSharePct)} ·{' '}
                         {formatVehicles(summary.publishedDays)} daily rows
                       </span>
                     </li>
@@ -149,7 +149,7 @@ export function CrossingsModule({ state, release, start, end, onRangeChange }: C
                       <span className="module-row-meta">
                         {plaza.facilityCode} · plaza {plaza.plazaId} ·{' '}
                         {formatVehicles(plaza.totalVehicles)} vehicles ·{' '}
-                        {formatShare(plaza.ezpassSharePct)} E-ZPass ·{' '}
+                        {formatShare(plaza.ezpassSharePct)} ·{' '}
                         {formatVehicles(plaza.publishedDays)} daily rows ·{' '}
                         {plaza.firstObservedOn} to {plaza.lastObservedOn}
                       </span>

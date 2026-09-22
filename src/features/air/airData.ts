@@ -33,6 +33,9 @@ const AIR_SCALE = [
 const ABOVE_SCALE_COLOR = '#7f0000'
 const MISSING_COLOR = '#85898f'
 const MISSING_FILL = '#fcfcfb'
+const NYC_DATE_FORMAT = new Intl.DateTimeFormat('en-CA', {
+  timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit',
+})
 
 type CsvRow = string[]
 
@@ -135,6 +138,7 @@ const coverageStatus = (
   validHours: number,
   sourceStatus: string,
 ): AirCoverageStatus => {
+  if (sourceStatus.toLowerCase().includes('relocat')) return 'monitor_relocated'
   if (pm25 === null || validHours < 18 || sourceStatus.toLowerCase().includes('no data')) {
     return pm25 === null && validHours === 0 ? 'no_data' : 'insufficient_hours'
   }
@@ -151,7 +155,7 @@ const stationFromRow = (
   const borough = required(row, 'borough', label)
   const coordinates = coordinate(row, label)
 
-  if (existing && (existing.name !== name || existing.borough !== borough || existing.coordinates[0] !== coordinates[0] || existing.coordinates[1] !== coordinates[1])) {
+  if (existing && (existing.name !== name || existing.borough !== borough)) {
     throw new Error(`${label}: station metadata changed for ${id}`)
   }
 
@@ -161,7 +165,7 @@ const stationFromRow = (
     borough,
     coordinates,
     locationNote: null,
-    locationHistoryFlag: name === 'Midtown West',
+    locationHistoryFlag: name === 'Midtown West' || optional(row, 'location_note') !== null,
   }
 }
 
@@ -178,7 +182,6 @@ export const parseAirDailyCsv = (text: string, sourceFile = AIR_DAILY_PATH): Air
   const headers = parsed[0]
   const requiredHeaders = [
     'timestamp_utc',
-    'date_utc',
     'site_id',
     'site_name',
     'borough',
@@ -192,6 +195,9 @@ export const parseAirDailyCsv = (text: string, sourceFile = AIR_DAILY_PATH): Air
   ]
   for (const header of requiredHeaders) {
     if (!headers.includes(header)) throw new Error(`${sourceFile}: missing ${header}`)
+  }
+  if (!headers.includes('date_nyc') && !headers.includes('date_utc')) {
+    throw new Error(`${sourceFile}: missing date_nyc or date_utc`)
   }
 
   const stations = new Map<string, AirStation>()
@@ -208,7 +214,8 @@ export const parseAirDailyCsv = (text: string, sourceFile = AIR_DAILY_PATH): Air
     const label = `${sourceFile} row ${index + 1}`
     const row = rowObject(parsed[index], headers, label)
     const siteId = required(row, 'site_id', label)
-    const date = required(row, 'date_utc', label)
+    const dateField = headers.includes('date_nyc') ? 'date_nyc' : 'date_utc'
+    const date = required(row, dateField, label)
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !Number.isFinite(Date.parse(`${date}T00:00:00Z`))) {
       throw new Error(`${label}: invalid date ${date}`)
     }
@@ -216,8 +223,11 @@ export const parseAirDailyCsv = (text: string, sourceFile = AIR_DAILY_PATH): Air
     const station = stationFromRow(row, label, stations.get(siteId))
     stations.set(siteId, station)
     const timestampMs = timestampValue(optional(row, 'timestamp_utc'), label)
-    if (new Date(timestampMs).toISOString().slice(0, 10) !== date) {
-      throw new Error(`${label}: timestamp does not match date_utc`)
+    const timestampDate = dateField === 'date_nyc'
+      ? NYC_DATE_FORMAT.format(new Date(timestampMs))
+      : new Date(timestampMs).toISOString().slice(0, 10)
+    if (timestampDate !== date) {
+      throw new Error(`${label}: timestamp does not match ${dateField}`)
     }
 
     const rawPm25 = optional(row, 'pm25_daily_mean_ugm3')
@@ -226,6 +236,7 @@ export const parseAirDailyCsv = (text: string, sourceFile = AIR_DAILY_PATH): Air
     if (pm25 === null) nullValues += 1
 
     const validHours = optionalNumber(optional(row, 'valid_hours'), label) ?? 0
+    const expectedHours = optionalNumber(optional(row, 'expected_hours'), label) ?? 24
     const coveragePct = optionalNumber(optional(row, 'coverage_pct'), label)
     if (coveragePct !== null) {
       minPct = minPct === null ? coveragePct : Math.min(minPct, coveragePct)
@@ -243,9 +254,10 @@ export const parseAirDailyCsv = (text: string, sourceFile = AIR_DAILY_PATH): Air
       siteId,
       siteName: station.name,
       borough: station.borough,
-      coordinates: station.coordinates,
+      coordinates: coordinate(row, label),
       pm25,
       coverageHours: validHours,
+      expectedHours,
       coveragePct,
       coverageStatus: status,
       qualityStatus: optional(row, 'quality_status'),
@@ -273,7 +285,7 @@ export const parseAirDailyCsv = (text: string, sourceFile = AIR_DAILY_PATH): Air
     maxDate: sortedDates.at(-1) ?? '',
     latestCompleteDate,
     row: {
-      total: sortedDates.length * stations.size,
+      total: parsed.length - 1,
       qualifying,
       noData,
       insufficientHours,
@@ -333,7 +345,7 @@ export const parseAirHourlyCsv = (
       siteId,
       siteName: station.name,
       borough: station.borough,
-      coordinates: station.coordinates,
+      coordinates: coordinate(row, label),
       pm25,
       qualityStatus: optional(row, 'quality_status'),
       locationNote: optional(row, 'location_note'),
@@ -348,6 +360,7 @@ export const parseAirHourlyCsv = (
 
   const sortedTimestamps = [...timestamps].sort((a, b) => a - b)
   const totalExpected = sortedTimestamps.length * dailyStations.length
+  const explicitMissingRows = nullValues > 0
   return {
     stations: [...dailyStations],
     stationById,
@@ -356,9 +369,9 @@ export const parseAirHourlyCsv = (
     minTimestamp: sortedTimestamps[0] ?? 0,
     maxTimestamp: sortedTimestamps.at(-1) ?? 0,
     row: {
-      total: totalExpected,
-      present: parsed.length - 1,
-      missing: Math.max(0, totalExpected - (parsed.length - 1)),
+      total: explicitMissingRows ? parsed.length - 1 : totalExpected,
+      present: explicitMissingRows ? parsed.length - 1 - nullValues : parsed.length - 1,
+      missing: explicitMissingRows ? nullValues : Math.max(0, totalExpected - (parsed.length - 1)),
       nullValues,
     },
   }
@@ -460,11 +473,11 @@ export const buildAirMapPoints = (
         id: station.id,
         name: station.name,
         borough: station.borough,
-        coordinates: station.coordinates,
+        coordinates: reading?.coordinates ?? station.coordinates,
         period: formatAirPeriod(timestamp, granularity),
         pm25,
         coverage: isDaily && reading
-          ? `${(reading as AirDailyReading).coverageHours}/24 h · ${((reading as AirDailyReading).coveragePct ?? 0).toFixed(0)}%`
+          ? `${(reading as AirDailyReading).coverageHours}/${(reading as AirDailyReading).expectedHours} h · ${((reading as AirDailyReading).coveragePct ?? 0).toFixed(0)}%`
           : reading
             ? '1 hourly record'
             : 'No record',
@@ -480,7 +493,7 @@ export const buildAirMapPoints = (
       return {
         type: 'Feature',
         id: station.id,
-        geometry: { type: 'Point', coordinates: station.coordinates },
+        geometry: { type: 'Point', coordinates: reading?.coordinates ?? station.coordinates },
         properties: {
           id: point.id,
           name: point.name,
@@ -504,7 +517,7 @@ export const buildAirMapPoints = (
 
 export const formatAirPeriod = (timestamp: number, granularity: 'daily' | 'hourly'): string => {
   if (granularity === 'daily') {
-    return `${new Date(timestamp).toISOString().slice(0, 10)} UTC day`
+    return `${new Date(timestamp).toISOString().slice(0, 10)} New York day`
   }
 
   const utc = new Date(timestamp)

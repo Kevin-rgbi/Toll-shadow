@@ -1,9 +1,46 @@
 # Release Evidence
 
-Release figures below were produced on **2026-09-20** in the session that published this release. The
-merged verification results were refreshed on **2026-09-21** with the commands named next to them.
+Release `2026-09-21.1` figures were produced locally on **2026-09-21**. It has not been deployed.
+The earlier `2026-09-20.5` deployment record remains below as historical evidence.
 
-## Release contents — `2026-09-20.5`
+## Release contents — `2026-09-21.1`
+
+| Fact | Value |
+|---|---|
+| Schema / transform | `2.1.0` / `unified-air-traffic-2.0.0` |
+| Status | `validated`, not deployed |
+| Release coverage | 2024-01-01 → 2026-09-21 |
+| Published assets | 8 |
+| Payload | 54,752,645 bytes (about 52.2 MiB) |
+
+| Asset | Coverage | Bytes |
+|---|---|---:|
+| Sampled DOT traffic | 2024-01-01 → 2026-02-03 | 1,502,491 |
+| MTA facility crossings | 2025-01-01 → 2026-09-08 | 4,165,864 |
+| CRZ entry context | 2025-01-05 → 2026-09-12 | 66,535 |
+| NYCCAS PM2.5 daily | 2024-12-31 local date → 2026-09-20 local date | 1,540,151 |
+| NYCCAS PM2.5 hourly | 2025-01-01 00:00 UTC → 2026-09-21 00:00 UTC | 46,933,880 |
+| Historical air / health / equity | dated context retained from `2026-09-20.5` | 543,724 |
+
+Quality evidence: 1,875,154 DOT rows inspected (186,691 included, one negative sentinel rejected);
+2,939,033 official crossing rows represented by 23,397 server aggregates and 11,699 published daily
+facility/direction rows; 6,386,688 CRZ rows represented by 252 month/group aggregates; and 198,205
+NYCCAS observations represented by 217,872 active station-hours, including 19,667 explicit null gaps.
+There are no duplicate NYCCAS site-hours. Daily PM2.5 uses New York calendar days, including 23/25
+hour DST days, and withholds one relocation-day mean.
+
+Reproduction commands:
+
+```sh
+node pipeline/scripts/fetch-official-traffic-snapshots.mjs
+node pipeline/scripts/build-unified-release.mjs \
+  --air-archive /path/to/nyccas-data-main.zip \
+  --dot-input /path/to/Automated_Traffic_Volume_Counts_20260921.csv
+```
+
+---
+
+## Historical deployed release — `2026-09-20.5`
 
 | Fact | Value |
 |---|---|

@@ -15,6 +15,8 @@ describe('view state in the URL', () => {
       timeBand: null,
       crossingsStart: '2024-01-01',
       crossingsEnd: '2024-06-30',
+      airGranularity: null,
+      airTime: null,
       build: null,
       map: null,
     })
@@ -45,6 +47,8 @@ describe('view state in the URL', () => {
       timeBand: null,
       crossingsStart: null,
       crossingsEnd: null,
+      airGranularity: null,
+      airTime: null,
       build: null,
       map: null,
     })
@@ -91,6 +95,8 @@ describe('view state in the URL', () => {
       borough: 'Bronx',
       crossingsStart: '2024-02-01',
       crossingsEnd: '2024-03-01',
+      airGranularity: null,
+      airTime: null,
     }
 
     expect(readViewState(buildViewStateQuery(original))).toEqual({
@@ -101,8 +107,31 @@ describe('view state in the URL', () => {
       timeBand: null,
       crossingsStart: '2024-02-01',
       crossingsEnd: '2024-03-01',
+      airGranularity: null,
+      airTime: null,
       build: null,
       map: null,
+    })
+  })
+
+  it('round-trips measured-air resolution and timestamp', () => {
+    const query = buildViewStateQuery({
+      mode: 'AIR',
+      date: null,
+      borough: null,
+      dayType: null,
+      timeBand: null,
+      crossingsStart: null,
+      crossingsEnd: null,
+      airGranularity: 'hourly',
+      airTime: '2026-09-08T23:00:00.000Z',
+      build: null,
+      map: null,
+    })
+    expect(readViewState(query)).toMatchObject({
+      mode: 'AIR',
+      airGranularity: 'hourly',
+      airTime: '2026-09-08T23:00:00.000Z',
     })
   })
 })

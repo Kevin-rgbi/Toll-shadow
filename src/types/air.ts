@@ -1,6 +1,6 @@
 export type AirGranularity = 'daily' | 'hourly'
 
-export type AirCoverageStatus = 'qualifying' | 'no_data' | 'insufficient_hours'
+export type AirCoverageStatus = 'qualifying' | 'no_data' | 'insufficient_hours' | 'monitor_relocated'
 
 export interface AirStation {
   id: string
@@ -20,6 +20,7 @@ export interface AirDailyReading {
   coordinates: [number, number]
   pm25: number | null
   coverageHours: number
+  expectedHours: number
   coveragePct: number | null
   coverageStatus: AirCoverageStatus
   qualityStatus: string | null

@@ -41,6 +41,32 @@ test('the module is addressable by parameter alone, with no in-page interaction'
   for (const mode of ['TRAFFIC', 'CRZ', 'AIR', 'EQUITY']) {
     await page.goto(`/?module=${mode}`)
     await expect(page.locator('.mode-tab[aria-pressed="true"]')).toHaveText(mode)
-    await expect(moduleCard(page)).toBeVisible()
+    await expect(moduleCard(page).first()).toBeVisible()
+  }
+})
+
+test('measured AIR resolution and timestamp survive a deep link', async ({ page }) => {
+  await page.goto('/?module=AIR&air=hourly&airTime=2026-09-08T23%3A00%3A00.000Z')
+  await expect(page.getByLabel('Resolution')).toHaveValue('hourly')
+  await expect(page.locator('.air-timeline-period')).toContainText('Sep 08, 2026')
+  await expect(page).toHaveURL(/air=hourly/)
+  const rates = await page.locator('.air-rate-control option').allTextContents()
+  expect(rates).toEqual(['0.5×', '1×', '2×', '4×'])
+})
+
+test('STORY uses published measured-air points and timeline', async ({ page }) => {
+  await page.goto('/')
+  await expect(page.locator('.air-timeline-shell')).toBeVisible()
+  const map = page.locator('.map-shell, .raster-map-wrap').first()
+  await expect(map).toBeVisible()
+
+  const gpuReadout = page.locator('.map-renderer-note')
+  const softwareMap = page.locator('.raster-map-wrap')
+  await expect(gpuReadout.or(softwareMap).first()).toBeVisible()
+
+  if (await softwareMap.count() > 0) {
+    await expect(softwareMap.getByRole('region')).toHaveAttribute('aria-label', /15 published points/)
+  } else {
+    await expect(gpuReadout).toContainText(/points in view|checking what is on screen/)
   }
 })
