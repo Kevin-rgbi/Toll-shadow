@@ -188,9 +188,9 @@ export const useAppStore = create<AppState>((set, get) => ({
     const minTimestamp = steps[0] ?? 0
     const maxTimestamp = steps.at(-1) ?? 0
     const state = get()
-    const currentInWindow = state.airTimestamp >= minTimestamp && state.airTimestamp <= maxTimestamp
+    const clampedCurrent = Math.max(minTimestamp, Math.min(state.airTimestamp, maxTimestamp))
     const airTimestamp = steps.length > 0
-      ? (currentInWindow ? nearestAirStep(steps, state.airTimestamp) : minTimestamp)
+      ? (state.airTimestamp === 0 ? maxTimestamp : nearestAirStep(steps, clampedCurrent))
       : 0
     set({
       airSteps: steps,

@@ -99,6 +99,14 @@ test.describe('published modules render published values', () => {
     expect(painted, 'the air canvas exists but nothing was drawn on it').toBeGreaterThan(0)
   })
 
+  test('a fresh AIR visit opens on the latest published measurement', async ({ page }) => {
+    await page.goto('/?module=AIR')
+
+    await expect(page.locator('.air-current-row')).toContainText('2026-09-20 New York day')
+    await expect(page.locator('.air-current-row')).not.toContainText('No data')
+    await expect(page.locator('.air-current-row')).toContainText('21/24 h')
+  })
+
   test('every module attributes its values to the published release', async ({ page }) => {
     for (const mode of ['TRAFFIC', 'CROSSINGS', 'CRZ', 'AIR', 'EQUITY', 'CONFIDENCE', 'HOTSPOTS']) {
       await page.goto(`/?module=${mode}`)

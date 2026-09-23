@@ -36,7 +36,15 @@ describe('AIR playback store', () => {
   it('offers only the supported playback rates', () => {
     expect(AIR_PLAYBACK_RATES).toEqual([0.5, 1, 2, 4])
   })
+
+  it('opens a newly loaded timeline at the latest published step', () => {
+    useAppStore.getState().setAirTimeline(dataset, 'daily')
+
+    expect(useAppStore.getState().airTimestamp).toBe(Date.parse('2026-01-03T00:00:00Z'))
+  })
+
   it('snaps to recorded steps and accumulates fractional seconds', () => {
+    useAppStore.setState({ airTimestamp: Date.parse('2026-01-01T00:00:00Z') })
     const store = useAppStore.getState()
     store.setAirTimeline(dataset, 'daily')
     expect(useAppStore.getState().airSteps).toHaveLength(3)
@@ -52,6 +60,7 @@ describe('AIR playback store', () => {
   it('pauses advancement while scrubbing and supports looping', () => {
     const state = useAppStore.getState()
     state.setAirTimeline(dataset, 'daily')
+    state.setAirTimestamp(Date.parse('2026-01-01T00:00:00Z'))
     state.setAirPlayback(true)
     state.setAirScrubbing(true)
     state.tickAirPlayback(10)
