@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { FeatureCollection, Geometry, Position } from 'geojson'
-import { AIR_UNITS } from '../../features/air/airData'
+import { AirPointCardContent } from './AirPointCardContent'
 import { NYC_BOUNDS, NYC_CENTER } from './mapConfig'
 import {
   type ScreenPoint,
@@ -485,6 +485,9 @@ export function RasterMap({ boundary, traffic, notice, focus, onSelect }: Raster
         coverageStatus: typeof feature.properties?.coverageStatus === 'string' ? feature.properties.coverageStatus : null,
         aboveScale: feature.properties?.aboveScale === true,
         selected: feature.properties?.selected === true,
+        latestAvailablePm25: typeof feature.properties?.latestAvailablePm25 === 'number' ? feature.properties.latestAvailablePm25 : null,
+        latestAvailablePeriod: typeof feature.properties?.latestAvailablePeriod === 'string' ? feature.properties.latestAvailablePeriod : null,
+        latestAvailableCoverage: typeof feature.properties?.latestAvailableCoverage === 'string' ? feature.properties.latestAvailableCoverage : null,
       }]
     })
   }, [center.lat, center.lng, traffic, viewport.height, viewport.width, zoom])
@@ -596,13 +599,7 @@ export function RasterMap({ boundary, traffic, notice, focus, onSelect }: Raster
 
         {(hoveredPoint ?? selectedPoint) && (
           <div className="map-selection-card raster-map-selection-card" aria-live="polite">
-            <p className="map-selection-kicker">PM2.5 · {(hoveredPoint ?? selectedPoint)?.coverageStatus === 'qualifying' ? 'QUALIFYING' : 'GAP VISIBLE'}</p>
-            <h3>{(hoveredPoint ?? selectedPoint)?.name ?? 'Monitor'}</h3>
-            <p>
-              {(hoveredPoint ?? selectedPoint)?.borough ?? 'Borough unavailable'} · {(hoveredPoint ?? selectedPoint)?.period ?? 'Period unavailable'}<br />
-              {(hoveredPoint ?? selectedPoint)?.pm25 === null ? 'No data' : `${(hoveredPoint ?? selectedPoint)?.pm25?.toFixed(2)} ${AIR_UNITS}${(hoveredPoint ?? selectedPoint)?.aboveScale ? ' · above scale' : ''}`} · {(hoveredPoint ?? selectedPoint)?.coverage ?? 'Coverage unavailable'}
-            </p>
-            <p className="sources-note">Preliminary sensor data; gaps are not zero.</p>
+            <AirPointCardContent point={(hoveredPoint ?? selectedPoint) as NonNullable<typeof hoveredPoint>} />
           </div>
         )}
 

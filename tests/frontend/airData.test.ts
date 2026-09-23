@@ -49,6 +49,34 @@ describe('AIR reference data', () => {
     expect(points.features.every((feature) => feature.properties?.fill === '#fcfcfb')).toBe(true)
   })
 
+  it('carries the latest qualifying monitor reading into a current gap', () => {
+    const compactDaily = parseAirDailyCsv([
+      'timestamp_utc,date_nyc,year,month,site_id,site_name,borough,latitude,longitude,pm25_daily_mean_ugm3,pm25_observed_mean_ugm3,pm25_hourly_max_ugm3,valid_hours,expected_hours,coverage_pct,coverage_status,quality_status,location_note',
+      '2026-01-01T05:00:00Z,2026-01-01,2026,1,site-a,Site A,Queens,40.7,-73.9,7.25,7.25,10,24,24,100,qualifying,Preliminary,',
+      '2026-01-02T05:00:00Z,2026-01-02,2026,1,site-a,Site A,Queens,40.7,-73.9,,,,0,24,0,no_data,Preliminary,',
+    ].join('\n'))
+    const compactDataset: AirDataset = {
+      daily: compactDaily,
+      hourly: null,
+      dailyBytes: 0,
+      hourlyBytes: null,
+      sourceFiles: [],
+    }
+
+    const [point] = buildAirMapPoints(compactDataset, 'daily', Date.parse('2026-01-02T00:00:00Z'), {
+      borough: null,
+      siteFilter: 'all',
+      selectedSiteId: null,
+    }).features
+
+    expect(point.properties).toMatchObject({
+      missing: true,
+      latestAvailablePm25: 7.25,
+      latestAvailablePeriod: '2026-01-01 New York day',
+      latestAvailableCoverage: '24/24 h · 100%',
+    })
+  })
+
   it('derives coverage summaries and excludes partial months by default', () => {
     const summary = buildAirCoverageSummary(dataset)
     expect(summary?.daily.monitors).toBe(15)

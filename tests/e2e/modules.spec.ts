@@ -107,6 +107,30 @@ test.describe('published modules render published values', () => {
     await expect(page.locator('.air-current-row')).toContainText('21/24 h')
   })
 
+  test('an AIR gap shows the monitor latest qualifying measurement', async ({ page, isMobile }) => {
+    await page.goto('/?module=AIR&map=software')
+    if (isMobile) await page.locator('.rail-handle').click()
+
+    await page.locator('.air-module .module-filter-row select').nth(2).selectOption({ label: 'Glendale' })
+    if (isMobile) await page.locator('.rail-handle').click()
+    await page.waitForTimeout(1_200)
+
+    const map = page.getByRole('region', { name: /Map of New York City drawn from raster tiles/ })
+    const bounds = await map.boundingBox()
+    expect(bounds).not.toBeNull()
+    if (bounds) {
+      await map.dispatchEvent('mousemove', {
+        clientX: bounds.x + bounds.width / 2,
+        clientY: bounds.y + bounds.height / 2,
+      })
+    }
+
+    const card = page.locator('.raster-map-selection-card')
+    await expect(card).toContainText('Glendale')
+    await expect(card).toContainText('No data · No record')
+    await expect(card).toContainText('Latest qualifying reading: 2.95 µg/m³ · 2025-10-12 New York day · 24/24 h · 100%')
+  })
+
   test('every module attributes its values to the published release', async ({ page }) => {
     for (const mode of ['TRAFFIC', 'CROSSINGS', 'CRZ', 'AIR', 'EQUITY', 'CONFIDENCE', 'HOTSPOTS']) {
       await page.goto(`/?module=${mode}`)

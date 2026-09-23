@@ -11,7 +11,7 @@ import {
 import {
   getTargetRenderMode,
 } from './mapOverlay'
-import { AIR_UNITS } from '../../features/air/airData'
+import { AirPointCardContent } from './AirPointCardContent'
 import type { EffectiveRenderMode, HitTarget } from './mapOverlay'
 import { drawOverlayFrame } from './mapOverlayDraw'
 import { useMapInstance } from './useMapInstance'
@@ -33,6 +33,9 @@ interface ReleasePointHit {
   radius: number
   selected: boolean
   aboveScale: boolean
+  latestAvailablePm25: number | null
+  latestAvailablePeriod: string | null
+  latestAvailableCoverage: string | null
 }
 
 interface MapShellProps {
@@ -77,6 +80,9 @@ const releasePointHitFromFeature = (feature: { properties?: Record<string, unkno
     radius: typeof properties.radius === 'number' ? properties.radius : 4,
     selected: properties.selected === true,
     aboveScale: properties.aboveScale === true,
+    latestAvailablePm25: typeof properties.latestAvailablePm25 === 'number' ? properties.latestAvailablePm25 : null,
+    latestAvailablePeriod: typeof properties.latestAvailablePeriod === 'string' ? properties.latestAvailablePeriod : null,
+    latestAvailableCoverage: typeof properties.latestAvailableCoverage === 'string' ? properties.latestAvailableCoverage : null,
   }
 }
 
@@ -435,13 +441,7 @@ export function MapShell({
       )}
       {(activeMode === 'AIR' || activeMode === 'STORY') && (hoveredReleasePoint ?? selectedReleasePoint) && !mapFallbackMessage && (
         <aside className="map-selection-card" aria-live="polite">
-          <p className="map-selection-kicker">PM2.5 · {(hoveredReleasePoint ?? selectedReleasePoint)?.coverageStatus === 'qualifying' ? 'QUALIFYING' : 'GAP VISIBLE'}</p>
-          <h3>{(hoveredReleasePoint ?? selectedReleasePoint)?.name}</h3>
-          <p>
-            {(hoveredReleasePoint ?? selectedReleasePoint)?.borough} · {(hoveredReleasePoint ?? selectedReleasePoint)?.period}<br />
-            {(hoveredReleasePoint ?? selectedReleasePoint)?.pm25 === null ? 'No data' : `${(hoveredReleasePoint ?? selectedReleasePoint)?.pm25?.toFixed(2)} ${AIR_UNITS}${(hoveredReleasePoint ?? selectedReleasePoint)?.aboveScale ? ' · above scale' : ''}`} · {(hoveredReleasePoint ?? selectedReleasePoint)?.coverage}
-          </p>
-          <p className="sources-note">Preliminary sensor data; gaps are not zero.</p>
+          <AirPointCardContent point={(hoveredReleasePoint ?? selectedReleasePoint) as ReleasePointHit} />
         </aside>
       )}
       {selectedTarget && activeMode !== 'AIR' && activeMode !== 'STORY' && !mapFallbackMessage && (

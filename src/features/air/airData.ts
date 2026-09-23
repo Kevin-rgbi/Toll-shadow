@@ -469,6 +469,33 @@ export const buildAirMapPoints = (
         : 'no_data'
       const missing = coverageStatus !== 'qualifying' || pm25 === null
       const color = airValueColor(pm25)
+      let latestAvailablePm25: number | null = null
+      let latestAvailablePeriod: string | null = null
+      let latestAvailableCoverage: string | null = null
+
+      if (missing && granularity === 'daily') {
+        for (let index = dataset.daily.dates.length - 1; index >= 0; index -= 1) {
+          const candidate = dataset.daily.byDate.get(dataset.daily.dates[index])?.get(station.id)
+          if (!candidate || candidate.coverageStatus !== 'qualifying' || candidate.pm25 === null) continue
+          latestAvailablePm25 = candidate.pm25
+          latestAvailablePeriod = `${candidate.date} New York day`
+          latestAvailableCoverage = `${candidate.coverageHours}/${candidate.expectedHours} h · ${((candidate.coveragePct ?? 0)).toFixed(0)}%`
+          break
+        }
+      }
+
+      if (missing && granularity === 'hourly' && dataset.hourly) {
+        for (let index = dataset.hourly.timestamps.length - 1; index >= 0; index -= 1) {
+          const candidateTimestamp = dataset.hourly.timestamps[index]
+          const candidate = dataset.hourly.byTimestamp.get(candidateTimestamp)?.get(station.id)
+          if (!candidate || candidate.pm25 === null) continue
+          latestAvailablePm25 = candidate.pm25
+          latestAvailablePeriod = formatAirPeriod(candidateTimestamp, 'hourly')
+          latestAvailableCoverage = '1 hourly record'
+          break
+        }
+      }
+
       const point: AirMapPoint = {
         id: station.id,
         name: station.name,
@@ -488,6 +515,9 @@ export const buildAirMapPoints = (
         radius: options.selectedSiteId === station.id ? 7 : 4,
         selected: options.selectedSiteId === station.id,
         aboveScale: !missing && color.aboveScale,
+        latestAvailablePm25,
+        latestAvailablePeriod,
+        latestAvailableCoverage,
       }
 
       return {
@@ -508,6 +538,9 @@ export const buildAirMapPoints = (
           radius: point.radius,
           selected: point.selected,
           aboveScale: point.aboveScale,
+          latestAvailablePm25: point.latestAvailablePm25,
+          latestAvailablePeriod: point.latestAvailablePeriod,
+          latestAvailableCoverage: point.latestAvailableCoverage,
           missing,
         },
       }

@@ -105,6 +105,9 @@ export interface AirMapPoint {
   radius: number
   selected: boolean
   aboveScale: boolean
+  latestAvailablePm25: number | null
+  latestAvailablePeriod: string | null
+  latestAvailableCoverage: string | null
 }
 
 export interface AirMonthlySiteComparison {
