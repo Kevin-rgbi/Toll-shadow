@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import type { ReleaseManifestState } from '../../hooks/useReleaseManifest'
 import type { SyntheticHotspotItem } from '../../lib/analysis'
 import { RELEASE_ASSET_LABELS } from '../../lib/sourceMessaging'
@@ -12,6 +12,36 @@ interface DataRibbonProps {
 const formatSigned = (value: number, digits = 1): string => {
   const sign = value > 0 ? '+' : ''
   return `${sign}${value.toFixed(digits)}`
+}
+
+function RibbonFrame({ label, summary, children }: { label: string, summary: string, children: ReactNode }) {
+  const [expanded, setExpanded] = useState(false)
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => window.dispatchEvent(new Event('resize')))
+    return () => window.cancelAnimationFrame(frame)
+  }, [expanded])
+
+  return (
+    <section className="data-ribbon-shell" aria-label={label} aria-live="polite">
+      <button
+        type="button"
+        className="data-ribbon-toggle"
+        aria-controls="data-ribbon-details"
+        aria-expanded={expanded}
+        onClick={() => setExpanded((current) => !current)}
+      >
+        <span className="data-ribbon-compact">{summary}</span>
+        <span className="data-ribbon-action">
+          {expanded ? 'Hide release details' : 'Show release details'}
+          <span aria-hidden="true">{expanded ? '↑' : '↓'}</span>
+        </span>
+      </button>
+      <div id="data-ribbon-details" className="data-ribbon" hidden={!expanded}>
+        {children}
+      </div>
+    </section>
+  )
 }
 
 /**
@@ -42,7 +72,7 @@ export function DataRibbon({ state, syntheticHotspots, latestCoverage }: DataRib
 
   if (isDevSynthetic && devMetrics) {
     return (
-      <section className="data-ribbon" aria-label="Synthetic development summary" aria-live="polite">
+      <RibbonFrame label="Synthetic development summary" summary="Synthetic development summary">
         <p>
           <span>Dev locations</span>
           <strong className="metric-value metric-neutral">{devMetrics.tracked}</strong>
@@ -59,7 +89,7 @@ export function DataRibbon({ state, syntheticHotspots, latestCoverage }: DataRib
           <span>Evidence status</span>
           <strong className="metric-value metric-neutral">SYNTHETIC DEV</strong>
         </p>
-      </section>
+      </RibbonFrame>
     )
   }
 
@@ -70,7 +100,10 @@ export function DataRibbon({ state, syntheticHotspots, latestCoverage }: DataRib
     : 'None published'
 
   return (
-    <section className="data-ribbon" aria-label="Release status summary" aria-live="polite">
+    <RibbonFrame
+      label="Release status summary"
+      summary={`Release ${release?.release_id ?? 'not published'} · ${status.toUpperCase()} · ${assetCount} assets`}
+    >
       <p>
         <span>Release</span>
         <strong className="metric-value metric-neutral">{release?.release_id ?? 'None'}</strong>
@@ -97,6 +130,6 @@ export function DataRibbon({ state, syntheticHotspots, latestCoverage }: DataRib
         <span>Data state</span>
         <strong className="metric-value metric-neutral">{status.toUpperCase()}</strong>
       </p>
-    </section>
+    </RibbonFrame>
   )
 }

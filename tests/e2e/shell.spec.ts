@@ -41,6 +41,25 @@ test('the running build stamps its identity and names the data status', async ({
   await expect(status.first()).toBeVisible()
 })
 
+test('release details collapse to give the map more room and can be reopened', async ({ page }) => {
+  await page.goto('/?module=AIR')
+
+  const summary = page.getByRole('region', { name: 'Release status summary' })
+  const details = summary.locator('.data-ribbon')
+  const show = summary.getByRole('button', { name: /Show release details/ })
+  await expect(show).toBeVisible()
+  await expect(show).toHaveAttribute('aria-expanded', 'false')
+  await expect(details).toBeHidden()
+
+  await show.click()
+  await expect(details).toBeVisible()
+  await expect(summary.getByRole('button', { name: /Hide release details/ })).toHaveAttribute('aria-expanded', 'true')
+  await expect(details).toContainText('Modules with a published asset')
+
+  await summary.getByRole('button', { name: /Hide release details/ }).click()
+  await expect(details).toBeHidden()
+})
+
 test('a link from another build reports the staleness instead of failing silently', async ({ page }) => {
   await page.goto('/?v=20000101-0000-0000000')
 
